@@ -21,8 +21,8 @@ UCLASS()
 class ASR_API ARangerWeapon : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	ARangerWeapon();
 
 	virtual void Tick(float DeltaTime) override;
@@ -36,7 +36,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
-	
+
 	virtual void OnRep_Owner() override;
 
 	UFUNCTION()
@@ -105,12 +105,12 @@ private:
 
 	UPROPERTY()
 	class ARanger* OwnerRanger;
-	
+
 	UPROPERTY()
 	class AASRPlayerController* PlayerController;
 
 
-public:	
+public:
 	bool IsOutOfAmmo() const;
 	// Getter & Setter
 	void SetWeaponState(ERangerWeaponState State);
@@ -123,6 +123,9 @@ public:
 	FORCEINLINE float GetZoomSpeed() const { return ZoomSpeed; }
 	FORCEINLINE float GetFireDelay() const { return FireDelay; }
 	FORCEINLINE bool IsAutomatic() const { return bAutomatic; }
+	FORCEINLINE int32 GetAmmo() const { return Ammo; }
+	FORCEINLINE void SetAmmo(int32 InAmmo) { Ammo = InAmmo; }
+	FORCEINLINE int32 GetMagazineCapacity() const { return MagazineCapacity; }
 
 
 
