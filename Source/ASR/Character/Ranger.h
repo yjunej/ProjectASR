@@ -111,6 +111,9 @@ private:
 
 private:
 	// Enhanced Input
+
+
+	// [TODO] BASE CLASE
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
@@ -123,11 +126,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* EquipAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleCrouchAction;
+
+	// [TODO] BASE CLASE
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* EquipAction;
+	
+
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AimAction;
@@ -137,6 +146,8 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ReloadAction;
+
+
 
 public:
 
@@ -180,9 +191,11 @@ public:
 
 
 
-
+	// [TODO] BASE CLASS
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	// [TODO] BASE CLASS
+
 	FORCEINLINE ERangerBattleState GetRangerBattleState() const { return RangerBattleState; }
 	FORCEINLINE void SetRangerBattleState(ERangerBattleState NewRangerBattleState) { RangerBattleState = NewRangerBattleState; }
 

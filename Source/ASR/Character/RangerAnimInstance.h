@@ -76,5 +76,11 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = MultiPlayer, meta = (AllowPrivateAccess = "true"))
 	bool bUseFABRIK;
 
+	UPROPERTY(BlueprintReadOnly, Category = MultiPlayer, meta = (AllowPrivateAccess = "true"))
+	bool bUseAimOffset;
+
+	UPROPERTY(BlueprintReadOnly, Category = MultiPlayer, meta = (AllowPrivateAccess = "true"))
+	bool bUseRightHandMatching;
+
 	class ARangerWeapon* EquippedWeapon;
 };

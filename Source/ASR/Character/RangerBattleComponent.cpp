@@ -206,6 +206,13 @@ void URangerBattleComponent::Reload()
 void URangerBattleComponent::ReloadFinished()
 {
 	Ranger->SetRangerBattleState(ERangerBattleState::ERS_Normal);
+	if (EquippedWeapon != nullptr)
+	{
+		EquippedWeapon->SetAmmo(EquippedWeapon->GetMagazineCapacity());
+		EquippedWeapon->SetHUDAmmo();
+		
+	}
+
 	if (bStartFire)
 	{
 		FireWithTimer();
@@ -319,6 +326,11 @@ void URangerBattleComponent::EndFireTimer()
 	if (EquippedWeapon != nullptr)
 	{
 		bCanFire = true;
+		if (EquippedWeapon->GetAmmo() <= 0)
+		{
+			Reload();
+		}
+
 		if (bStartFire && EquippedWeapon->IsAutomatic())
 		{
 			FireWithTimer();

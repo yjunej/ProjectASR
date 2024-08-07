@@ -87,5 +87,6 @@ void URangerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	}
 
 	bUseFABRIK = RangerCharacter->GetRangerBattleState() != ERangerBattleState::ERS_Reloading;
-	
+	bUseAimOffset = RangerCharacter->GetRangerBattleState() != ERangerBattleState::ERS_Reloading;
+	bUseRightHandMatching = RangerCharacter->GetRangerBattleState() != ERangerBattleState::ERS_Reloading;
 }
