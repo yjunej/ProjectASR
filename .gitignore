@@ -78,3 +78,4 @@ Content/__External*/*
 *.htm
 Assets/*
 Content/*
+.svn/*
