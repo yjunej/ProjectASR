@@ -10,6 +10,16 @@ class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
 
+UENUM(BlueprintType)
+enum class EASRCharacterState : uint8
+{
+	ECS_None UMETA(DisplayName = "Default State"),
+	ECS_Attack UMETA(DisplayName = "Attack"),
+	ECS_Dodge UMETA(DisplayName = "Dodge"),
+	ECS_Death UMETA(DisplayName = "Death"),
+
+	ECS_MAX UMETA(Hidden)
+};
 
 UCLASS()
 class ASR_API AASRCharacter : public ACharacter
@@ -26,11 +36,16 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	
+	// Enhanced Input
+	void Input_Move(const FInputActionValue& Value);
+	void Input_Look(const FInputActionValue& Value);
+	void Input_ToggleCrouch(const FInputActionValue& Value);
 
-protected:
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void ToggleCrouch(const FInputActionValue& Value);
+	EASRCharacterState CharacterState;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void ResetState();
 
 private:
 	// Enhanced Input
@@ -58,9 +73,14 @@ private:
 	class UCameraComponent* FollowCamera;
 
 
-public:	
 
+public:	
+	// Getter & Setter
+	void SetCharacterState(EASRCharacterState InCharacterState);
+
+	// FORCEINLINE 
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
+	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
 	
 };

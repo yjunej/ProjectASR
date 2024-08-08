@@ -52,15 +52,15 @@ protected:
 protected:
 
 	// Enhanced Input
-	void Move(const FInputActionValue& Value);
-	void Look(const FInputActionValue& Value);
-	void Equip(const FInputActionValue& Value);
-	void ToggleCrouch(const FInputActionValue& Value);
-	void Aim(const FInputActionValue& Value);
-	void StopAiming(const FInputActionValue& Value);
-	void Fire(const FInputActionValue& Value);
-	void StopFiring(const FInputActionValue& Value);
-	void Reload(const FInputActionValue& Value);
+	void Input_Move(const FInputActionValue& Value);
+	void Input_Look(const FInputActionValue& Value);
+	void Input_Equip(const FInputActionValue& Value);
+	void Input_ToggleCrouch(const FInputActionValue& Value);
+	void Input_Aim(const FInputActionValue& Value);
+	void Input_StopAiming(const FInputActionValue& Value);
+	void Input_Fire(const FInputActionValue& Value);
+	void Input_StopFiring(const FInputActionValue& Value);
+	void Input_Reload(const FInputActionValue& Value);
 	//
 
 	void TurnInPlace(float DeltaSeconds);

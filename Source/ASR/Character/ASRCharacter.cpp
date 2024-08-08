@@ -16,15 +16,16 @@
 AASRCharacter::AASRCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
+	// Disable Side Walk by Default
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 
-
-	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-	
+
 	// Action Game Movement
 	GetCharacterMovement()->MaxWalkSpeed = 700.f;
-	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->JumpZVelocity = 700.f;
+	GetCharacterMovement()->RotationRate.Yaw = 900.f;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->bEnableCameraLag = true;
@@ -34,6 +35,8 @@ AASRCharacter::AASRCharacter()
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+
+	CharacterState = EASRCharacterState::ECS_None;
 
 }
 
@@ -61,16 +64,16 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASRCharacter::Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AASRCharacter::Look);
-		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &AASRCharacter::ToggleCrouch);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Look);
+		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &AASRCharacter::Input_ToggleCrouch);
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
 	}
 }
 
-void AASRCharacter::Move(const FInputActionValue& Value)
+void AASRCharacter::Input_Move(const FInputActionValue& Value)
 {
 	FVector2D MoveVector = Value.Get<FVector2D>();
 
@@ -85,7 +88,7 @@ void AASRCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-void AASRCharacter::Look(const FInputActionValue& Value)
+void AASRCharacter::Input_Look(const FInputActionValue& Value)
 {
 	FVector2D LookVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
@@ -95,7 +98,7 @@ void AASRCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void AASRCharacter::ToggleCrouch(const FInputActionValue& Value)
+void AASRCharacter::Input_ToggleCrouch(const FInputActionValue& Value)
 {
 	if (GetMovementComponent()->IsFalling())
 	{
@@ -109,6 +112,19 @@ void AASRCharacter::ToggleCrouch(const FInputActionValue& Value)
 	else
 	{
 		Crouch();
+	}
+}
+
+void AASRCharacter::ResetState()
+{
+	CharacterState = EASRCharacterState::ECS_None;
+}
+
+void AASRCharacter::SetCharacterState(EASRCharacterState InCharacterState)
+{
+	if (InCharacterState != CharacterState)
+	{
+		CharacterState = InCharacterState;
 	}
 }
 

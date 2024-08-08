@@ -86,18 +86,18 @@ void ARanger::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARanger::Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARanger::Look);
-		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ARanger::Equip);
-		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &ARanger::ToggleCrouch);
-		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ARanger::Reload);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARanger::Input_Move);
+		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARanger::Input_Look);
+		EnhancedInputComponent->BindAction(EquipAction, ETriggerEvent::Triggered, this, &ARanger::Input_Equip);
+		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &ARanger::Input_ToggleCrouch);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &ARanger::Input_Reload);
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ARanger::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ARanger::StopJumping);
-		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ARanger::Aim);
-		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ARanger::StopAiming);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ARanger::Fire);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ARanger::StopFiring);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ARanger::Input_Aim);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &ARanger::Input_StopAiming);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ARanger::Input_Fire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ARanger::Input_StopFiring);
 
 		 
 	}
@@ -133,7 +133,7 @@ void ARanger::Jump()
 }
 
 
-void ARanger::Move(const FInputActionValue& Value)
+void ARanger::Input_Move(const FInputActionValue& Value)
 {
 	FVector2D MoveVector = Value.Get<FVector2D>();
 
@@ -148,7 +148,7 @@ void ARanger::Move(const FInputActionValue& Value)
 	}
 }
 
-void ARanger::Look(const FInputActionValue& Value)
+void ARanger::Input_Look(const FInputActionValue& Value)
 {
 	FVector2D LookVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
@@ -158,7 +158,7 @@ void ARanger::Look(const FInputActionValue& Value)
 	}
 }
 
-void ARanger::Equip(const FInputActionValue& Value)
+void ARanger::Input_Equip(const FInputActionValue& Value)
 {
 	if (BattleComponent != nullptr && OverlappedWeapon != nullptr)
 	{
@@ -174,7 +174,7 @@ void ARanger::Equip(const FInputActionValue& Value)
 	}
 }
 
-void ARanger::ToggleCrouch(const FInputActionValue& Value)
+void ARanger::Input_ToggleCrouch(const FInputActionValue& Value)
 {
 	if (GetMovementComponent()->IsFalling())
 	{
@@ -192,7 +192,7 @@ void ARanger::ToggleCrouch(const FInputActionValue& Value)
 	}
 }
 
-void ARanger::Aim(const FInputActionValue& Value)
+void ARanger::Input_Aim(const FInputActionValue& Value)
 {
 	if (BattleComponent != nullptr)
 	{
@@ -200,7 +200,7 @@ void ARanger::Aim(const FInputActionValue& Value)
 	}
 }
 
-void ARanger::StopAiming(const FInputActionValue& Value)
+void ARanger::Input_StopAiming(const FInputActionValue& Value)
 {
 	if (BattleComponent != nullptr)
 	{
@@ -208,7 +208,7 @@ void ARanger::StopAiming(const FInputActionValue& Value)
 	}
 }
 
-void ARanger::Fire(const FInputActionValue& Value)
+void ARanger::Input_Fire(const FInputActionValue& Value)
 {
 	if (BattleComponent != nullptr)
 	{
@@ -216,7 +216,7 @@ void ARanger::Fire(const FInputActionValue& Value)
 	}
 }
 
-void ARanger::StopFiring(const FInputActionValue& Value)
+void ARanger::Input_StopFiring(const FInputActionValue& Value)
 {
 	if (BattleComponent != nullptr)
 	{
@@ -224,7 +224,7 @@ void ARanger::StopFiring(const FInputActionValue& Value)
 	}
 }
 
-void ARanger::Reload(const FInputActionValue& Value)
+void ARanger::Input_Reload(const FInputActionValue& Value)
 {
 	if (BattleComponent != nullptr)
 	{
