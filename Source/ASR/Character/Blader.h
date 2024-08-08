@@ -46,6 +46,8 @@ private:
 	void ExecuteLightAttack(int32 AttackIndex);
 	void ResetLightAttack();
 
+	// MotionWarping
+	float LightAttackWarpDistance = 1000.f;
 
 	UFUNCTION(BlueprintCallable)
 	void ResolveLightAttackPending();

@@ -9,6 +9,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "MotionWarpingComponent.h"
 
 
 
@@ -30,11 +31,14 @@ AASRCharacter::AASRCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->bEnableCameraLag = true;
 	CameraBoom->CameraLagSpeed = 16.f;
-	CameraBoom->TargetArmLength = 400.f;
+	CameraBoom->TargetArmLength = 400.f;	
 	CameraBoom->SetupAttachment(GetMesh());
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+
+	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
+
 
 	CharacterState = EASRCharacterState::ECS_None;
 

@@ -72,7 +72,8 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
-
+	UPROPERTY(VisibleAnywhere, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
+	class UMotionWarpingComponent* MotionWarpingComponent;
 
 public:	
 	// Getter & Setter
@@ -82,5 +83,6 @@ public:
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
+	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 	
 };

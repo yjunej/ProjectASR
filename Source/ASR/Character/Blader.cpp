@@ -7,6 +7,7 @@
 #include "Camera/CameraComponent.h"
 #include "EnhancedInputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "MotionWarpingComponent.h"
 
 
 ABlader::ABlader()
@@ -93,7 +94,7 @@ void ABlader::ExecuteLightAttack(int32 AttackIndex)
 		{
 			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 			SetCharacterState(EASRCharacterState::ECS_Attack);
-
+			GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocation(FName("Forward"), GetActorLocation() + GetActorForwardVector() * LightAttackWarpDistance);
 			AnimInstance->Montage_Play(LightAttackMontages[AttackIndex]);
 
 			if (LightAttackIndex + 1 >= LightAttackMontages.Num())
