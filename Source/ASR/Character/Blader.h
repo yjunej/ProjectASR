@@ -22,8 +22,11 @@ public:
 	
 
 	bool CanAttack() const;
+	bool CanDodge() const;
+
 	void LightAttack();
 	void HeavyAttack();
+	void Dodge();
 
 
 protected:
@@ -36,11 +39,14 @@ protected:
 	// Enhanced Input
 	void Input_LightAttack(const FInputActionValue& Value);
 	void Input_HeavyAttack(const FInputActionValue& Value);
+	void Input_Dodge(const FInputActionValue& Value);
 
 private:
 
+	// Button Pressed Amidst Other Actions
 	bool bIsLightAttackPending = false;
 	bool bIsHeavyAttackPending = false;
+	bool bIsDodgePending = false;
 
 	int32 LightAttackIndex;
 	int32 HeavyAttackIndex;
@@ -53,17 +59,18 @@ private:
 	void ExecuteHeavyAttack(int32 AttackIndex);
 	void ResetHeavyAttack();
 
-
-	// MotionWarping
-
+	FORCEINLINE void ResetDodgeAttack() { bIsDodgePending = false; }
 
 
+	// Resolve Pending Actions
 	UFUNCTION(BlueprintCallable)
 	void ResolveLightAttackPending();
 
-
 	UFUNCTION(BlueprintCallable)
 	void ResolveHeavyAttackPending();
+
+	UFUNCTION(BlueprintCallable)
+	void ResolveDodgePending();
 
 
 
@@ -74,17 +81,24 @@ private:
 	USkeletalMeshComponent* WeaponMeshComponent;
 
 	// Enhanced Input
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LightAttackAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* HeavyAttackAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* DodgeAction;
+
+	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> LightAttackMontages;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> HeavyAttackMontages;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DodgeMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float LightAttackWarpDistance = 150.f;

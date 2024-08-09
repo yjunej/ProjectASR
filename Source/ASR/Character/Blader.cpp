@@ -8,7 +8,7 @@
 #include "EnhancedInputComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "MotionWarpingComponent.h"
-
+#include "Kismet/KismetMathLibrary.h"
 
 ABlader::ABlader()
 {
@@ -36,13 +36,22 @@ void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_LightAttack);
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_HeavyAttack);
-
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &ABlader::Input_Dodge);
 	}
 }
 
 bool ABlader::CanAttack() const
 {
-	// TODO: Handle Jump Attack
+	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
+		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling())
+	{
+		return true;
+	}
+	return false;
+}
+
+bool ABlader::CanDodge() const
+{
 	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
 		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling())
 	{
@@ -63,12 +72,14 @@ void ABlader::ResetState()
 	Super::ResetState();
 	ResetLightAttack();
 	ResetHeavyAttack();
+	ResetDodgeAttack();
+	
 }
 
 void ABlader::Input_LightAttack(const FInputActionValue& Value)
 {
 	bIsHeavyAttackPending = false;
-	if (GetCharacterState() == EASRCharacterState::ECS_Attack)
+	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
 		bIsLightAttackPending = true;
 	}
@@ -92,7 +103,7 @@ void ABlader::LightAttack()
 void ABlader::Input_HeavyAttack(const FInputActionValue& Value)
 {
 	bIsLightAttackPending = false;
-	if (GetCharacterState() == EASRCharacterState::ECS_Attack)
+	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
 		bIsHeavyAttackPending = true;
 	}
@@ -100,6 +111,19 @@ void ABlader::Input_HeavyAttack(const FInputActionValue& Value)
 	{
 		HeavyAttack();
 	}
+}
+
+void ABlader::Input_Dodge(const FInputActionValue& Value)
+{
+	if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge)
+	{
+		bIsDodgePending = true;
+	}
+	else
+	{
+		Dodge();
+	}
+
 }
 
 
@@ -114,6 +138,30 @@ void ABlader::HeavyAttack()
 	}
 }
 
+void ABlader::Dodge()
+{
+	if (CanDodge())
+	{
+		SetCharacterState(EASRCharacterState::ECS_Dodge); 
+
+		ResetLightAttack();
+		ResetHeavyAttack();
+
+		// Rotate Before Dodge
+		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
+		if (LastInputVector.Size() != 0.f)
+		{
+			SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
+		}
+
+
+		GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
+			FName("Dodge"), GetActorLocation() + GetActorForwardVector() * 150,
+			GetActorRotation());
+		PlayAnimMontage(DodgeMontage); 
+	}
+}
+
 void ABlader::ExecuteLightAttack(int32 AttackIndex)
 {
 	if (AttackIndex >= LightAttackMontages.Num())
@@ -124,12 +172,14 @@ void ABlader::ExecuteLightAttack(int32 AttackIndex)
 	{
 		if (LightAttackMontages.IsValidIndex(AttackIndex) && LightAttackMontages[AttackIndex] != nullptr)
 		{
-			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 			SetCharacterState(EASRCharacterState::ECS_Attack);
-			GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
-				FName("Forward"), GetActorLocation() + GetActorForwardVector() * LightAttackWarpDistance,
-				GetActorRotation());
-			AnimInstance->Montage_Play(LightAttackMontages[AttackIndex]);
+
+			// TODO: Dynamic Target Motion Warping 
+			//GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
+			//	FName("Forward"), GetActorLocation() + GetActorForwardVector() * LightAttackWarpDistance,
+			//	GetActorRotation());
+
+			PlayAnimMontage(LightAttackMontages[AttackIndex]);
 
 			if (LightAttackIndex + 1 >= LightAttackMontages.Num())
 			{
@@ -159,12 +209,14 @@ void ABlader::ExecuteHeavyAttack(int32 AttackIndex)
 	{
 		if (HeavyAttackMontages.IsValidIndex(AttackIndex) && HeavyAttackMontages[AttackIndex] != nullptr)
 		{
-			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 			SetCharacterState(EASRCharacterState::ECS_Attack);
-			GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
-				FName("Forward"), GetActorLocation() + GetActorForwardVector() * HeavyAttackWarpDistance,
-				GetActorRotation());
-			AnimInstance->Montage_Play(HeavyAttackMontages[AttackIndex]);
+
+			// AnimNotify State handle this
+			//GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
+			//	FName("Forward"), GetActorLocation() + GetActorForwardVector() * HeavyAttackWarpDistance,
+			//	GetActorRotation());
+
+			PlayAnimMontage(HeavyAttackMontages[AttackIndex]);
 
 			if (HeavyAttackIndex + 1 >= HeavyAttackMontages.Num())
 			{
@@ -217,6 +269,24 @@ void ABlader::ResolveHeavyAttackPending()
 
 		// Try Heavy Attack (CanAttack check in this function)
 		HeavyAttack();
+
+	}
+}
+
+void ABlader::ResolveDodgePending()
+{
+	if (bIsDodgePending)
+	{
+		bIsDodgePending = false;
+
+		// Process Pending Dodge
+		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge)
+		{
+			CharacterState = EASRCharacterState::ECS_None;
+		}
+
+		// Try Heavy Attack (CanAttack check in this function)
+		Dodge();
 
 	}
 }
