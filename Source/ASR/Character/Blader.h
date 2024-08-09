@@ -23,7 +23,7 @@ public:
 
 	bool CanAttack() const;
 	void LightAttack();
-
+	void HeavyAttack();
 
 
 protected:
@@ -40,22 +40,38 @@ protected:
 private:
 
 	bool bIsLightAttackPending = false;
+	bool bIsHeavyAttackPending = false;
+
 	int32 LightAttackIndex;
+	int32 HeavyAttackIndex;
+
 
 	// Handling Combo Attack
 	void ExecuteLightAttack(int32 AttackIndex);
 	void ResetLightAttack();
 
+	void ExecuteHeavyAttack(int32 AttackIndex);
+	void ResetHeavyAttack();
+
+
 	// MotionWarping
-	float LightAttackWarpDistance = 1000.f;
+
+
 
 	UFUNCTION(BlueprintCallable)
 	void ResolveLightAttackPending();
 
 
+	UFUNCTION(BlueprintCallable)
+	void ResolveHeavyAttackPending();
+
+
 
 
 private:
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* WeaponMeshComponent;
 
 	// Enhanced Input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -64,13 +80,16 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* HeavyAttackAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* WeaponMeshComponent;
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> LightAttackMontages;
 	
-	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	TArray<class UAnimMontage*> HeavyAttackMontages;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float LightAttackWarpDistance = 150.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float HeavyAttackWarpDistance = 150.f;
 
 };

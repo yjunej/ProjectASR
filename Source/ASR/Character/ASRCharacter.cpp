@@ -134,13 +134,21 @@ void AASRCharacter::SetCharacterState(EASRCharacterState InCharacterState)
 
 void AASRCharacter::Jump()
 {
-	if (bIsCrouched)
+	if (CharacterState == EASRCharacterState::ECS_None)
 	{
-		UnCrouch();
+		if (bIsCrouched)
+		{
+			UnCrouch();
+		}
+		else
+		{
+			Super::Jump();
+		}
 	}
 	else
 	{
-		Super::Jump();
+		StopJumping();
 	}
+
 }
 
