@@ -30,11 +30,12 @@ struct FDamageTypeMapping
 {
 	GENERATED_BODY()
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
 	EASRCharacterState CharacterState;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
 	UAnimMontage* HitReactionMontage;
+
 };
 
 
@@ -63,12 +64,13 @@ protected:
 	void Input_ToggleCrouch(const FInputActionValue& Value);
 
 	EASRCharacterState CharacterState;
+	TArray<AActor*> HitActors;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetState();
 
 	UFUNCTION(BlueprintCallable)
-	virtual void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel);
+	virtual void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
 
 
 private:
@@ -98,9 +100,6 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
 	class UMotionWarpingComponent* MotionWarpingComponent;
-
-	UFUNCTION(BlueprintCallable)
-	class UAnimMontage* GetHitReactionMontage(EASRDamageType DamageType);
 		
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;

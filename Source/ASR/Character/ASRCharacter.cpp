@@ -125,8 +125,9 @@ void AASRCharacter::ResetState()
 	CharacterState = EASRCharacterState::ECS_None;
 }
 
-void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel)
+void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace)
 {
+	HitActors.Empty();
 	TArray<FHitResult> HitResults;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
 	FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * End;
@@ -138,27 +139,26 @@ void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRD
 
 	bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
 		this, GetActorLocation(), TraceEnd, Radius, ObjectTypes, false, TArray<AActor*>(),
-		EDrawDebugTrace::ForDuration, HitResults, true, FLinearColor::Red, FLinearColor::Green, 5.0f);
+		bDrawDebugTrace? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
+		HitResults, true, FLinearColor::Red, FLinearColor::Green, 5.0f);
 
 	if (bHit)
 	{
 		for (const FHitResult& HitResult : HitResults)
 		{
-			if (HitResult.GetActor() != nullptr)
+			AActor* HitActor = HitResult.GetActor();
+			// Check Duplicated Hit
+			if (HitActor != nullptr && !HitActors.Contains(HitActor))
 			{
-				IHitInterface* HitInterface = Cast<IHitInterface>(HitResult.GetActor());
+				IHitInterface* HitInterface = Cast<IHitInterface>(HitActor);
 				if (HitInterface != nullptr)
 				{
 					HitInterface->GetHit(HitResult, BaseDamage, DamageType);
+					HitActors.AddUnique(HitActor);
 				}
 			}
 		}
 	}
-}
-
-UAnimMontage* AASRCharacter::GetHitReactionMontage(EASRDamageType DamageType)
-{
-	return nullptr;
 }
 
 void AASRCharacter::SetCharacterState(EASRCharacterState InCharacterState)
@@ -191,7 +191,6 @@ void AASRCharacter::Jump()
 
 void AASRCharacter::GetHit(const FHitResult& HitResult, float Damage, EASRDamageType DamageType)
 {	// TODO
-	UAnimMontage* HitReactionMontage = nullptr;
 	FDamageTypeMapping* Mapping;
 	Mapping = DamageTypeMappings.Find(DamageType);
 	if (Mapping != nullptr)
