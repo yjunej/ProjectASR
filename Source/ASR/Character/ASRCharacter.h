@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "ASR/Interfaces/HitInterface.h"
 #include "ASRCharacter.generated.h"
+
 
 class UInputAction;
 class UInputMappingContext;
@@ -13,16 +15,31 @@ struct FInputActionValue;
 UENUM(BlueprintType)
 enum class EASRCharacterState : uint8
 {
-	ECS_None UMETA(DisplayName = "Default State"),
-	ECS_Attack UMETA(DisplayName = "Attack"),
-	ECS_Dodge UMETA(DisplayName = "Dodge"),
-	ECS_Death UMETA(DisplayName = "Death"),
-
-	ECS_MAX UMETA(Hidden)
+	ECS_None		UMETA(DisplayName = "Default State"),
+	ECS_Attack		UMETA(DisplayName = "Attack"),
+	ECS_Dodge		UMETA(DisplayName = "Dodge"),
+	ECS_Flinching	UMETA(DisplayName = "Flinching"),
+	ECS_Stunned		UMETA(DisplayName = "Stunned"),
+	ECS_KnockDown	UMETA(DisplayName = "Knockout"),
+	ECS_Death		UMETA(DisplayName = "Death"),
+	ECS_MAX			UMETA(Hidden)
 };
 
+USTRUCT(BlueprintType)
+struct FDamageTypeMapping
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	EASRCharacterState CharacterState;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Damage")
+	UAnimMontage* HitReactionMontage;
+};
+
+
 UCLASS()
-class ASR_API AASRCharacter : public ACharacter
+class ASR_API AASRCharacter : public ACharacter, public IHitInterface
 {
 	GENERATED_BODY()
 
@@ -33,6 +50,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
+	
+	virtual void GetHit(const FHitResult& HitResult, float Damage, EASRDamageType DamageType) override;
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -46,6 +66,10 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetState();
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel);
+
 
 private:
 	// Enhanced Input
@@ -74,6 +98,12 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
 	class UMotionWarpingComponent* MotionWarpingComponent;
+
+	UFUNCTION(BlueprintCallable)
+	class UAnimMontage* GetHitReactionMontage(EASRDamageType DamageType);
+		
+	UPROPERTY(EditDefaultsOnly, Category = "Damage")
+	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
 
 public:	
 	// Getter & Setter

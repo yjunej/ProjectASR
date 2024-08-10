@@ -48,6 +48,8 @@ private:
 	bool bIsHeavyAttackPending = false;
 	bool bIsDodgePending = false;
 
+	bool bIsInvulnerable = false;
+
 	int32 LightAttackIndex;
 	int32 HeavyAttackIndex;
 
@@ -71,6 +73,12 @@ private:
 
 	UFUNCTION(BlueprintCallable)
 	void ResolveDodgePending();
+	
+	UFUNCTION(BlueprintCallable)
+	bool IsInvulnerable() { return bIsInvulnerable; }
+
+	UFUNCTION(BlueprintCallable)
+	void SetInvulnerable(bool InInvulnerable) { bIsInvulnerable = InInvulnerable; }
 
 
 
@@ -105,5 +113,6 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float HeavyAttackWarpDistance = 150.f;
+
 
 };

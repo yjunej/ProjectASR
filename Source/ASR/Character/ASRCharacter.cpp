@@ -10,6 +10,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "MotionWarpingComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 
 
@@ -124,6 +125,42 @@ void AASRCharacter::ResetState()
 	CharacterState = EASRCharacterState::ECS_None;
 }
 
+void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel)
+{
+	TArray<FHitResult> HitResults;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * End;
+
+
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(CollisionChannel));
+
+
+
+	bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
+		this, GetActorLocation(), TraceEnd, Radius, ObjectTypes, false, TArray<AActor*>(),
+		EDrawDebugTrace::ForDuration, HitResults, true, FLinearColor::Red, FLinearColor::Green, 5.0f);
+
+	if (bHit)
+	{
+		for (const FHitResult& HitResult : HitResults)
+		{
+			if (HitResult.GetActor() != nullptr)
+			{
+				IHitInterface* HitInterface = Cast<IHitInterface>(HitResult.GetActor());
+				if (HitInterface != nullptr)
+				{
+					HitInterface->GetHit(HitResult, BaseDamage, DamageType);
+				}
+			}
+		}
+	}
+}
+
+UAnimMontage* AASRCharacter::GetHitReactionMontage(EASRDamageType DamageType)
+{
+	return nullptr;
+}
+
 void AASRCharacter::SetCharacterState(EASRCharacterState InCharacterState)
 {
 	if (InCharacterState != CharacterState)
@@ -152,3 +189,20 @@ void AASRCharacter::Jump()
 
 }
 
+void AASRCharacter::GetHit(const FHitResult& HitResult, float Damage, EASRDamageType DamageType)
+{	// TODO
+	UAnimMontage* HitReactionMontage = nullptr;
+	FDamageTypeMapping* Mapping;
+	Mapping = DamageTypeMappings.Find(DamageType);
+	if (Mapping != nullptr)
+	{
+		CharacterState = Mapping->CharacterState;
+		PlayAnimMontage(Mapping->HitReactionMontage);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
+	}
+	
+
+}

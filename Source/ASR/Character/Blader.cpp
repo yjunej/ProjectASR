@@ -9,6 +9,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "MotionWarpingComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Kismet/GameplayStatics.h"
 
 ABlader::ABlader()
 {
@@ -162,6 +164,7 @@ void ABlader::Dodge()
 	}
 }
 
+
 void ABlader::ExecuteLightAttack(int32 AttackIndex)
 {
 	if (AttackIndex >= LightAttackMontages.Num())
@@ -290,3 +293,4 @@ void ABlader::ResolveDodgePending()
 
 	}
 }
+
