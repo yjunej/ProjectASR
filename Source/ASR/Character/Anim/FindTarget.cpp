@@ -62,7 +62,8 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 			// Use Forward Vector
 			UE_LOG(LogTemp, Warning, TEXT("Forward Mode"));
 
-			WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * Blader->LightAttackWarpDistance);
+			//WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * Blader->LightAttackWarpDistance);
+			WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetPendingMovementInputVector() * Blader->LightAttackWarpDistance);
 			WarpTransform.SetRotation(FQuat(Blader->GetActorRotation()));
 		}
 

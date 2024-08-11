@@ -127,7 +127,15 @@ bool UTargetingComponent::FindSubTarget()
 		// If Player not intend to Attack Something, use default motion warping values
 		if (LastInputVector.IsNearlyZero(0.05))
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Not Enough Input: %s, Skip Trace"), *LastInputVector.ToString());
+
+			if (Owner->GetCharacterMovement() == nullptr)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Null CharacterMovement"));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Not Enough Input: %s, Skip Trace"), *LastInputVector.ToString());
+			}
 			return false;
 		}
 		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
@@ -139,7 +147,7 @@ bool UTargetingComponent::FindSubTarget()
 		bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
 			GetWorld(),
 			Owner->GetActorLocation(),
-			Owner->GetActorLocation() + Owner->GetCharacterMovement()->GetLastInputVector() * SubTargetingDistance,
+			Owner->GetActorLocation() + Owner->GetCharacterMovement()->GetLastInputVector().GetSafeNormal() * SubTargetingDistance,
 			SubTargetingRadius,
 			ObjectTypes,
 			false,
@@ -147,7 +155,9 @@ bool UTargetingComponent::FindSubTarget()
 			EDrawDebugTrace::ForDuration,
 			HitResult,
 			true,
-			FLinearColor::Blue
+			FLinearColor::Blue,
+			FLinearColor::Yellow
+			
 		);
 		if (bHit)
 		{
@@ -159,12 +169,14 @@ bool UTargetingComponent::FindSubTarget()
 					if (SubTargetActor != HitResult.GetActor())
 					{
 						SubTargetActor = HitResult.GetActor();
-						return true;	
 					}
+					return true;
 				}
 				else
 				{
 					// Not Enemy or Dead Emeny
+					UE_LOG(LogTemp, Warning, TEXT("Not Enemy"));
+
 					SubTargetActor = nullptr;
 					return false;
 				}
@@ -172,6 +184,8 @@ bool UTargetingComponent::FindSubTarget()
 			else
 			{
 				// Collider with no Owner
+				UE_LOG(LogTemp, Warning, TEXT("Null HitActor"));
+
 				SubTargetActor = nullptr;
 				return false;
 			}
@@ -213,6 +227,11 @@ void UTargetingComponent::ClearTarget()
 {
 	bIsTargeting = false;
 	TargetActor = nullptr;
+}
+
+void UTargetingComponent::ClearSubTarget()
+{
+	SubTargetActor = nullptr;
 }
 
 void UTargetingComponent::PlaceDecalActor()

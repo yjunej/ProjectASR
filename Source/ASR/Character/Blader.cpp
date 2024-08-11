@@ -11,6 +11,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
+#include "TargetingComponent.h"
 
 ABlader::ABlader()
 {
@@ -78,6 +79,10 @@ void ABlader::ResetState()
 	ResetLightAttack();
 	ResetHeavyAttack();
 	ResetDodgeAttack();
+	if (GetTargetingComponent() != nullptr)
+	{
+		GetTargetingComponent()->ClearSubTarget();
+	}
 	
 }
 

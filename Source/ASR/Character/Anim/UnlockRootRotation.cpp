@@ -29,7 +29,7 @@ void UUnlockRootRotation::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeq
 		return;
 	}
 
-	if (TargetingComponent->IsTargeting())
+	if (TargetingComponent->IsTargeting() || TargetingComponent->GetSubTargetActor() != nullptr)
 	{
 		return;
 	}

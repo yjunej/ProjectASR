@@ -20,6 +20,7 @@ public:
 
 
 	bool FindSubTarget();
+	void ClearSubTarget();
 
 
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
@@ -58,10 +59,10 @@ private:
 	float TargetRadius = 90.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float SubTargetingDistance = 250.f;
+	float SubTargetingDistance = 500.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float SubTargetingRadius = 200.f;
+	float SubTargetingRadius = 130.f;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
@@ -80,5 +81,6 @@ public:
 	FORCEINLINE bool IsTargeting() const { return bIsTargeting; }
 	FORCEINLINE AActor* GetTargetActor() const { return TargetActor; }
 	FORCEINLINE AActor* GetSubTargetActor() const { return SubTargetActor; }
+	
 
 };
