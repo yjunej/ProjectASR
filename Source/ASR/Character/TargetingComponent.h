@@ -15,10 +15,15 @@ class ASR_API UTargetingComponent : public UActorComponent
 public:	
 	// Sets default values for this component's properties
 	UTargetingComponent();
-
-
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	friend class AASRCharacter;
+
+
+	bool FindSubTarget();
+
+
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
+	FTransform GetTargetTransform();
 
 protected:
 	virtual void BeginPlay() override;
@@ -26,11 +31,15 @@ protected:
 private:
 	class AASRCharacter* Owner;
 	AActor* TargetActor;
+	AActor* SubTargetActor;
 
 
 	void FindTarget();
+	void FindNearestTarget();
+	void LockOnTarget(const FHitResult& HitResult);
 	void ClearTarget();
 	void PlaceDecalActor();
+
 
 
 
@@ -44,6 +53,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
 	float TargetingDistance = 800.f;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
+	float TargetRadius = 90.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
+	float SubTargetingDistance = 250.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
+	float SubTargetingRadius = 200.f;
+
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
 	float CameraRotationSpeed = 50.f;
 	
@@ -51,9 +71,14 @@ private:
 	FVector CameraOffset;
 	
 	// TODO - Write Comprehensive Motion Warping Control Function
-	UFUNCTION(BlueprintCallable, BlueprintPure, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	FTransform GetTargetTransform();
+
 
 	UPROPERTY(EditAnywhere, Category = NormalCombat, meta = (AllowPrivateAccess="true"))
 	UMaterialInterface* DecalMaterial;
+
+public:
+	FORCEINLINE bool IsTargeting() const { return bIsTargeting; }
+	FORCEINLINE AActor* GetTargetActor() const { return TargetActor; }
+	FORCEINLINE AActor* GetSubTargetActor() const { return SubTargetActor; }
+
 };

@@ -28,6 +28,12 @@ public:
 	void HeavyAttack();
 	void Dodge();
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float LightAttackWarpDistance = 150.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float HeavyAttackWarpDistance = 150.f;
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -107,12 +113,5 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* DodgeMontage;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	float LightAttackWarpDistance = 150.f;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	float HeavyAttackWarpDistance = 150.f;
-
 
 };

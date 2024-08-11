@@ -210,7 +210,6 @@ void AASRCharacter::Jump()
 	{
 		StopJumping();
 	}
-
 }
 
 void AASRCharacter::GetHit(const FHitResult& HitResult, float Damage, EASRDamageType DamageType)

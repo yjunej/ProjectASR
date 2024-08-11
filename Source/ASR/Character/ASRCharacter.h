@@ -105,10 +105,14 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
 	class UMotionWarpingComponent* MotionWarpingComponent;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
+	class UTargetingComponent* TargetingComponent;
 
-		
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
+
+
 
 public:	
 	// Getter & Setter
@@ -119,10 +123,7 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
-
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Targeting, meta = (AllowPrivateAccess = "true"))
-	class UTargetingComponent* TargetingComponent;
 	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComponent; }
+
 	
 };

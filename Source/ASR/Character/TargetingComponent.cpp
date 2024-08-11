@@ -10,6 +10,7 @@
 #include "GameFramework/Character.h"
 #include "Engine/DecalActor.h"
 #include "Components/DecalComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 UTargetingComponent::UTargetingComponent()
 {
@@ -30,7 +31,6 @@ void UTargetingComponent::BeginPlay()
 
 void UTargetingComponent::FindTarget()
 {
-	//UKismetSystemLibrary::SphereTraceMultiForObjects(
 	if (Owner == nullptr)
 	{
 		Owner = Cast<AASRCharacter>(GetOwner());
@@ -54,7 +54,7 @@ void UTargetingComponent::FindTarget()
 			GetWorld(),
 			FollowCam->GetComponentLocation(),
 			TraceEnd,
-			100.f,
+			TargetRadius,
 			ObjectTypes,
 			false,
 			ActorsToIgnore,
@@ -65,31 +65,148 @@ void UTargetingComponent::FindTarget()
 
 		if (bHit)
 		{
+			LockOnTarget(HitResult);
+		}
+		else
+		{
+			// Broad Sphere Trace Again
+			FindNearestTarget();
+		}
+
+		// No Hit or Hit actor is not enemy
+	}
+
+}
+
+void UTargetingComponent::FindNearestTarget()
+{
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(Cast<AActor>(Owner));
+	FHitResult HitResult;
+
+	bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
+		GetWorld(),
+		Owner->GetActorLocation(),
+		Owner->GetActorLocation(),
+		500.f,
+		ObjectTypes,
+		false,
+		ActorsToIgnore,
+		EDrawDebugTrace::ForDuration,
+		HitResult,
+		true
+	);
+	if (bHit)
+	{
+		LockOnTarget(HitResult);
+	}
+	else
+	{
+		ClearTarget();
+	}
+}
+
+bool UTargetingComponent::FindSubTarget()
+{
+	if (bIsTargeting)
+	{
+		return false;
+	}
+	if (Owner == nullptr)
+	{
+		Owner = Cast<AASRCharacter>(GetOwner());
+	}
+
+	if (Owner != nullptr)
+	{
+		FVector LastInputVector = Owner->GetCharacterMovement()->GetLastInputVector();
+
+		// If Player not intend to Attack Something, use default motion warping values
+		if (LastInputVector.IsNearlyZero(0.05))
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Not Enough Input: %s, Skip Trace"), *LastInputVector.ToString());
+			return false;
+		}
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+		FHitResult HitResult;
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(Cast<AActor>(Owner));
+
+		bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
+			GetWorld(),
+			Owner->GetActorLocation(),
+			Owner->GetActorLocation() + Owner->GetCharacterMovement()->GetLastInputVector() * SubTargetingDistance,
+			SubTargetingRadius,
+			ObjectTypes,
+			false,
+			ActorsToIgnore,
+			EDrawDebugTrace::ForDuration,
+			HitResult,
+			true,
+			FLinearColor::Blue
+		);
+		if (bHit)
+		{
 			if (HitResult.GetActor() != nullptr)
 			{
 				ABaseEnemy* Enemy = Cast<ABaseEnemy>(HitResult.GetActor());
 				if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
 				{
-					TargetActor = Enemy;
-					bIsTargeting = true;
-					return;
+					if (SubTargetActor != HitResult.GetActor())
+					{
+						SubTargetActor = HitResult.GetActor();
+						return true;	
+					}
 				}
 				else
 				{
-					ClearTarget();
+					// Not Enemy or Dead Emeny
+					SubTargetActor = nullptr;
+					return false;
 				}
 			}
-			
+			else
+			{
+				// Collider with no Owner
+				SubTargetActor = nullptr;
+				return false;
+			}
 		}
 		else
 		{
-			// Handle No Hit
-		}
+			// Not Hit
+			SubTargetActor = nullptr;
+			return false;
 
-		// No Hit or Hit actor is not enemy
+		}
+	}
+	return false;
+}
+
+void UTargetingComponent::LockOnTarget(const FHitResult& HitResult)
+{
+	if (HitResult.GetActor() != nullptr)
+	{
+		ABaseEnemy* Enemy = Cast<ABaseEnemy>(HitResult.GetActor());
+		if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
+		{
+			TargetActor = Enemy;
+			bIsTargeting = true;
+			return;
+		}
+		else
+		{
+			ClearTarget();
+		}
+	}
+	else
+	{
 		ClearTarget();
 	}
-
 }
 
 void UTargetingComponent::ClearTarget()
@@ -122,24 +239,33 @@ void UTargetingComponent::PlaceDecalActor()
 
 FTransform UTargetingComponent::GetTargetTransform()
 {
+	AActor* Target;
 	if (TargetActor != nullptr)
 	{
-
-		FVector OwnerLocation = Owner->GetActorLocation();
-		FVector TargetLocation = TargetActor->GetActorLocation();
-		FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(OwnerLocation, TargetLocation);
-
-		FRotator OwnerRotation = Owner->GetActorRotation();
-		OwnerRotation.Yaw = LookAtRotation.Yaw;
-
-		FTransform TargetTransform;
-
-		TargetTransform.SetLocation(TargetLocation - OwnerLocation);
-		TargetTransform.SetRotation(OwnerRotation.Quaternion()); // 회전을 Quat으로 설정
-
-		return TargetTransform;
+		Target = TargetActor;
 	}
-	return FTransform::Identity;
+	else if (SubTargetActor != nullptr)
+	{
+		Target = SubTargetActor;
+	}
+	else
+	{
+		return FTransform::Identity;
+	}
+
+	FVector OwnerLocation = Owner->GetActorLocation();
+	FVector TargetLocation = Target->GetActorLocation();
+	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(OwnerLocation, TargetLocation);
+
+	FRotator OwnerRotation = Owner->GetActorRotation();
+	OwnerRotation.Yaw = LookAtRotation.Yaw;
+
+	FTransform TargetTransform;
+
+	TargetTransform.SetLocation(TargetLocation - OwnerLocation);
+	TargetTransform.SetRotation(OwnerRotation.Quaternion()); // 회전을 Quat으로 설정
+
+	return TargetTransform;
 }
 
 
