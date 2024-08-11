@@ -11,6 +11,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "MotionWarpingComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "TargetingComponent.h"
 
 
 
@@ -21,6 +22,7 @@ AASRCharacter::AASRCharacter()
 
 	// Disable Side Walk by Default
 	GetCharacterMovement()->bOrientRotationToMovement = true;
+	bUseControllerRotationYaw = false;
 
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
@@ -32,14 +34,17 @@ AASRCharacter::AASRCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->bEnableCameraLag = true;
 	CameraBoom->CameraLagSpeed = 16.f;
-	CameraBoom->TargetArmLength = 400.f;	
+	CameraBoom->TargetArmLength = 400.f;
+	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->SetupAttachment(GetMesh());
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
-
+	TargetingComponent = CreateDefaultSubobject<UTargetingComponent>(TEXT("Targeting"));
+	TargetingComponent->Owner = this;
 
 	CharacterState = EASRCharacterState::ECS_None;
 
@@ -72,6 +77,7 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Look);
 		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &AASRCharacter::Input_ToggleCrouch);
+		EnhancedInputComponent->BindAction(ToggleLockOnAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_ToggleLockOn);
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
@@ -98,8 +104,11 @@ void AASRCharacter::Input_Look(const FInputActionValue& Value)
 	FVector2D LookVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
 	{
-		AddControllerYawInput(LookVector.X);
-		AddControllerPitchInput(LookVector.Y);
+		if (TargetingComponent == nullptr || !(TargetingComponent->bIsTargeting))
+		{
+			AddControllerYawInput(LookVector.X);
+			AddControllerPitchInput(LookVector.Y);
+		}
 	}
 }
 
@@ -117,6 +126,21 @@ void AASRCharacter::Input_ToggleCrouch(const FInputActionValue& Value)
 	else
 	{
 		Crouch();
+	}
+}
+
+void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
+{
+	if (TargetingComponent != nullptr)
+	{
+		if (TargetingComponent->bIsTargeting)
+		{
+			TargetingComponent->ClearTarget();
+		}
+		else
+		{
+			TargetingComponent->FindTarget();
+		}
 	}
 }
 

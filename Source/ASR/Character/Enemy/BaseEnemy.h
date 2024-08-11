@@ -50,6 +50,7 @@ private:
 	UAnimMontage* DeathMontage;
 
 public:
+	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; };
 	void SetCharacterState(EASRCharacterState InCharacterState);
 
 

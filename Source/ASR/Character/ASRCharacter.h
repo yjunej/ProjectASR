@@ -62,6 +62,7 @@ protected:
 	void Input_Move(const FInputActionValue& Value);
 	void Input_Look(const FInputActionValue& Value);
 	void Input_ToggleCrouch(const FInputActionValue& Value);
+	void Input_ToggleLockOn(const FInputActionValue& Value);
 
 	EASRCharacterState CharacterState;
 	TArray<AActor*> HitActors;
@@ -71,7 +72,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
-
 
 private:
 	// Enhanced Input
@@ -90,6 +90,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleCrouchAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ToggleLockOnAction;
+
+
+
 private:
 	// Camera Setting
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -100,6 +105,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
 	class UMotionWarpingComponent* MotionWarpingComponent;
+
 		
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
@@ -113,5 +119,10 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Targeting, meta = (AllowPrivateAccess = "true"))
+	class UTargetingComponent* TargetingComponent;
+	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComponent; }
 	
 };
