@@ -52,7 +52,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 	
-	virtual void GetHit(const FHitResult& HitResult, float Damage, EASRDamageType DamageType) override;
+	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
 
 
 protected:
@@ -64,8 +64,13 @@ protected:
 	void Input_ToggleCrouch(const FInputActionValue& Value);
 	void Input_ToggleLockOn(const FInputActionValue& Value);
 
+	// Enable pure function by seperate USTRUCT
+	virtual void Input_FirstSkill(const FInputActionValue& Value);
+
+
 	EASRCharacterState CharacterState;
 	TArray<AActor*> HitActors;
+	FVector2D PrevInput;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetState();
@@ -93,7 +98,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleLockOnAction;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* FirstSkillAction;
 
 private:
 	// Camera Setting
@@ -112,6 +118,8 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Sound, meta = (AllowPrivateAccess = "true"))
+	class USoundCue* HitSoundCue;
 
 
 public:	

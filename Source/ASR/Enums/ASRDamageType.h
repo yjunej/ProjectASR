@@ -32,4 +32,7 @@ enum class EASRDamageType : uint8
 	EDT_KnockDownFrontSmashDouble	UMETA(DisplayName = "KnockDownFrontSmashDouble"),
 	EDT_KnockDownFrontBig			UMETA(DisplayName = "KnockDownFrontBig"),
 
+	// Aerial
+	EDT_FrontHighKnockDownHit		UMETA(DisplayName = "FrontHighKnockDownHit"),
+		
 };

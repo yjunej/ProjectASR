@@ -22,7 +22,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// HitInterface
-	virtual void GetHit(const FHitResult& HitResult, float Damage, EASRDamageType DamageType) override;
+	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
 
 
 protected:
@@ -49,11 +49,40 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* DeathMontage;
 
+	// TimeLine
+	UPROPERTY(VisibleAnywhere, Category = "Timeline")
+	class UTimelineComponent* TimelineComponent;
+
+	UFUNCTION()
+	void HandleTimelineUpdate(float Value);
+
+	UFUNCTION()
+	void HandleTimelineFinished();
+
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* KnockbackCurve;
+
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* LevitateCurve;
+
+	void InitializeTimeline();
+	void StopTimeline();
+	float KnockbackDistance = 50.f;
+
+	FVector StartLocation;
+	void ApplyKnockback();
+	void Levitate();
+	float LevitateHeight = 500.f;
+	bool bIsLevitating = false;
+	bool bIsSmashing = false;
+
+
+
 public:
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; };
 	void SetCharacterState(EASRCharacterState InCharacterState);
 
-
+	
 
 	
 

@@ -26,6 +26,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
 	FTransform GetTargetTransform();
 
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
+	FTransform GetLastSubTargetTransform();
+
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -40,6 +44,7 @@ private:
 	void LockOnTarget(const FHitResult& HitResult);
 	void ClearTarget();
 	void PlaceDecalActor();
+	AActor* LastSubTargetActor;
 
 
 
@@ -62,7 +67,7 @@ private:
 	float SubTargetingDistance = 500.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float SubTargetingRadius = 130.f;
+	float SubTargetingRadius = 100.f;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
@@ -81,6 +86,8 @@ public:
 	FORCEINLINE bool IsTargeting() const { return bIsTargeting; }
 	FORCEINLINE AActor* GetTargetActor() const { return TargetActor; }
 	FORCEINLINE AActor* GetSubTargetActor() const { return SubTargetActor; }
+	FORCEINLINE AActor* GetLastSubTargetActor() const { return LastSubTargetActor; }
+
 	
 
 };

@@ -12,6 +12,7 @@
 #include "MotionWarpingComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "TargetingComponent.h"
+#include "Sound/SoundCue.h"
 
 
 
@@ -81,12 +82,16 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
+
+		EnhancedInputComponent->BindAction(FirstSkillAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_FirstSkill);
+
 	}
 }
 
 void AASRCharacter::Input_Move(const FInputActionValue& Value)
 {
 	FVector2D MoveVector = Value.Get<FVector2D>();
+	PrevInput = MoveVector;
 
 	if (Controller != nullptr)
 	{
@@ -144,6 +149,11 @@ void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
 	}
 }
 
+void AASRCharacter::Input_FirstSkill(const FInputActionValue& Value)
+{
+}
+
+
 void AASRCharacter::ResetState()
 {
 	CharacterState = EASRCharacterState::ECS_None;
@@ -177,8 +187,10 @@ void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRD
 				IHitInterface* HitInterface = Cast<IHitInterface>(HitActor);
 				if (HitInterface != nullptr)
 				{
-					HitInterface->GetHit(HitResult, BaseDamage, DamageType);
+					HitInterface->GetHit(HitResult, this, BaseDamage, DamageType);
 					HitActors.AddUnique(HitActor);
+					UGameplayStatics::PlaySoundAtLocation(this, HitSoundCue, HitActor->GetActorLocation());
+
 				}
 			}
 		}
@@ -212,7 +224,7 @@ void AASRCharacter::Jump()
 	}
 }
 
-void AASRCharacter::GetHit(const FHitResult& HitResult, float Damage, EASRDamageType DamageType)
+void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType)
 {	// TODO
 	FDamageTypeMapping* Mapping;
 	Mapping = DamageTypeMappings.Find(DamageType);

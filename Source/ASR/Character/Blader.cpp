@@ -12,6 +12,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "TargetingComponent.h"
+#include "Components/TimelineComponent.h"
+
 
 ABlader::ABlader()
 {
@@ -20,6 +22,10 @@ ABlader::ABlader()
 
     WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
     WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket"));  // 소켓에 부착
+	
+	TimelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineComponent"));
+	FloatCurve = nullptr; // Draw In Editor
+
 }
 
 void ABlader::PostInitializeComponents()
@@ -48,8 +54,10 @@ void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 bool ABlader::CanAttack() const
 {
+
+
 	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
-		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling())
+		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
 	{
 		return true;
 	}
@@ -66,16 +74,31 @@ bool ABlader::CanDodge() const
 	return false;
 }
 
+bool ABlader::CanAttakInAir() const
+{
+	return bCanAttackInAir && bIsLevitating;
+}
+
 
 
 void ABlader::BeginPlay()
 {
 	Super::BeginPlay();
+	if (FloatCurve)
+	{
+		InitializeTimeline();
+	}
 }
 
 void ABlader::ResetState()
 {
 	Super::ResetState();
+
+	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
+	if (MovementMode == EMovementMode::MOVE_Flying || MovementMode == EMovementMode::MOVE_Falling)
+	{
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	}
 	ResetLightAttack();
 	ResetHeavyAttack();
 	ResetDodgeAttack();
@@ -83,7 +106,8 @@ void ABlader::ResetState()
 	{
 		GetTargetingComponent()->ClearSubTarget();
 	}
-	
+	bCanAttackInAir = true;
+	bIsLevitating = false;
 }
 
 void ABlader::Input_LightAttack(const FInputActionValue& Value)
@@ -104,8 +128,20 @@ void ABlader::LightAttack()
 {
 	if (CanAttack())
 	{
-		ResetHeavyAttack();
-		ExecuteLightAttack(LightAttackIndex);
+
+		//if (AerialAttack()
+		//{
+		//	 // Do Post Combo
+		//}
+		//else
+		//{
+			ResetHeavyAttack();
+			ExecuteLightAttack(LightAttackIndex);
+		//}
+	}
+	else if (CanAttakInAir())
+	{
+		ExecuteLightAttackInAir(LightAttackIndex);
 	}
 }
 
@@ -134,6 +170,20 @@ void ABlader::Input_Dodge(const FInputActionValue& Value)
 		Dodge();
 	}
 
+}
+
+void ABlader::Input_FirstSkill(const FInputActionValue& Value)
+{
+	bIsLightAttackPending = false;
+	bIsHeavyAttackPending = false;
+	if (CharacterState == EASRCharacterState::ECS_Attack)
+	{
+		bIsFirstSkillPending = true;
+	}
+	else
+	{
+		UseFirstSkill();
+	}
 }
 
 
@@ -172,6 +222,18 @@ void ABlader::Dodge()
 	}
 }
 
+void ABlader::UseFirstSkill()
+{
+	if (CanAttack())
+	{
+		ResetLightAttack();
+		ResetHeavyAttack();
+		bIsDodgePending = false;
+
+		ExecuteAerialAttack();
+	}
+}
+
 
 void ABlader::ExecuteLightAttack(int32 AttackIndex)
 {
@@ -184,12 +246,6 @@ void ABlader::ExecuteLightAttack(int32 AttackIndex)
 		if (LightAttackMontages.IsValidIndex(AttackIndex) && LightAttackMontages[AttackIndex] != nullptr)
 		{
 			SetCharacterState(EASRCharacterState::ECS_Attack);
-
-			// TODO: Dynamic Target Motion Warping 
-			//GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
-			//	FName("Forward"), GetActorLocation() + GetActorForwardVector() * LightAttackWarpDistance,
-			//	GetActorRotation());
-
 			PlayAnimMontage(LightAttackMontages[AttackIndex]);
 
 			if (LightAttackIndex + 1 >= LightAttackMontages.Num())
@@ -203,6 +259,34 @@ void ABlader::ExecuteLightAttack(int32 AttackIndex)
 		}
 	}
 }
+
+void ABlader::ExecuteLightAttackInAir(int32 AttackIndex)
+{
+	if (AttackIndex >= LightAttackInAirMontages.Num())
+	{
+		LightAttackIndex = 0;
+	}
+	else
+	{
+		if (LightAttackInAirMontages.IsValidIndex(AttackIndex) && LightAttackInAirMontages[AttackIndex] != nullptr)
+		{
+			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+			SetCharacterState(EASRCharacterState::ECS_Attack);
+			PlayAnimMontage(LightAttackInAirMontages[AttackIndex]);
+
+			if (LightAttackIndex + 1 >= LightAttackInAirMontages.Num())
+			{
+				LightAttackIndex = 0;
+				bCanAttackInAir = false;	
+			}
+			else
+			{
+				++LightAttackIndex;
+			}
+		}
+	}
+}
+
 
 void ABlader::ResetLightAttack()
 {
@@ -247,15 +331,51 @@ void ABlader::ResetHeavyAttack()
 	HeavyAttackIndex = 0;
 }
 
+void ABlader::ExecuteAerialAttack()
+{
+	if (AerialAttackMontage != nullptr)
+	{
+		SetCharacterState(EASRCharacterState::ECS_Attack);
+		PlayAnimMontage(AerialAttackMontage);
+		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+		bIsLevitating = true;
+	}
+}
+
+bool ABlader::AerialAttack()
+{
+	if (GetTargetingComponent()->IsTargeting())
+	{
+		if (PrevInput.Y <= -0.5)
+		{
+			ExecuteAerialAttack();
+			return true;
+		}
+	}
+	return false;
+}
+
 void ABlader::ResolveLightAttackPending()
 {
+	if (bIsFirstSkillPending)
+	{
+		bIsFirstSkillPending = false;
+		if (CharacterState == EASRCharacterState::ECS_Attack)
+		{
+			CharacterState = EASRCharacterState::ECS_None;
+		}
+		UseFirstSkill();
+	}
+
 	if (bIsLightAttackPending)
 	{
+
 		bIsLightAttackPending = false;
 
 		// Process Pending L Attack
 		if (CharacterState == EASRCharacterState::ECS_Attack)
 		{
+
 			CharacterState = EASRCharacterState::ECS_None;
 		}
 
@@ -263,6 +383,9 @@ void ABlader::ResolveLightAttackPending()
 		LightAttack();
 
 	}
+	
+	// TODO: make sophisticated Pending Action System - Categorize Actions
+
 
 }
 
@@ -300,5 +423,42 @@ void ABlader::ResolveDodgePending()
 		Dodge();
 
 	}
+}
+
+void ABlader::HandleTimelineUpdate(float Value)
+{
+	if (GetWorld() != nullptr)
+	{
+		FVector NewLocation = UKismetMathLibrary::VLerp(LevitateLocation, LevitateLocation + FVector(0.f, 0.f, LevitateHeight), Value);
+		SetActorLocation(NewLocation, true);
+	}
+}
+
+void ABlader::InitializeTimeline()
+{
+	if (FloatCurve != nullptr)
+	{
+		FOnTimelineFloat TimelineCallback;
+		TimelineCallback.BindUFunction(this, FName("HandleTimelineUpdate"));
+		TimelineComponent->AddInterpFloat(FloatCurve, TimelineCallback);
+
+		FOnTimelineEvent TimelineFinishedCallback;
+		TimelineFinishedCallback.BindUFunction(this, FName("HandleTimelineFinished"));
+		TimelineComponent->SetTimelineFinishedFunc(TimelineFinishedCallback);
+	}
+}
+
+void ABlader::StopTimeline()
+{
+	if (TimelineComponent != nullptr)
+	{
+		TimelineComponent->Stop();
+	}
+}
+
+void ABlader::Levitate()
+{
+	LevitateLocation = GetActorLocation();
+	TimelineComponent->PlayFromStart();
 }
 

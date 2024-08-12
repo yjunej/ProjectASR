@@ -58,7 +58,7 @@ void UTargetingComponent::FindTarget()
 			ObjectTypes,
 			false,
 			ActorsToIgnore,
-			EDrawDebugTrace::ForDuration,
+			EDrawDebugTrace::None,
 			HitResult,
 			true
 		);
@@ -95,7 +95,7 @@ void UTargetingComponent::FindNearestTarget()
 		ObjectTypes,
 		false,
 		ActorsToIgnore,
-		EDrawDebugTrace::ForDuration,
+		EDrawDebugTrace::None,
 		HitResult,
 		true
 	);
@@ -143,6 +143,10 @@ bool UTargetingComponent::FindSubTarget()
 		FHitResult HitResult;
 		TArray<AActor*> ActorsToIgnore;
 		ActorsToIgnore.Add(Cast<AActor>(Owner));
+		if (LastSubTargetActor != nullptr)
+		{
+			ActorsToIgnore.Add(LastSubTargetActor);
+		}
 
 		bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
 			GetWorld(),
@@ -152,7 +156,7 @@ bool UTargetingComponent::FindSubTarget()
 			ObjectTypes,
 			false,
 			ActorsToIgnore,
-			EDrawDebugTrace::ForDuration,
+			EDrawDebugTrace::None,
 			HitResult,
 			true,
 			FLinearColor::Blue,
@@ -169,6 +173,7 @@ bool UTargetingComponent::FindSubTarget()
 					if (SubTargetActor != HitResult.GetActor())
 					{
 						SubTargetActor = HitResult.GetActor();
+						LastSubTargetActor = SubTargetActor;
 					}
 					return true;
 				}
@@ -187,6 +192,7 @@ bool UTargetingComponent::FindSubTarget()
 				UE_LOG(LogTemp, Warning, TEXT("Null HitActor"));
 
 				SubTargetActor = nullptr;
+
 				return false;
 			}
 		}
@@ -194,10 +200,12 @@ bool UTargetingComponent::FindSubTarget()
 		{
 			// Not Hit
 			SubTargetActor = nullptr;
+
 			return false;
 
 		}
 	}
+	SubTargetActor = nullptr;
 	return false;
 }
 
@@ -287,6 +295,32 @@ FTransform UTargetingComponent::GetTargetTransform()
 	return TargetTransform;
 }
 
+FTransform UTargetingComponent::GetLastSubTargetTransform()
+{
+	ABaseEnemy* LastSubTargetEnemy = Cast<ABaseEnemy>(LastSubTargetActor);
+	if (LastSubTargetEnemy != nullptr)
+	{
+		if (LastSubTargetEnemy->GetCharacterState() == EASRCharacterState::ECS_Death)
+		{
+			LastSubTargetActor = nullptr;
+			return FTransform::Identity;
+		}
+	}
+
+	FVector OwnerLocation = Owner->GetActorLocation();
+	FVector TargetLocation = LastSubTargetActor->GetActorLocation();
+	FRotator LookAtRotation = UKismetMathLibrary::FindLookAtRotation(OwnerLocation, TargetLocation);
+
+	FRotator OwnerRotation = Owner->GetActorRotation();
+	OwnerRotation.Yaw = LookAtRotation.Yaw;
+
+	FTransform TargetTransform;
+
+	TargetTransform.SetLocation(TargetLocation - OwnerLocation);
+	TargetTransform.SetRotation(OwnerRotation.Quaternion()); // 회전을 Quat으로 설정
+
+	return TargetTransform;
+}
 
 void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {

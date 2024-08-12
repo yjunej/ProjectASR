@@ -23,10 +23,12 @@ public:
 
 	bool CanAttack() const;
 	bool CanDodge() const;
+	bool CanAttakInAir() const;
 
 	void LightAttack();
 	void HeavyAttack();
 	void Dodge();
+	void UseFirstSkill();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float LightAttackWarpDistance = 150.f;
@@ -47,13 +49,17 @@ protected:
 	void Input_HeavyAttack(const FInputActionValue& Value);
 	void Input_Dodge(const FInputActionValue& Value);
 
+	// ASRCharacter
+	virtual void Input_FirstSkill(const FInputActionValue& Value) override;
+
 private:
 
 	// Button Pressed Amidst Other Actions
 	bool bIsLightAttackPending = false;
 	bool bIsHeavyAttackPending = false;
-	bool bIsDodgePending = false;
+	bool bIsFirstSkillPending = false;
 
+	bool bIsDodgePending = false;
 	bool bIsInvulnerable = false;
 
 	int32 LightAttackIndex;
@@ -67,7 +73,14 @@ private:
 	void ExecuteHeavyAttack(int32 AttackIndex);
 	void ResetHeavyAttack();
 
-	FORCEINLINE void ResetDodgeAttack() { bIsDodgePending = false; }
+	void ExecuteAerialAttack();
+
+	// Aerial Combo
+	bool AerialAttack();
+
+	void ExecuteLightAttackInAir(int32 AttackIndex);
+
+
 
 
 	// Resolve Pending Actions
@@ -113,5 +126,38 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* DodgeMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* AerialAttackMontage;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	TArray<class UAnimMontage*> LightAttackInAirMontages;
+
+
+
+	// Aerial Attack TimeLine
+	UPROPERTY(VisibleAnywhere, Category = "Timeline")
+	class UTimelineComponent* TimelineComponent;
+
+	UFUNCTION()
+	void HandleTimelineUpdate(float Value);
+
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* FloatCurve;
+
+	void InitializeTimeline();
+	void StopTimeline();
+
+	UFUNCTION(BlueprintCallable)
+	void Levitate();
+	bool bIsLevitating = false;
+	bool bCanAttackInAir = true;
+
+	FVector LevitateLocation;
+	float LevitateHeight = 500.f;
+	//
+
+
+	FORCEINLINE void ResetDodgeAttack() { bIsDodgePending = false; }
 
 };

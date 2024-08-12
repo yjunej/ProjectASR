@@ -59,12 +59,23 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		}
 		else
 		{
-			// Use Forward Vector
-			UE_LOG(LogTemp, Warning, TEXT("Forward Mode"));
+			if (TargetingComponent->GetLastSubTargetActor() != nullptr)
+			{
+				FTransform TargetTransform = TargetingComponent->GetLastSubTargetTransform();
+				float WarpDistance = Blader->LightAttackWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : Blader->LightAttackWarpDistance;
+				WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
+				WarpTransform.SetRotation(TargetTransform.GetRotation());
 
-			//WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * Blader->LightAttackWarpDistance);
-			WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetPendingMovementInputVector() * Blader->LightAttackWarpDistance);
-			WarpTransform.SetRotation(FQuat(Blader->GetActorRotation()));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Forward Mode"));
+				//WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * Blader->LightAttackWarpDistance);
+				WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetPendingMovementInputVector() * Blader->LightAttackWarpDistance);
+				WarpTransform.SetRotation(FQuat(Blader->GetActorRotation()));
+			}
+			// Use Forward Vector
+				
 		}
 
 
