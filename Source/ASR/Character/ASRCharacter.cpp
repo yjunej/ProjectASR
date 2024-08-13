@@ -187,9 +187,9 @@ void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRD
 				IHitInterface* HitInterface = Cast<IHitInterface>(HitActor);
 				if (HitInterface != nullptr)
 				{
+					UGameplayStatics::PlaySoundAtLocation(this, HitSoundCue, HitActor->GetActorLocation());
 					HitInterface->GetHit(HitResult, this, BaseDamage, DamageType);
 					HitActors.AddUnique(HitActor);
-					UGameplayStatics::PlaySoundAtLocation(this, HitSoundCue, HitActor->GetActorLocation());
 
 				}
 			}

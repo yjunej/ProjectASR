@@ -21,14 +21,18 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
 	// HitInterface
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
+	
 
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Landed(const FHitResult& HitResult) override;
 
-	UPROPERTY(VisibleAnywhere, Category = State)
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
 	EASRCharacterState CharacterState;
 
 	UPROPERTY(EditDefaultsOnly, Category = Damage)
@@ -37,17 +41,24 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetState();
 
+	UFUNCTION(BlueprintCallable)
 	virtual void HandleDeath();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
 	float Health;
 
-	//UFUNCTION(BlueprintCallable) 
-	UAnimMontage* GetHitReactionMontage(EASRDamageType DamageType);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* DeathMontage;
+	UAnimMontage* StandUpMontage;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* StandingDeathMontage;
+
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* FallingDeathMontage;
 
 	// TimeLine
 	UPROPERTY(VisibleAnywhere, Category = "Timeline")
@@ -65,16 +76,22 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Timeline")
 	UCurveFloat* LevitateCurve;
 
+	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UCurveFloat* AirSmashCurve;
+
+
 	void InitializeTimeline();
 	void StopTimeline();
 	float KnockbackDistance = 50.f;
+	float AirSmashDistance = 400.f;
 
 	FVector StartLocation;
 	void ApplyKnockback();
 	void Levitate();
 	float LevitateHeight = 500.f;
 	bool bIsLevitating = false;
-	bool bIsSmashing = false;
+	bool bIsAirSmash = false;
+	void AerialKnockdown();
 
 
 
@@ -82,7 +99,6 @@ public:
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; };
 	void SetCharacterState(EASRCharacterState InCharacterState);
 
-	
 
 	
 

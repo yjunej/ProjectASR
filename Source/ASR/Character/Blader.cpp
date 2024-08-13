@@ -99,6 +99,7 @@ void ABlader::ResetState()
 	{
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
+
 	ResetLightAttack();
 	ResetHeavyAttack();
 	ResetDodgeAttack();
@@ -128,16 +129,8 @@ void ABlader::LightAttack()
 {
 	if (CanAttack())
 	{
-
-		//if (AerialAttack()
-		//{
-		//	 // Do Post Combo
-		//}
-		//else
-		//{
-			ResetHeavyAttack();
-			ExecuteLightAttack(LightAttackIndex);
-		//}
+		ResetHeavyAttack();
+		ExecuteLightAttack(LightAttackIndex);
 	}
 	else if (CanAttakInAir())
 	{
@@ -306,10 +299,6 @@ void ABlader::ExecuteHeavyAttack(int32 AttackIndex)
 		{
 			SetCharacterState(EASRCharacterState::ECS_Attack);
 
-			// AnimNotify State handle this
-			//GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
-			//	FName("Forward"), GetActorLocation() + GetActorForwardVector() * HeavyAttackWarpDistance,
-			//	GetActorRotation());
 
 			PlayAnimMontage(HeavyAttackMontages[AttackIndex]);
 

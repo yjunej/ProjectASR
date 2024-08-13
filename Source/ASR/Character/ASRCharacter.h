@@ -67,8 +67,9 @@ protected:
 	// Enable pure function by seperate USTRUCT
 	virtual void Input_FirstSkill(const FInputActionValue& Value);
 
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State)
 	EASRCharacterState CharacterState;
+
 	TArray<AActor*> HitActors;
 	FVector2D PrevInput;
 

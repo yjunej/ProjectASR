@@ -10,7 +10,7 @@ enum class EASRDamageType : uint8
 {
 	EDT_Default						UMETA(DisplayName = "Default"),
 	EDT_Die							UMETA(DisplayName = "Die"),
-	
+
 	EDT_FrontSmall					UMETA(DisplayName = "FrontSmall"),
 	EDT_BackSmall					UMETA(DisplayName = "BackSmall"),
 	EDT_LeftSmall					UMETA(DisplayName = "LeftSmall"),
@@ -20,7 +20,6 @@ enum class EASRDamageType : uint8
 	EDT_BackDown					UMETA(DisplayName = "BackDown"),
 
 	EDT_FrontBig					UMETA(DisplayName = "FrontBig"),
-	EDT_FrontHighKnockDown			UMETA(DisplayName = "FrontHighKnockDown"),
 
 	// Knock
 	EDT_KnockDownBack				UMETA(DisplayName = "KnockDownBack"),
@@ -33,6 +32,10 @@ enum class EASRDamageType : uint8
 	EDT_KnockDownFrontBig			UMETA(DisplayName = "KnockDownFrontBig"),
 
 	// Aerial
-	EDT_FrontHighKnockDownHit		UMETA(DisplayName = "FrontHighKnockDownHit"),
+	EDT_AerialStart					UMETA(DisplayName = "AerialStart"),
+	EDT_AerialHit					UMETA(DisplayName = "AerialHit"),
+	EDT_AerialKnockDown				UMETA(DisplayName = "AerialKnockDown"),
+
+	EDT_MAX							UMETA(Hidden)
 		
 };
