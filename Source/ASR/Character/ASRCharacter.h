@@ -59,13 +59,13 @@ protected:
 	virtual void BeginPlay() override;
 	
 	// Enhanced Input
-	void Input_Move(const FInputActionValue& Value);
+	virtual void Input_Move(const FInputActionValue& Value);
+	virtual void Input_ToggleLockOn(const FInputActionValue& Value);
+
 	void Input_Look(const FInputActionValue& Value);
 	void Input_ToggleCrouch(const FInputActionValue& Value);
-	void Input_ToggleLockOn(const FInputActionValue& Value);
 
-	// Enable pure function by seperate USTRUCT
-	virtual void Input_FirstSkill(const FInputActionValue& Value);
+
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State)
 	EASRCharacterState CharacterState;
@@ -99,8 +99,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleLockOnAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* FirstSkillAction;
+
 
 private:
 	// Camera Setting

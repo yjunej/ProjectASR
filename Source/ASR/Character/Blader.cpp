@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "TargetingComponent.h"
 #include "Components/TimelineComponent.h"
+#include "ASR/Character/Enemy/BaseEnemy.h"
 
 
 ABlader::ABlader()
@@ -23,9 +24,59 @@ ABlader::ABlader()
     WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
     WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket"));  // 소켓에 부착
 	
+	GetCharacterMovement()->MaxWalkSpeed = 1050.f;
+
 	TimelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineComponent"));
 	FloatCurve = nullptr; // Draw In Editor
 
+}
+
+void ABlader::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (bIsUltCharging)
+	{
+		UltTargets.Empty();
+		UCameraComponent* FollowCam = GetFollowCamera();
+		FVector TraceEnd;
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_Pawn));
+
+		TraceEnd = FollowCam->GetComponentLocation() + FollowCam->GetForwardVector() * 1000;
+		TArray<FHitResult> HitResults;
+
+		TArray<AActor*> ActorsToIgnore;
+		ActorsToIgnore.Add(Cast<AActor>(this));
+
+
+		bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
+			GetWorld(),
+			GetActorLocation() + GetFollowCamera()->GetForwardVector() * 1000,
+			GetActorLocation() + GetFollowCamera()->GetForwardVector() * 1000,
+			1000,
+			ObjectTypes,
+			false,
+			ActorsToIgnore,
+			EDrawDebugTrace::None,
+			HitResults,
+			true
+		);
+		if (bHit)
+		{
+			for (const FHitResult& HitResult : HitResults)
+			{
+				AActor* HitActor = HitResult.GetActor();
+				if (HitActor != nullptr && !UltTargets.Contains(HitActor))
+				{
+					ABaseEnemy* Enemy = Cast<ABaseEnemy>(HitActor);
+					if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
+					{
+						UltTargets.AddUnique(HitActor);
+					}
+				}
+			}
+		}
+	}
 }
 
 void ABlader::PostInitializeComponents()
@@ -49,12 +100,16 @@ void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_LightAttack);
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_HeavyAttack);
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &ABlader::Input_Dodge);
+		EnhancedInputComponent->BindAction(FirstSkillAction, ETriggerEvent::Triggered, this, &ABlader::Input_FirstSkill);
+		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Started, this, &ABlader::Input_Ult);
+		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Completed, this, &ABlader::Input_Release_Ult);
+
+
 	}
 }
 
 bool ABlader::CanAttack() const
 {
-
 
 	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
 		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
@@ -100,9 +155,12 @@ void ABlader::ResetState()
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 
+	// Reset Attack Pendig & Count
 	ResetLightAttack();
 	ResetHeavyAttack();
-	ResetDodgeAttack();
+	ResetDodge();
+	bIsFirstSkillPending = false;
+
 	if (GetTargetingComponent() != nullptr)
 	{
 		GetTargetingComponent()->ClearSubTarget();
@@ -111,9 +169,23 @@ void ABlader::ResetState()
 	bIsLevitating = false;
 }
 
+void ABlader::Input_Move(const FInputActionValue& Value)
+{
+	if (bIsUltCharging)
+	{
+		ResetUlt();
+	}
+	Super::Input_Move(Value);
+}
+
 void ABlader::Input_LightAttack(const FInputActionValue& Value)
 {
+	if (bIsUltCharging)
+	{
+		ResetUlt();
+	}
 	bIsHeavyAttackPending = false;
+	
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
 		bIsLightAttackPending = true;
@@ -129,8 +201,15 @@ void ABlader::LightAttack()
 {
 	if (CanAttack())
 	{
-		ResetHeavyAttack();
-		ExecuteLightAttack(LightAttackIndex);
+		if (GetVelocity().Size() >= 1000.f)
+		{
+			DashLightAttack();
+		}
+		else
+		{
+			ResetHeavyAttack();
+			ExecuteLightAttack(LightAttackIndex);
+		}
 	}
 	else if (CanAttakInAir())
 	{
@@ -141,6 +220,10 @@ void ABlader::LightAttack()
 
 void ABlader::Input_HeavyAttack(const FInputActionValue& Value)
 {
+	if (bIsUltCharging)
+	{
+		ResetUlt();
+	}
 	bIsLightAttackPending = false;
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
@@ -154,6 +237,10 @@ void ABlader::Input_HeavyAttack(const FInputActionValue& Value)
 
 void ABlader::Input_Dodge(const FInputActionValue& Value)
 {
+	if (bIsUltCharging)
+	{
+		ResetUlt();
+	}
 	if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge)
 	{
 		bIsDodgePending = true;
@@ -167,6 +254,10 @@ void ABlader::Input_Dodge(const FInputActionValue& Value)
 
 void ABlader::Input_FirstSkill(const FInputActionValue& Value)
 {
+	if (bIsUltCharging)
+	{
+		ResetUlt();
+	}
 	bIsLightAttackPending = false;
 	bIsHeavyAttackPending = false;
 	if (CharacterState == EASRCharacterState::ECS_Attack)
@@ -179,6 +270,42 @@ void ABlader::Input_FirstSkill(const FInputActionValue& Value)
 	}
 }
 
+void ABlader::Input_Ult(const FInputActionValue& Value)
+{
+	if (CanAttack())
+	{
+		UGameplayStatics::SetGlobalTimeDilation(this, 0.5f);
+		PlayAnimMontage(UltReadyMontage);
+		bIsUltCharging = true;
+	}
+
+}
+
+void ABlader::Input_Release_Ult(const FInputActionValue& Value)
+{
+	// TODO - make Combat state Reset function (Attack Counter, Pending Attack, TimeDilation)
+	UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+	UltStartTransform = GetActorTransform();
+
+	bIsUltCharging = false;
+	UltTargetIndex = 0;
+
+	if (UltTargets.Num() > 0)
+	{
+		AActor* Target = UltTargets[UltTargetIndex];
+
+		GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
+			FName("Ult"), Target->GetActorLocation(), Target->GetActorRotation()
+		);
+		CharacterState = EASRCharacterState::ECS_Attack;
+		PlayUltAttackMontage();
+	}
+	else
+	{
+		ResetUlt();
+	}
+}
+
 
 
 void ABlader::HeavyAttack()
@@ -186,10 +313,41 @@ void ABlader::HeavyAttack()
 	if (CanAttack())
 	{
 		// TODO: NOT RESET L/H Counter for custom combo
-		ResetLightAttack();
-		ExecuteHeavyAttack(HeavyAttackIndex);
+
+		if (GetVelocity().Size() >= 1000.f)
+		{
+			DashHeavyAttack();
+		}
+		else
+		{
+			ResetLightAttack();
+			ExecuteHeavyAttack(HeavyAttackIndex);
+		}
+
+
 	}
 }
+
+void ABlader::DashLightAttack()
+{
+	SetCharacterState(EASRCharacterState::ECS_Attack);
+	ResetLightAttack();
+	ResetHeavyAttack();
+	ResetFirstSkill();
+	ResetDodge();
+	PlayAnimMontage(DashLightAttackMontage);
+}
+
+void ABlader::DashHeavyAttack()
+{
+	SetCharacterState(EASRCharacterState::ECS_Attack);
+	ResetLightAttack();
+	ResetHeavyAttack();
+	ResetFirstSkill();
+	ResetDodge();
+	PlayAnimMontage(DashHeavyAttackMontage);
+}
+
 
 void ABlader::Dodge()
 {
@@ -224,6 +382,15 @@ void ABlader::UseFirstSkill()
 		bIsDodgePending = false;
 
 		ExecuteAerialAttack();
+	}
+}
+
+void ABlader::PlayUltAttackMontage()
+{
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance != nullptr && UltAttackMontage != nullptr)
+	{
+		AnimInstance->Montage_Play(UltAttackMontage);
 	}
 }
 
@@ -344,6 +511,32 @@ bool ABlader::AerialAttack()
 	return false;
 }
 
+void ABlader::UltEnd()
+{
+	GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
+		FName("Ult"), UltStartTransform.GetLocation(), UltStartTransform.GetRotation().Rotator()
+	);
+	PlayAnimMontage(UltLastAttackMontage, 1.f);
+}
+
+void ABlader::ResetUlt()
+{
+	UGameplayStatics::SetGlobalTimeDilation(this, 1.f);
+	bIsUltCharging = false;
+
+	float FadeOutTime = 0.2f; 
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance && AnimInstance->Montage_IsPlaying(UltReadyMontage))
+	{
+		AnimInstance->Montage_Stop(FadeOutTime, UltReadyMontage);
+	}
+
+	UltTargetIndex = 0;
+	UltTargets.Empty();
+
+}
+
+
 void ABlader::ResolveLightAttackPending()
 {
 	if (bIsFirstSkillPending)
@@ -449,5 +642,15 @@ void ABlader::Levitate()
 {
 	LevitateLocation = GetActorLocation();
 	TimelineComponent->PlayFromStart();
+}
+
+void ABlader::ApplyUltDamage()
+{
+	for (AActor* Target : UltTargets)
+	{
+		IHitInterface* HitInterface = Cast<IHitInterface>(Target);
+		FHitResult HitResult;
+		HitInterface->GetHit(HitResult, this, 1000.f, EASRDamageType::EDT_Die);
+	}
 }
 

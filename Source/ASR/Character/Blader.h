@@ -17,18 +17,23 @@ class ASR_API ABlader : public AASRCharacter
 public:
 	ABlader();
 
+	virtual void Tick(float DeltaTime) override;
 	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-
 	bool CanAttack() const;
 	bool CanDodge() const;
 	bool CanAttakInAir() const;
 
 	void LightAttack();
 	void HeavyAttack();
+	void DashLightAttack();
+	void DashHeavyAttack();
 	void Dodge();
 	void UseFirstSkill();
+
+	void PlayUltAttackMontage();
+	void UltEnd();
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float LightAttackWarpDistance = 150.f;
@@ -36,21 +41,26 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float HeavyAttackWarpDistance = 150.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float DashAttackWarpDistance = 500.f;
+
 
 protected:
 	virtual void BeginPlay() override;
 	
 	// ASRCharacter
 	virtual void ResetState() override;
-
+	virtual void Input_Move(const FInputActionValue& Value) override;
 
 	// Enhanced Input
 	void Input_LightAttack(const FInputActionValue& Value);
 	void Input_HeavyAttack(const FInputActionValue& Value);
 	void Input_Dodge(const FInputActionValue& Value);
+	void Input_FirstSkill(const FInputActionValue& Value);
+	void Input_Ult(const FInputActionValue& Value);
+	void Input_Release_Ult(const FInputActionValue& Value);
 
-	// ASRCharacter
-	virtual void Input_FirstSkill(const FInputActionValue& Value) override;
+
 
 private:
 
@@ -75,12 +85,17 @@ private:
 
 	void ExecuteAerialAttack();
 
+
+
 	// Aerial Combo
 	bool AerialAttack();
 
 	void ExecuteLightAttackInAir(int32 AttackIndex);
 
-
+	// Ult
+	bool bIsUltCharging = false;
+	int32 UltTargetIndex = 0;
+	void ResetUlt();
 
 
 	// Resolve Pending Actions
@@ -94,7 +109,7 @@ private:
 	void ResolveDodgePending();
 	
 	UFUNCTION(BlueprintCallable)
-	bool IsInvulnerable() { return bIsInvulnerable; }
+	bool IsInvulnerable() const { return bIsInvulnerable; }
 
 	UFUNCTION(BlueprintCallable)
 	void SetInvulnerable(bool InInvulnerable) { bIsInvulnerable = InInvulnerable; }
@@ -117,6 +132,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* DodgeAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* FirstSkillAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* UltAction;
+
 	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> LightAttackMontages;
@@ -132,20 +153,35 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AerialSmashMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DashLightAttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DashHeavyAttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* UltReadyMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* UltAttackMontage;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* UltLastAttackMontage;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> LightAttackInAirMontages;
 
 
 
 	// Aerial Attack TimeLine
-	UPROPERTY(VisibleAnywhere, Category = "Timeline")
+	UPROPERTY(VisibleAnywhere, Category = Timeline)
 	class UTimelineComponent* TimelineComponent;
 
 	UFUNCTION()
 	void HandleTimelineUpdate(float Value);
 
-	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UPROPERTY(EditAnywhere, Category = Timeline)
 	UCurveFloat* FloatCurve;
 
 	void InitializeTimeline();
@@ -160,7 +196,18 @@ private:
 	float LevitateHeight = 500.f;
 	//
 
+	//Ult
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Skill, meta = (AllowPrivateAccess = "true"))
+	TArray<AActor*> UltTargets;
+	FTransform UltStartTransform;
+	UFUNCTION(BlueprintCallable)
+	void ApplyUltDamage();
 
-	FORCEINLINE void ResetDodgeAttack() { bIsDodgePending = false; }
 
+public:
+	FORCEINLINE void ResetDodge() { bIsDodgePending = false; }
+	FORCEINLINE void ResetFirstSkill() { bIsFirstSkillPending = false; }
+	FORCEINLINE TArray<AActor*> GetUltTargets() const { return UltTargets; }
+	FORCEINLINE int32 GetUltTargetIndex() const { return UltTargetIndex; }
+	FORCEINLINE void SetUltTargetIndex(int32 Index) { UltTargetIndex = Index; }
 };

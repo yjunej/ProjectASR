@@ -31,13 +31,43 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 
 	FTransform WarpTransform;
 
+	// Limit Warp Transform
+	UAnimInstance* AnimInstance;
+	FName SectionName("Default");
+	FName TargetName("Forward");
+
+
+	AnimInstance =  MeshComp->GetAnimInstance();
+	if (AnimInstance != nullptr)
+	{
+		UAnimMontage* AnimMontage = AnimInstance->GetCurrentActiveMontage();
+		if (AnimMontage != nullptr)
+		{
+			SectionName = AnimInstance->Montage_GetCurrentSection(AnimMontage);
+		}
+	}
+
+	float MaxWarpDistance;
+	if (SectionName == "DashAttack")
+	{
+		MaxWarpDistance = Blader->DashAttackWarpDistance;
+		TargetName = FName("ForwardDash");
+	}
+	else
+	{
+		MaxWarpDistance = Blader->LightAttackWarpDistance;
+	}
+
+	
+
+
 	if (TargetingComponent->IsTargeting())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("LockOn Mode"));
 
 		// Use LockOn Target Transform
 		FTransform TargetTransform = TargetingComponent->GetTargetTransform();
-		float WarpDistance = Blader->LightAttackWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : Blader->LightAttackWarpDistance;
+		float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 		
 		WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 		WarpTransform.SetRotation(TargetTransform.GetRotation());
@@ -50,9 +80,8 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		{
 			UE_LOG(LogTemp, Warning, TEXT("SubTarget Mode"));
 
-
 			FTransform TargetTransform = TargetingComponent->GetTargetTransform();
-			float WarpDistance = Blader->LightAttackWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : Blader->LightAttackWarpDistance;
+			float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 
 			WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 			WarpTransform.SetRotation(TargetTransform.GetRotation());
@@ -61,8 +90,9 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		{
 			if (TargetingComponent->GetLastSubTargetActor() != nullptr)
 			{
+				UE_LOG(LogTemp, Warning, TEXT("LastSubTarget Mode"));
 				FTransform TargetTransform = TargetingComponent->GetLastSubTargetTransform();
-				float WarpDistance = Blader->LightAttackWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : Blader->LightAttackWarpDistance;
+				float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 				WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 				WarpTransform.SetRotation(TargetTransform.GetRotation());
 
@@ -70,8 +100,8 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 			else
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Forward Mode"));
-				//WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * Blader->LightAttackWarpDistance);
-				WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetPendingMovementInputVector() * Blader->LightAttackWarpDistance);
+				//WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * WarpDistance);
+				WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * MaxWarpDistance);
 				WarpTransform.SetRotation(FQuat(Blader->GetActorRotation()));
 			}
 			// Use Forward Vector
@@ -89,5 +119,5 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 	}
 	
 
-	Blader->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(FName("Forward"), WarpTransform);
+	Blader->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(TargetName, WarpTransform);
 }

@@ -93,6 +93,12 @@ private:
 	bool bIsAirSmash = false;
 	void AerialKnockdown();
 
+	// Hit Postprocess func
+	void RotateToAttacker(AActor* Attacker);
+	void HandleHitTransform(AActor* Attacker, EASRDamageType DamageType);
+	void AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType);
+
+
 
 
 public:

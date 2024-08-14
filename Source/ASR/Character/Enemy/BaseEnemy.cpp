@@ -30,7 +30,6 @@ void ABaseEnemy::Landed(const FHitResult& HitResult)
 	// Falling -> Hit Ground
 	Super::Landed(HitResult);
 	ResetState();
-	UE_LOG(LogTemp, Warning, TEXT("LANDED!"));
 
 	if (Health <= 0.f)
 	{
@@ -39,9 +38,7 @@ void ABaseEnemy::Landed(const FHitResult& HitResult)
 	else
 	{
 		PlayAnimMontage(StandUpMontage);
-
 	}
-
 
 }
 
@@ -53,27 +50,19 @@ void ABaseEnemy::ResetState()
 	}
 	CharacterState = EASRCharacterState::ECS_None;
 	
-	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
-	if (MovementMode == EMovementMode::MOVE_Flying)
+	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Flying)
 	{
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
-	 
 		return;
 	}
 	bIsAirSmash = false;
 	bIsLevitating = false;
-
 }
 
 void ABaseEnemy::HandleDeath()
 {
-	UE_LOG(LogTemp, Warning, TEXT("HandleDeath!"));
-
-	//if (!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
-	//{
 	CharacterState = EASRCharacterState::ECS_Death;
 
-	
 	if (GetCharacterMovement()->IsFalling())
 	{
 		PlayAnimMontage(FallingDeathMontage);
@@ -83,7 +72,6 @@ void ABaseEnemy::HandleDeath()
 		PlayAnimMontage(StandingDeathMontage);
 	}
 
-
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
@@ -91,19 +79,10 @@ void ABaseEnemy::HandleDeath()
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
-	//}
-
-
 }
 
 void ABaseEnemy::HandleTimelineUpdate(float Value)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("TIMELINE AIRSmash: %f"), AirSmashCurve->GetFloatValue(TimelineComponent->GetPlaybackPosition()));
-	//UE_LOG(LogTemp, Warning, TEXT("TIMELINE Levitate: %f"), LevitateCurve->GetFloatValue(TimelineComponent->GetPlaybackPosition()));
-	//UE_LOG(LogTemp, Warning, TEXT("TIMELINE Slightly Knockback: %f"), KnockbackCurve->GetFloatValue(TimelineComponent->GetPlaybackPosition()));
-
-	
-
 	if (GetWorld() != nullptr)
 	{
 		if (bIsLevitating)
@@ -117,7 +96,6 @@ void ABaseEnemy::HandleTimelineUpdate(float Value)
 			FVector NewLocation = UKismetMathLibrary::VLerp(StartLocation, StartLocation + DirectionVector * AirSmashDistance - FVector(0.f, 0.f, StartLocation.Z), Value);
 			SetActorLocation(NewLocation, true);
 		}
-
 		else // Slightly Knockback
 		{
 			FVector DirectionVector = GetActorForwardVector() * -1;
@@ -130,14 +108,11 @@ void ABaseEnemy::HandleTimelineUpdate(float Value)
 
 void ABaseEnemy::HandleTimelineFinished()
 {
-	UE_LOG(LogTemp, Warning, TEXT("TimelineFIN!"));
 	if (bIsLevitating)
 	{
-		// Ensure to reset the state after levitation
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
 		ResetState();
 		bIsLevitating = false;
-
 	}
 	if (bIsAirSmash)
 	{
@@ -181,6 +156,92 @@ void ABaseEnemy::AerialKnockdown()
 	TimelineComponent->PlayFromStart();
 }
 
+void ABaseEnemy::RotateToAttacker(AActor* Attacker)
+{
+	FRotator LookAtAttackerRotator = GetActorRotation();
+	LookAtAttackerRotator.Yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Attacker->GetActorLocation()).Yaw;
+	SetActorRotation(LookAtAttackerRotator);
+}
+
+void ABaseEnemy::HandleHitTransform(AActor* Attacker, EASRDamageType DamageType)
+{
+
+	if (TimelineComponent != nullptr)
+	{
+		// Select Timeline Curve
+		if (DamageType == EASRDamageType::EDT_AerialStart)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Levitate!!"));
+			Levitate();
+		}
+		else if (DamageType == EASRDamageType::EDT_AerialKnockDown)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("AerialKnockDown!!"));
+			AerialKnockdown();
+		}
+		else if (DamageType == EASRDamageType::EDT_AerialHit)
+		{
+			FVector ZMatching = GetActorLocation();
+			ZMatching.Z = Attacker->GetActorLocation().Z - 25.f >= 0.f ? Attacker->GetActorLocation().Z - 25.f : 0.f;
+			SetActorLocation(ZMatching);
+		}
+		else // Knockback
+		{
+			UE_LOG(LogTemp, Warning, TEXT("KnockBack!!"));
+			ApplyKnockback();
+		}
+	}
+}
+
+void ABaseEnemy::AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType)
+{
+	UE_LOG(LogTemp, Warning, TEXT("AerialAttack!!"));
+
+	// Grab Enemy in Air
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
+
+	switch (DamageType)
+	{
+	case EASRDamageType::EDT_Default:
+	case EASRDamageType::EDT_Die:
+	case EASRDamageType::EDT_FrontSmall:
+	case EASRDamageType::EDT_BackSmall:
+	case EASRDamageType::EDT_LeftSmall:
+	case EASRDamageType::EDT_RightSmall:
+	case EASRDamageType::EDT_FrontDown:
+	case EASRDamageType::EDT_BackDown:
+	case EASRDamageType::EDT_FrontBig:
+	case EASRDamageType::EDT_KnockDownBack:
+	case EASRDamageType::EDT_KnockDownBackBig:
+	case EASRDamageType::EDT_KnockDownBackSmash:
+	case EASRDamageType::EDT_KnockDownFront:
+	case EASRDamageType::EDT_KnockDownFrontSpear:
+	case EASRDamageType::EDT_KnockDownFrontSmashDouble:
+	case EASRDamageType::EDT_KnockDownFrontBig:
+	case EASRDamageType::EDT_AerialHit:
+		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialHit);
+		break;
+	case EASRDamageType::EDT_AerialStart:
+		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialStart);
+		break;
+
+	case EASRDamageType::EDT_AerialKnockDown:
+		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialKnockDown);
+		UE_LOG(LogTemp, Warning, TEXT("AerialKnockDownAnim!!"));
+
+		break;
+	case EASRDamageType::EDT_MAX:
+		UE_LOG(LogTemp, Warning, TEXT("EDT_MAX No Mapping!"));
+		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_Default);
+		break;
+	default:
+		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_Default);
+		UE_LOG(LogTemp, Warning, TEXT("EDT_MAX No Mapping!"));
+		break;
+	}
+
+}
+
 void ABaseEnemy::InitializeTimeline()
 {
 	FOnTimelineFloat TimelineCallback;
@@ -188,7 +249,6 @@ void ABaseEnemy::InitializeTimeline()
 	TimelineComponent->AddInterpFloat(KnockbackCurve, TimelineCallback);
 	TimelineComponent->AddInterpFloat(LevitateCurve, TimelineCallback);
 	TimelineComponent->AddInterpFloat(AirSmashCurve, TimelineCallback);
-
 
 	FOnTimelineEvent TimelineFinishedCallback;
 	TimelineFinishedCallback.BindUFunction(this, FName("HandleTimelineFinished"));
@@ -209,136 +269,44 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 {
 	// [TODO] Block Handling Before Take Damage
 	
-
 	if (CharacterState == EASRCharacterState::ECS_Death)
 	{ 
 		return;
 	}
-	//
+
 	Health -= Damage;
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
-
 
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
 	{
 		HandleDeath();
 		return;
 	}
-	else
+
+	FDamageTypeMapping* Mapping;
+	Mapping = DamageTypeMappings.Find(DamageType);
+	if (Mapping != nullptr)
 	{
-		FDamageTypeMapping* Mapping;
-		Mapping = DamageTypeMappings.Find(DamageType);
-		if (Mapping != nullptr)
+		CharacterState = Mapping->CharacterState;			
+		RotateToAttacker(Attacker);
+		HandleHitTransform(Attacker, DamageType);
+		if (GetCharacterMovement()->IsFalling() || GetCharacterMovement()->IsFlying())
 		{
-			CharacterState = Mapping->CharacterState;
-
-
-			FRotator LookAtAttackerRotator = GetActorRotation();
-			LookAtAttackerRotator.Yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Attacker->GetActorLocation()).Yaw;
-			SetActorRotation(LookAtAttackerRotator);
-
-			
-			// Manage State
-
-			if (TimelineComponent != nullptr)
-			{
-				if (DamageType == EASRDamageType::EDT_AerialStart)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("Levitate!!"));
-
-					Levitate();
-				}
-				else if (DamageType == EASRDamageType::EDT_AerialKnockDown)
-				{
-					UE_LOG(LogTemp, Warning, TEXT("AerialKnockDown!!"));
-					AerialKnockdown();
-				}
-				else
-				{
-					// Disable Knockback In Air
-					if (!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
-					{
-						UE_LOG(LogTemp, Warning, TEXT("KnockBack!!"));
-
-						ApplyKnockback();
-					}
-					else // Matching Z Location
-					{
-						FVector ZMatching = GetActorLocation();
-						ZMatching.Z = Attacker->GetActorLocation().Z - 25.f >= 0.f ? Attacker->GetActorLocation().Z - 25.f : 0.f;
-						SetActorLocation(ZMatching);
-					}
-				}
-			}
-
-			// Aerial Hit!
-			if (GetCharacterMovement()->IsFalling() || GetCharacterMovement()->IsFlying())
-			{
-				UE_LOG(LogTemp, Warning, TEXT("AerialAttack!!"));
-
-				// Grab Enemy in Air
-				GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-				//
-
-				switch (DamageType)
-				{
-				case EASRDamageType::EDT_Default:
-				case EASRDamageType::EDT_Die:
-				case EASRDamageType::EDT_FrontSmall:
-				case EASRDamageType::EDT_BackSmall:
-				case EASRDamageType::EDT_LeftSmall:
-				case EASRDamageType::EDT_RightSmall:
-				case EASRDamageType::EDT_FrontDown:
-				case EASRDamageType::EDT_BackDown:
-				case EASRDamageType::EDT_FrontBig:
-				case EASRDamageType::EDT_KnockDownBack:
-				case EASRDamageType::EDT_KnockDownBackBig:
-				case EASRDamageType::EDT_KnockDownBackSmash:
-				case EASRDamageType::EDT_KnockDownFront:
-				case EASRDamageType::EDT_KnockDownFrontSpear:
-				case EASRDamageType::EDT_KnockDownFrontSmashDouble:
-				case EASRDamageType::EDT_KnockDownFrontBig:
-				case EASRDamageType::EDT_AerialHit:
-					Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialHit);
-					break;
-				case EASRDamageType::EDT_AerialStart:
-					Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialStart);
-					break;
-
-
-				case EASRDamageType::EDT_AerialKnockDown:
-					Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialKnockDown);
-					UE_LOG(LogTemp, Warning, TEXT("AerialKnockDownAnim!!"));
-
-					break;
-				case EASRDamageType::EDT_MAX:
-					UE_LOG(LogTemp, Warning, TEXT("EDT_MAX No Mapping!"));
-					Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_Default);
-					break;
-				default:
-					Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_Default);
-					UE_LOG(LogTemp, Warning, TEXT("EDT_MAX No Mapping!"));
-					break;
-				}
-
-			}
-
-			if (Mapping->HitReactionMontage != nullptr)
-			{
-				PlayAnimMontage(Mapping->HitReactionMontage);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("NULL HitReact Montage!"));
-
-			}
-
-
+			AerialHitAnimMapping(Attacker, Mapping, DamageType);
+		}
+		if (Mapping->HitReactionMontage != nullptr)
+		{
+			PlayAnimMontage(Mapping->HitReactionMontage);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
+			UE_LOG(LogTemp, Warning, TEXT("NULL HitReact Montage!"));
 		}
+
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
 	}
 }
 

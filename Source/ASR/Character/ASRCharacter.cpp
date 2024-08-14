@@ -83,8 +83,6 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
 
-		EnhancedInputComponent->BindAction(FirstSkillAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_FirstSkill);
-
 	}
 }
 
@@ -147,10 +145,6 @@ void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
 			TargetingComponent->FindTarget();
 		}
 	}
-}
-
-void AASRCharacter::Input_FirstSkill(const FInputActionValue& Value)
-{
 }
 
 

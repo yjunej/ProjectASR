@@ -240,6 +240,7 @@ void UTargetingComponent::ClearTarget()
 void UTargetingComponent::ClearSubTarget()
 {
 	SubTargetActor = nullptr;
+	LastSubTargetActor = nullptr;
 }
 
 void UTargetingComponent::PlaceDecalActor()
@@ -354,6 +355,14 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		{
 			ClearTarget();
 		}
+	}
+	if (SubTargetActor != nullptr)
+	{
+		if (SubTargetActor->GetDistanceTo(GetOwner()) < ClearSubTargetDistance)
+		{
+			ClearSubTarget();
+		}
+
 	}
 }
 
