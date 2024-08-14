@@ -650,7 +650,7 @@ void ABlader::ApplyUltDamage()
 	{
 		IHitInterface* HitInterface = Cast<IHitInterface>(Target);
 		FHitResult HitResult;
-		HitInterface->GetHit(HitResult, this, 1000.f, EASRDamageType::EDT_Die);
+		HitInterface->GetHit(HitResult, this, 10000.f, EASRDamageType::EDT_Die);
 	}
 }
 

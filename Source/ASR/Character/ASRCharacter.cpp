@@ -13,6 +13,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "TargetingComponent.h"
 #include "Sound/SoundCue.h"
+#include "Blueprint/UserWidget.h"
+#include "ASR/HUD/ASRMainHUD.h"
 
 
 
@@ -54,6 +56,23 @@ AASRCharacter::AASRCharacter()
 void AASRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	if (MainHUDWidgetClass != nullptr)
+	{
+		UUserWidget* UserWidget = CreateWidget(GetWorld(), MainHUDWidgetClass);
+		if (UserWidget != nullptr)
+		{
+			MainHUDWidget = Cast<UASRMainHUD>(UserWidget);
+			if (MainHUDWidget != nullptr)
+			{
+				MainHUDWidget->Owner = this;
+				MainHUDWidget->UpdateHealthBar();
+				MainHUDWidget->AddToViewport();
+			}
+		}
+			
+	}
+
+	SetHealth(MaxHealth);
 }
 
 void AASRCharacter::Tick(float DeltaTime)
@@ -148,6 +167,16 @@ void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
 }
 
 
+void AASRCharacter::SetHealth(float NewHealth)
+{
+	NewHealth = FMath::Clamp(NewHealth, 0.f, MaxHealth);
+	if (Health != NewHealth)
+	{
+		Health = NewHealth;
+		OnHealthChanged.Broadcast();
+	}
+}
+
 void AASRCharacter::ResetState()
 {
 	CharacterState = EASRCharacterState::ECS_None;
@@ -191,6 +220,19 @@ void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRD
 	}
 }
 
+void AASRCharacter::HandleDeath()
+{
+	CharacterState = EASRCharacterState::ECS_Death;
+
+	// TODO
+	PlayAnimMontage(StandingDeathMontage);
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (PlayerController != nullptr)
+	{
+		DisableInput(PlayerController);
+	}
+}
+
 void AASRCharacter::SetCharacterState(EASRCharacterState InCharacterState)
 {
 	if (InCharacterState != CharacterState)
@@ -220,8 +262,29 @@ void AASRCharacter::Jump()
 
 void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType)
 {	// TODO
+
+	if (CharacterState == EASRCharacterState::ECS_Death)
+	{
+		return;
+	}
+
+
+	SetHealth(Health - Damage);
+	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
+
+	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
+	{
+		HandleDeath();
+		return;
+	}
+
+
+
 	FDamageTypeMapping* Mapping;
 	Mapping = DamageTypeMappings.Find(DamageType);
+	
+
+
 	if (Mapping != nullptr)
 	{
 		CharacterState = Mapping->CharacterState;

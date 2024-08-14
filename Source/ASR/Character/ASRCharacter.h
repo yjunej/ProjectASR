@@ -7,6 +7,8 @@
 #include "ASR/Interfaces/HitInterface.h"
 #include "ASRCharacter.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHealthChanged);
+
 
 class UInputAction;
 class UInputMappingContext;
@@ -54,6 +56,7 @@ public:
 	
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
 
+	FOnHealthChanged OnHealthChanged;
 
 protected:
 	virtual void BeginPlay() override;
@@ -66,18 +69,29 @@ protected:
 	void Input_ToggleCrouch(const FInputActionValue& Value);
 
 
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State)
 	EASRCharacterState CharacterState;
 
 	TArray<AActor*> HitActors;
 	FVector2D PrevInput;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float Health = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float MaxHealth = 1000.f;
+
+
+	UFUNCTION(BlueprintCallable)
+	void SetHealth(float NewHealth);
+
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetState();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
+
+
 
 private:
 	// Enhanced Input
@@ -121,6 +135,17 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Sound, meta = (AllowPrivateAccess = "true"))
 	class USoundCue* HitSoundCue;
 
+	UPROPERTY(EditDefaultsOnly, Category = HUD, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> MainHUDWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* StandingDeathMontage;
+	
+	
+	class UASRMainHUD* MainHUDWidget;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void HandleDeath();
 
 public:	
 	// Getter & Setter
@@ -132,6 +157,8 @@ public:
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComponent; }
+	FORCEINLINE float GetHealth() const { return Health; }
+	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 
 	
 };

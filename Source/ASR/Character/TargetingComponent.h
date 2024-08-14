@@ -53,14 +53,14 @@ private:
 	bool bIsTargeting;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float ClearTargetDistance = 1000.f;
+	float ClearTargetDistance = 1500.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
 	float ClearSubTargetDistance = 600.f;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float TargetingDistance = 800.f;
+	float TargetingDistance = 900.f;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
@@ -80,8 +80,6 @@ private:
 	FVector CameraOffset;
 	
 	// TODO - Write Comprehensive Motion Warping Control Function
-
-
 	UPROPERTY(EditAnywhere, Category = NormalCombat, meta = (AllowPrivateAccess="true"))
 	UMaterialInterface* DecalMaterial;
 

@@ -10,6 +10,7 @@
 
 #include "BaseEnemy.generated.h"
 
+
 UCLASS()
 class ASR_API ABaseEnemy : public ACharacter, public IHitInterface
 {
@@ -21,10 +22,21 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-
 	// HitInterface
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
-	
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float Health = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float MaxHealth = 1000.f;
+
+	FOnHealthChanged OnHealthChanged;
+
+	void SetHealth(float NewHealth);
+	void OnTargeting();
+	void OnUnTargeting();
 
 
 protected:
@@ -45,9 +57,24 @@ protected:
 	virtual void HandleDeath();
 
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
-	float Health;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* InfoWidgetComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> InfoWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
+	class UEnemyInfoWidget* InfoWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
+	class UWidgetComponent* LockOnWidgetComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> LockOnWidgetClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
+	class UEnemyLockOnWidget* LockOnWidget;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* StandUpMontage;

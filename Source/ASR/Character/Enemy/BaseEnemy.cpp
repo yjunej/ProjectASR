@@ -8,21 +8,85 @@
 #include "Curves/CurveFloat.h"
 #include "Components/TimelineComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Components/WidgetComponent.h"
+#include "Blueprint/UserWidget.h"
+#include "ASR/HUD/EnemyInfoWidget.h"
+#include "ASR/HUD/EnemyLockOnWidget.h"
 
 
 ABaseEnemy::ABaseEnemy()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	TimelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineComponent"));
+
+	InfoWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InfoWidgetComponent"));
+	InfoWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	InfoWidgetComponent->SetDrawSize(FVector2D(250.f, 250.f));
+	InfoWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 190.f));
+	InfoWidgetComponent->SetupAttachment(GetMesh());
+
+	LockOnWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockOnWidgetComponent"));
+	LockOnWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
+	LockOnWidgetComponent->SetDrawSize(FVector2D(10.f, 10.f));
+	LockOnWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 130.f));
+	LockOnWidgetComponent->SetupAttachment(GetMesh());
 }
+
 
 void ABaseEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (InfoWidgetClass != nullptr)
+	{
+		InfoWidgetComponent->SetWidgetClass(InfoWidgetClass);
+		InfoWidget = Cast<UEnemyInfoWidget>(InfoWidgetComponent->GetUserWidgetObject());
+		if (InfoWidget != nullptr)
+		{
+			InfoWidget->Owner = this;
+			InfoWidget->UpdateHealthBar();
+		}
+	}
+
+	if (LockOnWidgetClass != nullptr)
+	{
+		LockOnWidgetComponent->SetWidgetClass(LockOnWidgetClass);
+		LockOnWidget = Cast<UEnemyLockOnWidget>(LockOnWidgetComponent->GetUserWidgetObject());
+		LockOnWidgetComponent->SetVisibility(false);
+	}
+
+	SetHealth(MaxHealth);
+
 	if (KnockbackCurve != nullptr && LevitateCurve != nullptr)
 	{
 		InitializeTimeline();
 	}
+}
+
+
+void ABaseEnemy::SetHealth(float NewHealth)
+{
+
+	NewHealth = FMath::Clamp(NewHealth, 0.f, MaxHealth);
+	if (Health != NewHealth)
+	{
+		Health = NewHealth;
+		OnHealthChanged.Broadcast();
+	}
+
+}
+
+void ABaseEnemy::OnTargeting()
+{
+	if (LockOnWidget != nullptr)
+	{
+		LockOnWidgetComponent->SetVisibility(true);
+	}
+}
+
+void ABaseEnemy::OnUnTargeting()
+{
+	LockOnWidgetComponent->SetVisibility(false);
 }
 
 void ABaseEnemy::Landed(const FHitResult& HitResult)
@@ -273,8 +337,10 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 	{ 
 		return;
 	}
+	
 
-	Health -= Damage;
+	SetHealth(Health - Damage);
+
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())

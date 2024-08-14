@@ -217,6 +217,7 @@ void UTargetingComponent::LockOnTarget(const FHitResult& HitResult)
 		if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
 		{
 			TargetActor = Enemy;
+			Enemy->OnTargeting();
 			bIsTargeting = true;
 			return;
 		}
@@ -234,6 +235,11 @@ void UTargetingComponent::LockOnTarget(const FHitResult& HitResult)
 void UTargetingComponent::ClearTarget()
 {
 	bIsTargeting = false;
+	ABaseEnemy* TargetedEnemy = Cast<ABaseEnemy>(TargetActor);
+	if (TargetedEnemy != nullptr)
+	{
+		TargetedEnemy->OnUnTargeting();
+	}
 	TargetActor = nullptr;
 }
 

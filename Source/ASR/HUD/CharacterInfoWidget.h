@@ -18,6 +18,7 @@ protected:
 	virtual void NativeDestruct() override;
 	
 public:
+
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* DisplayText;
 
