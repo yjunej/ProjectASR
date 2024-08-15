@@ -53,17 +53,18 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
-	
+
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
 
 	FOnHealthChanged OnHealthChanged;
 
 protected:
 	virtual void BeginPlay() override;
-	
+
 	// Enhanced Input
 	virtual void Input_Move(const FInputActionValue& Value);
 	virtual void Input_ToggleLockOn(const FInputActionValue& Value);
+	virtual void Input_Execution(const FInputActionValue& Value);
 
 	void Input_Look(const FInputActionValue& Value);
 	void Input_ToggleCrouch(const FInputActionValue& Value);
@@ -81,6 +82,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float MaxHealth = 1000.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat)
+	float ExecutionDistance = 400.f;
+
 
 	UFUNCTION(BlueprintCallable)
 	void SetHealth(float NewHealth);
@@ -91,6 +95,12 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
 
+	bool CanExecution() const;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void ResetCamera();
+
+	bool bIsExecuting = false;
 
 
 private:
@@ -113,6 +123,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleLockOnAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ExecutionAction;
+
+
 
 
 private:
@@ -123,9 +137,19 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UChildActorComponent* FollowCameraManager;
+
+
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* ExecutionCamera;
+
+	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UChildActorComponent* ExecutionCameraManager;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
 	class UMotionWarpingComponent* MotionWarpingComponent;
-	
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
 	class UTargetingComponent* TargetingComponent;
 
@@ -140,25 +164,28 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* StandingDeathMontage;
-	
-	
+
+
 	class UASRMainHUD* MainHUDWidget;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleDeath();
 
-public:	
+public:
 	// Getter & Setter
 	void SetCharacterState(EASRCharacterState InCharacterState);
 
 	// FORCEINLINE 
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+	FORCEINLINE UCameraComponent* GetExecutionCamera() const { return ExecutionCamera; }
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComponent; }
+	FORCEINLINE UChildActorComponent* GetExecutionCameraManager() const { return ExecutionCameraManager; }
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
+	FORCEINLINE float GetExecutionDistance() const { return ExecutionDistance; }
 
 	
 };

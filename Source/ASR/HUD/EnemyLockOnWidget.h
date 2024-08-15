@@ -14,4 +14,24 @@ class ASR_API UEnemyLockOnWidget : public UUserWidget
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void NativeConstruct() override;
+
+	UFUNCTION()
+	void SelectMarker();
+
+
+public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class ABaseEnemy* Owner;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* LockOnMarker;
+
+	UPROPERTY(meta = (BindWidget))
+	class UImage* ExecutionMarker;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	UWidgetAnimation* CanExecute;
+
 };

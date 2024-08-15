@@ -32,11 +32,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float MaxHealth = 1000.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float ExecutionThresholdHealth = 200.f;
+
+
 	FOnHealthChanged OnHealthChanged;
 
 	void SetHealth(float NewHealth);
 	void OnTargeting();
 	void OnUnTargeting();
+	
+	bool CanBeExecuted() const;
+	void Executed();
 
 
 protected:
@@ -87,6 +94,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* FallingDeathMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ExecutionMontage;
+
 	// TimeLine
 	UPROPERTY(VisibleAnywhere, Category = "Timeline")
 	class UTimelineComponent* TimelineComponent;
@@ -122,10 +132,13 @@ private:
 
 	// Hit Postprocess func
 	void RotateToAttacker(AActor* Attacker);
+	void StepBackFromAttacker(AActor* Attacker, float Distance);
+
+
 	void HandleHitTransform(AActor* Attacker, EASRDamageType DamageType);
 	void AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType);
 
-
+	void DisableCollision();
 
 
 public:

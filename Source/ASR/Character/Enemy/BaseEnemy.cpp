@@ -5,6 +5,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Curves/CurveFloat.h"
 #include "Components/TimelineComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -53,6 +54,11 @@ void ABaseEnemy::BeginPlay()
 		LockOnWidgetComponent->SetWidgetClass(LockOnWidgetClass);
 		LockOnWidget = Cast<UEnemyLockOnWidget>(LockOnWidgetComponent->GetUserWidgetObject());
 		LockOnWidgetComponent->SetVisibility(false);
+		if (LockOnWidget != nullptr)
+		{
+			LockOnWidget->Owner = this;
+			LockOnWidget->SelectMarker();
+		}
 	}
 
 	SetHealth(MaxHealth);
@@ -87,6 +93,29 @@ void ABaseEnemy::OnTargeting()
 void ABaseEnemy::OnUnTargeting()
 {
 	LockOnWidgetComponent->SetVisibility(false);
+}
+
+bool ABaseEnemy::CanBeExecuted() const
+{
+	return Health <= ExecutionThresholdHealth;
+}
+
+void ABaseEnemy::Executed()
+{
+	if (ExecutionMontage != nullptr)
+	{
+		// TODO Get Attacker
+		APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
+		if (Pawn != nullptr)
+		{
+			// TODO - Intergrate on GetHit
+			RotateToAttacker(Pawn);
+			HandleHitTransform(Pawn, EASRDamageType::EDT_Default);
+			SetCharacterState(EASRCharacterState::ECS_Death);
+			SetHealth(0.f);
+			PlayAnimMontage(ExecutionMontage);
+		}
+	} 
 }
 
 void ABaseEnemy::Landed(const FHitResult& HitResult)
@@ -125,24 +154,22 @@ void ABaseEnemy::ResetState()
 
 void ABaseEnemy::HandleDeath()
 {
-	CharacterState = EASRCharacterState::ECS_Death;
-
-	if (GetCharacterMovement()->IsFalling())
+	// Not Playing Death Montage for already Died enemy
+	if (CharacterState != EASRCharacterState::ECS_Death)
 	{
-		PlayAnimMontage(FallingDeathMontage);
-	}
-	else
-	{
-		PlayAnimMontage(StandingDeathMontage);
-	}
+		CharacterState = EASRCharacterState::ECS_Death;
+		if (GetCharacterMovement()->IsFalling())
+		{
+			PlayAnimMontage(FallingDeathMontage);
+		}
+		else
+		{
+			PlayAnimMontage(StandingDeathMontage);
+		}
+		CharacterState = EASRCharacterState::ECS_Death;
 
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
-
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
+	}
+	DisableCollision();
 }
 
 void ABaseEnemy::HandleTimelineUpdate(float Value)
@@ -227,6 +254,13 @@ void ABaseEnemy::RotateToAttacker(AActor* Attacker)
 	SetActorRotation(LookAtAttackerRotator);
 }
 
+void ABaseEnemy::StepBackFromAttacker(AActor* Attacker, float Distance)
+{
+	FVector BackwardVector = -GetActorForwardVector() * Distance; 
+	AddActorWorldOffset(BackwardVector, true);
+}
+
+
 void ABaseEnemy::HandleHitTransform(AActor* Attacker, EASRDamageType DamageType)
 {
 
@@ -304,6 +338,17 @@ void ABaseEnemy::AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapp
 		break;
 	}
 
+}
+
+void ABaseEnemy::DisableCollision()
+{
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
+
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Block);
 }
 
 void ABaseEnemy::InitializeTimeline()

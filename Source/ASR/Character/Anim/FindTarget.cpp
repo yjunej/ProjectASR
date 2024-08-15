@@ -53,6 +53,11 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		MaxWarpDistance = Blader->DashAttackWarpDistance;
 		TargetName = FName("ForwardDash");
 	}
+	else if (SectionName == "Execution")
+	{
+		MaxWarpDistance = Blader->GetExecutionDistance();
+		TargetName = FName("Execution");
+	}
 	else
 	{
 		MaxWarpDistance = Blader->LightAttackWarpDistance;
@@ -69,6 +74,7 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		FTransform TargetTransform = TargetingComponent->GetTargetTransform();
 		float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 		
+
 		WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 		WarpTransform.SetRotation(TargetTransform.GetRotation());
 	}

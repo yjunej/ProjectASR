@@ -29,6 +29,7 @@ public:
 	void HeavyAttack();
 	void DashLightAttack();
 	void DashHeavyAttack();
+	void Execution();
 	void Dodge();
 	void UseFirstSkill();
 
@@ -51,6 +52,8 @@ protected:
 	// ASRCharacter
 	virtual void ResetState() override;
 	virtual void Input_Move(const FInputActionValue& Value) override;
+	virtual void Input_Execution(const FInputActionValue& Value) override;
+	virtual void ResetCamera() override;
 
 	// Enhanced Input
 	void Input_LightAttack(const FInputActionValue& Value);
@@ -172,7 +175,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> LightAttackInAirMontages;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ExecutionMontage;
 
+
+	//
 
 	// Aerial Attack TimeLine
 	UPROPERTY(VisibleAnywhere, Category = Timeline)

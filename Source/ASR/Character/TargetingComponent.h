@@ -29,6 +29,7 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
 	FTransform GetLastSubTargetTransform();
 
+	void ClearTarget();
 
 protected:
 	virtual void BeginPlay() override;
@@ -42,7 +43,6 @@ private:
 	void FindTarget();
 	void FindNearestTarget();
 	void LockOnTarget(const FHitResult& HitResult);
-	void ClearTarget();
 	void PlaceDecalActor();
 	AActor* LastSubTargetActor;
 

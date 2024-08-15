@@ -15,6 +15,7 @@
 #include "Sound/SoundCue.h"
 #include "Blueprint/UserWidget.h"
 #include "ASR/HUD/ASRMainHUD.h"
+#include "ASR/Character/Enemy/BaseEnemy.h"
 
 
 
@@ -44,6 +45,15 @@ AASRCharacter::AASRCharacter()
 
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+
+	FollowCameraManager = CreateDefaultSubobject<UChildActorComponent>(TEXT("FollowCameraManager"));
+	FollowCameraManager->SetupAttachment(FollowCamera);
+
+	ExecutionCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ExecutionCamera"));
+	ExecutionCamera->SetupAttachment(RootComponent);
+
+	ExecutionCameraManager = CreateDefaultSubobject<UChildActorComponent>(TEXT("ExecutionCameraManager"));
+	ExecutionCameraManager->SetupAttachment(ExecutionCamera);
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 	TargetingComponent = CreateDefaultSubobject<UTargetingComponent>(TEXT("Targeting"));
@@ -98,6 +108,8 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Look);
 		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &AASRCharacter::Input_ToggleCrouch);
 		EnhancedInputComponent->BindAction(ToggleLockOnAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_ToggleLockOn);
+		EnhancedInputComponent->BindAction(ExecutionAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Execution);
+
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
@@ -128,8 +140,11 @@ void AASRCharacter::Input_Look(const FInputActionValue& Value)
 	{
 		if (TargetingComponent == nullptr || !(TargetingComponent->bIsTargeting))
 		{
-			AddControllerYawInput(LookVector.X);
-			AddControllerPitchInput(LookVector.Y);
+			if (!bIsExecuting)
+			{
+				AddControllerYawInput(LookVector.X);
+				AddControllerPitchInput(LookVector.Y);
+			}
 		}
 	}
 }
@@ -165,6 +180,11 @@ void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
 		}
 	}
 }
+
+void AASRCharacter::Input_Execution(const FInputActionValue& Value)
+{
+}
+
 
 
 void AASRCharacter::SetHealth(float NewHealth)
@@ -218,6 +238,42 @@ void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRD
 			}
 		}
 	}
+}
+
+bool AASRCharacter::CanExecution() const
+{
+	if (TargetingComponent == nullptr || TargetingComponent->GetTargetActor() == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Comp Execution"));
+		return false;
+	}
+
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(TargetingComponent->GetTargetActor());
+	if (Enemy == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Enemy Execution"));
+		return false;
+	}
+
+	if (!Enemy->CanBeExecuted() || GetDistanceTo(Enemy) > ExecutionDistance)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No Distance or CanExecution Execution"));
+		return false;
+	}
+
+	return true;
+}
+
+void AASRCharacter::ResetCamera()
+{
+	// Execution Camera To Follow Camera
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (PlayerController != nullptr)
+	{
+		PlayerController->SetViewTargetWithBlend(FollowCameraManager->GetChildActor(), 0.4f, EViewTargetBlendFunction::VTBlend_EaseInOut, 0.8f, false);
+	}
+	bIsExecuting = false;
+
 }
 
 void AASRCharacter::HandleDeath()

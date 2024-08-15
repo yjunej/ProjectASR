@@ -178,6 +178,26 @@ void ABlader::Input_Move(const FInputActionValue& Value)
 	Super::Input_Move(Value);
 }
 
+void ABlader::Input_Execution(const FInputActionValue& Value)
+{
+	Super::Input_Execution(Value);
+
+	if (bIsUltCharging)
+	{
+		ResetUlt();
+	}
+	if (CanExecution() && !bIsExecuting && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
+	{
+		Execution();
+	}
+
+}
+
+void ABlader::ResetCamera()
+{
+	Super::ResetCamera();
+}
+
 void ABlader::Input_LightAttack(const FInputActionValue& Value)
 {
 	if (bIsUltCharging)
@@ -346,6 +366,36 @@ void ABlader::DashHeavyAttack()
 	ResetFirstSkill();
 	ResetDodge();
 	PlayAnimMontage(DashHeavyAttackMontage);
+}
+
+void ABlader::Execution()
+{
+	// Camera Setting
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
+
+
+	SetCharacterState(EASRCharacterState::ECS_Attack);
+	ResetLightAttack();	
+	ResetHeavyAttack();
+	ResetFirstSkill();
+	ResetDodge();
+
+	FTransform WarpTransform;
+	FTransform TargetTransform = GetTargetingComponent()->GetTargetTransform();
+	float WarpDistance = ExecutionDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : ExecutionDistance;
+
+	WarpTransform.SetLocation(GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
+	WarpTransform.SetRotation(TargetTransform.GetRotation());
+	WarpTransform.SetScale3D(FVector(1.f, 1.f, 1.f));
+
+	GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(FName("Execution"), WarpTransform);
+	PlayAnimMontage(ExecutionMontage);
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetTargetingComponent()->GetTargetActor());
+	if (Enemy != nullptr)
+	{
+		bIsExecuting = true;
+	}
 }
 
 
