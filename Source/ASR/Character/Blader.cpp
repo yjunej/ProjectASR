@@ -221,7 +221,7 @@ void ABlader::LightAttack()
 {
 	if (CanAttack())
 	{
-		if (GetVelocity().Size() >= 1000.f)
+		if (GetVelocity().Size() >= 1300.f)
 		{
 			DashLightAttack();
 		}
@@ -334,7 +334,7 @@ void ABlader::HeavyAttack()
 	{
 		// TODO: NOT RESET L/H Counter for custom combo
 
-		if (GetVelocity().Size() >= 1000.f)
+		if (GetVelocity().Size() >= 1300.f)
 		{
 			DashHeavyAttack();
 		}

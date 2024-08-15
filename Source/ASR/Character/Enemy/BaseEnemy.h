@@ -63,6 +63,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleDeath();
 
+	UFUNCTION(BlueprintCallable)
+	virtual void SpawnBloodEffect(FVector HitPoint, FVector ScaleVector); // TODO - Scale Niagara Particle
+
 private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
@@ -107,14 +110,17 @@ private:
 	UFUNCTION()
 	void HandleTimelineFinished();
 
-	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UPROPERTY(EditAnywhere, Category = Timeline)
 	UCurveFloat* KnockbackCurve;
 
-	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UPROPERTY(EditAnywhere, Category = Timeline)
 	UCurveFloat* LevitateCurve;
 
-	UPROPERTY(EditAnywhere, Category = "Timeline")
+	UPROPERTY(EditAnywhere, Category = Timeline)
 	UCurveFloat* AirSmashCurve;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = FX, meta = (AllowPrivateAccess = "true"))
+	class UNiagaraSystem* HitBloodEffect;
 
 
 	void InitializeTimeline();

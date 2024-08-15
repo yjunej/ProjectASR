@@ -13,6 +13,8 @@
 #include "Blueprint/UserWidget.h"
 #include "ASR/HUD/EnemyInfoWidget.h"
 #include "ASR/HUD/EnemyLockOnWidget.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraComponent.h"
 
 
 ABaseEnemy::ABaseEnemy()
@@ -53,11 +55,12 @@ void ABaseEnemy::BeginPlay()
 	{
 		LockOnWidgetComponent->SetWidgetClass(LockOnWidgetClass);
 		LockOnWidget = Cast<UEnemyLockOnWidget>(LockOnWidgetComponent->GetUserWidgetObject());
-		LockOnWidgetComponent->SetVisibility(false);
+		LockOnWidgetComponent->SetVisibility(true);
 		if (LockOnWidget != nullptr)
 		{
 			LockOnWidget->Owner = this;
 			LockOnWidget->SelectMarker();
+			LockOnWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 
@@ -86,13 +89,13 @@ void ABaseEnemy::OnTargeting()
 {
 	if (LockOnWidget != nullptr)
 	{
-		LockOnWidgetComponent->SetVisibility(true);
+		LockOnWidget->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 
 void ABaseEnemy::OnUnTargeting()
 {
-	LockOnWidgetComponent->SetVisibility(false);
+	LockOnWidget->SetVisibility(ESlateVisibility::Hidden);
 }
 
 bool ABaseEnemy::CanBeExecuted() const
@@ -114,6 +117,7 @@ void ABaseEnemy::Executed()
 			SetCharacterState(EASRCharacterState::ECS_Death);
 			SetHealth(0.f);
 			PlayAnimMontage(ExecutionMontage);
+			SpawnBloodEffect(GetActorLocation(), FVector(4.f, 2.f, 2.f));
 		}
 	} 
 }
@@ -170,6 +174,21 @@ void ABaseEnemy::HandleDeath()
 
 	}
 	DisableCollision();
+}
+
+void ABaseEnemy::SpawnBloodEffect(FVector HitPoint, FVector ScaleVector)
+{
+	if (HitBloodEffect != nullptr)
+	{
+		// 파티클 시스템을 액터의 위치에 스폰
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),      
+			HitBloodEffect,   
+			HitPoint,
+			GetActorRotation(),
+			ScaleVector
+		);
+	}
 }
 
 void ABaseEnemy::HandleTimelineUpdate(float Value)
@@ -384,12 +403,14 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 	}
 	
 
+
 	SetHealth(Health - Damage);
 
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
 	{
+		SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
 		HandleDeath();
 		return;
 	}
@@ -401,6 +422,21 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 		CharacterState = Mapping->CharacterState;			
 		RotateToAttacker(Attacker);
 		HandleHitTransform(Attacker, DamageType);
+
+		if (DamageType == EASRDamageType::EDT_Die)
+		{
+			SpawnBloodEffect(GetActorLocation(), FVector(50.f ,50.f, 50.f));
+			SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
+			SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
+			SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
+			SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
+		}
+		else
+		{
+			SpawnBloodEffect(HitResult.ImpactPoint, FVector(1.f));
+		}
+
+
 		if (GetCharacterMovement()->IsFalling() || GetCharacterMovement()->IsFlying())
 		{
 			AerialHitAnimMapping(Attacker, Mapping, DamageType);

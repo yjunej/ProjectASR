@@ -10,6 +10,8 @@ void UEnemyLockOnWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 
+	UE_LOG(LogTemp, Warning, TEXT("LockOn Constructor"));
+
 	LockOnMarker->SetVisibility(ESlateVisibility::Visible);
 	ExecutionMarker->SetVisibility(ESlateVisibility::Collapsed);
 
