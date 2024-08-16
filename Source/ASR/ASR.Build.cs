@@ -8,7 +8,10 @@ public class ASR : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "MotionWarping", "Niagara" });
+		PublicDependencyModuleNames.AddRange(new string[] { 
+			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "MotionWarping", "Niagara",
+            "NavigationSystem", "AIModule"
+        });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 

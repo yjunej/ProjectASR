@@ -50,6 +50,9 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Landed(const FHitResult& HitResult) override;
 
+	// AI
+	UPROPERTY(EditAnywhere, Category = AI, meta = (AllowPrivateAccess = "true"))
+	class UBehaviorTree* BehaviorTree;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
 	EASRCharacterState CharacterState;
@@ -68,6 +71,8 @@ protected:
 
 private:
 	
+
+	// Widget
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* InfoWidgetComponent;
 
@@ -86,13 +91,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
 	class UEnemyLockOnWidget* LockOnWidget;
 
+
+	// Animation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* StandUpMontage;
 
-
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* StandingDeathMontage;
-
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* FallingDeathMontage;
@@ -123,6 +128,8 @@ private:
 	class UNiagaraSystem* HitBloodEffect;
 
 
+
+
 	void InitializeTimeline();
 	void StopTimeline();
 	float KnockbackDistance = 50.f;
@@ -149,6 +156,8 @@ private:
 
 public:
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; };
+	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; };
+
 	void SetCharacterState(EASRCharacterState InCharacterState);
 
 

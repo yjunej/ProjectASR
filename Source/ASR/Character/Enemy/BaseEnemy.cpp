@@ -15,6 +15,7 @@
 #include "ASR/HUD/EnemyLockOnWidget.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
+#include "ASR/Character/Enemy/BaseAIController.h"
 
 
 ABaseEnemy::ABaseEnemy()
@@ -33,6 +34,18 @@ ABaseEnemy::ABaseEnemy()
 	LockOnWidgetComponent->SetDrawSize(FVector2D(10.f, 10.f));
 	LockOnWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 130.f));
 	LockOnWidgetComponent->SetupAttachment(GetMesh());
+
+	// Set this for Enemy that spanwned by spanwer
+	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	GetCharacterMovement()->bUseControllerDesiredRotation = true;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate.Yaw = 250.f;
+
+
+
+	// [Blueprint]
+	// - Enable bUseAccelerationForPaths
+	// - Setting BehaviorTree
 }
 
 
