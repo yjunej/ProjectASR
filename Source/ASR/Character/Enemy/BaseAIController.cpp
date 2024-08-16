@@ -28,7 +28,20 @@ void ABaseAIController::SetBlackboardKeys()
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
 	BBComponent->SetValueAsObject(FName("Target"), UGameplayStatics::GetPlayerCharacter(this, 0));
 	BBComponent->SetValueAsFloat(FName("StrafeDistance"), StrafeDistance);
+	BBComponent->SetValueAsBool(FName("bSaveAttack"), true);
 
 
+	float DelaySecond = 2.f;
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ABaseAIController::ExecuteNormalAttack, DelaySecond, true);
+}
 
+void ABaseAIController::ExecuteNormalAttack()
+{
+	UBlackboardComponent* BBComponent = GetBlackboardComponent();
+
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetPawn());
+	if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
+	{
+		BBComponent->SetValueAsEnum(FName("State"), StaticCast<uint8>(EEnemyBehaviorState::EBS_Attack));
+	}
 }

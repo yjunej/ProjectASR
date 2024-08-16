@@ -75,8 +75,8 @@ void AEnemySpawner::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* 
 	{
 		PlayerCharacter = OverlappedCharacter;
 
-		DrawDebugSphere(
-			GetWorld(), PlayerCharacter->GetActorLocation(), 50.f, 6.f, FColor::Blue, false, 5.f);
+		//DrawDebugSphere(
+		//	GetWorld(), PlayerCharacter->GetActorLocation(), 50.f, 6.f, FColor::Blue, false, 5.f);
 		SpawnEnemy();
 	}
 

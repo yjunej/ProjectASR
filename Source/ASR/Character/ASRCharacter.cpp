@@ -319,7 +319,7 @@ void AASRCharacter::Jump()
 void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType)
 {	// TODO
 
-	if (CharacterState == EASRCharacterState::ECS_Death)
+	if (CharacterState == EASRCharacterState::ECS_Death || bIsInvulnerable)
 	{
 		return;
 	}
@@ -343,6 +343,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float 
 
 	if (Mapping != nullptr)
 	{
+		UGameplayStatics::PlaySoundAtLocation(this, GetHitSoundCue, GetActorLocation());
 		CharacterState = Mapping->CharacterState;
 		PlayAnimMontage(Mapping->HitReactionMontage);
 	}

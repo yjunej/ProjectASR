@@ -73,7 +73,6 @@ private:
 	bool bIsFirstSkillPending = false;
 
 	bool bIsDodgePending = false;
-	bool bIsInvulnerable = false;
 
 	int32 LightAttackIndex;
 	int32 HeavyAttackIndex;

@@ -101,6 +101,7 @@ protected:
 	virtual void ResetCamera();
 
 	bool bIsExecuting = false;
+	bool bIsInvulnerable = false;
 
 
 private:
@@ -155,6 +156,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Sound, meta = (AllowPrivateAccess = "true"))
+	class USoundCue* GetHitSoundCue;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Sound, meta = (AllowPrivateAccess = "true"))
 	class USoundCue* HitSoundCue;

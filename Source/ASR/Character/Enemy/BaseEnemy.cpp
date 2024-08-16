@@ -16,6 +16,8 @@
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "ASR/Character/Enemy/BaseAIController.h"
+#include "Sound/SoundCue.h"
+
 
 
 ABaseEnemy::ABaseEnemy()
@@ -41,7 +43,8 @@ ABaseEnemy::ABaseEnemy()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->RotationRate.Yaw = 250.f;
 
-
+	WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
+	WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket"));  // 소켓에 부착
 
 	// [Blueprint]
 	// - Enable bUseAccelerationForPaths
@@ -133,6 +136,52 @@ void ABaseEnemy::Executed()
 			SpawnBloodEffect(GetActorLocation(), FVector(4.f, 2.f, 2.f));
 		}
 	} 
+}
+
+float ABaseEnemy::NormalAttack()
+{
+	float AnimDuration = 0.f;
+	if (CanAttack())
+	{
+		AnimDuration = ExecuteNormalAttack();
+	}
+	return AnimDuration;
+}
+
+float ABaseEnemy::ExecuteNormalAttack()
+{
+	if (NormalAttackMontages.Num() > 0)
+	{
+		CharacterState = EASRCharacterState::ECS_Attack;
+		if (NormalAttackMontages.Num() <= NormalAttackIndex)
+		{
+			NormalAttackIndex = 0;
+		}
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance != nullptr)
+		{
+			float AnimDuration = AnimInstance->Montage_Play(
+				NormalAttackMontages[NormalAttackIndex], 1.0f, EMontagePlayReturnType::Duration,
+				0.0f, true
+			);
+			NormalAttackIndex++;
+			return AnimDuration;
+		}
+
+
+	}
+	return 0.f;
+}
+
+bool ABaseEnemy::CanAttack()
+{
+	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
+		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
+	{
+		return true;
+	}
+	return false;
 }
 
 void ABaseEnemy::Landed(const FHitResult& HitResult)
@@ -480,3 +529,39 @@ void ABaseEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 }
 
+
+void ABaseEnemy::SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace)
+{
+	HitActors.Empty();
+	TArray<FHitResult> HitResults;
+	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+	FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * End;
+
+
+	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(CollisionChannel));
+
+
+	bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
+		this, GetActorLocation(), TraceEnd, Radius, ObjectTypes, false, TArray<AActor*>(),
+		bDrawDebugTrace ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
+		HitResults, true, FLinearColor::Red, FLinearColor::Green, 5.0f);
+
+	if (bHit)
+	{
+		for (const FHitResult& HitResult : HitResults)
+		{
+			AActor* HitActor = HitResult.GetActor();
+			// Check Duplicated Hit
+			if (HitActor != nullptr && !HitActors.Contains(HitActor))
+			{
+				IHitInterface* HitInterface = Cast<IHitInterface>(HitActor);
+				if (HitInterface != nullptr)
+				{
+					//UGameplayStatics::PlaySoundAtLocation(this, HitSoundCue, HitActor->GetActorLocation());
+					HitInterface->GetHit(HitResult, this, BaseDamage, DamageType);
+					HitActors.AddUnique(HitActor);
+				}
+			}
+		}
+	}
+}

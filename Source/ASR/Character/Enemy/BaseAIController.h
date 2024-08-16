@@ -22,8 +22,11 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float StrafeDistance = 800.f;
 
-private:
+	UFUNCTION(BlueprintCallable)
+	void ExecuteNormalAttack();
 
+private:
+	FTimerHandle TimerHandle;
 
 
 };

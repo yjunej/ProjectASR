@@ -11,6 +11,21 @@
 #include "BaseEnemy.generated.h"
 
 
+UENUM(BlueprintType)
+enum class EEnemyBehaviorState : uint8
+{
+	EBS_None						UMETA(DisplayName="None"),
+	EBS_Chase						UMETA(DisplayName="Chase"),
+	EBS_Strafe						UMETA(DisplayName="Strafe"),
+	EBS_Attack						UMETA(DisplayName="Attack"),
+	EBS_Disabled					UMETA(DisplayName="Disabled"),
+	EBS_Dead						UMETA(DisplayName="Dead"),
+
+	EBS_MAX							UMETA(Hidden)
+};
+
+
+
 UCLASS()
 class ASR_API ABaseEnemy : public ACharacter, public IHitInterface
 {
@@ -44,6 +59,7 @@ public:
 	
 	bool CanBeExecuted() const;
 	void Executed();
+	
 
 
 protected:
@@ -105,6 +121,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ExecutionMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	TArray<UAnimMontage*> NormalAttackMontages;
+
 	// TimeLine
 	UPROPERTY(VisibleAnywhere, Category = "Timeline")
 	class UTimelineComponent* TimelineComponent;
@@ -143,15 +162,31 @@ private:
 	bool bIsAirSmash = false;
 	void AerialKnockdown();
 
+
 	// Hit Postprocess func
 	void RotateToAttacker(AActor* Attacker);
 	void StepBackFromAttacker(AActor* Attacker, float Distance);
-
-
 	void HandleHitTransform(AActor* Attacker, EASRDamageType DamageType);
 	void AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType);
-
+	
 	void DisableCollision();
+
+	// Combat - Consider to apply Component Design
+	UFUNCTION(BlueprintCallable)
+	virtual float NormalAttack();
+	virtual float ExecuteNormalAttack();
+	virtual bool CanAttack();
+	
+	UFUNCTION(BlueprintCallable)
+	void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
+
+	TArray<AActor*> HitActors;
+	int32 NormalAttackIndex = 0;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
+	USkeletalMeshComponent* WeaponMeshComponent;
+
 
 
 public:
