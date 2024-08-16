@@ -30,7 +30,7 @@ void UUltHandleNextAttack::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenc
 	TArray<AActor*> UltTargets = Blader->GetUltTargets();
 	int32 UltIndex = Blader->GetUltTargetIndex();
 
-	Blader->SetUltTargetIndex(UltIndex + 1);
+	Blader->SetUltTargetIndex(++UltIndex);
 
 
 	if (UltIndex < UltTargets.Num())

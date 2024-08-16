@@ -152,6 +152,7 @@ void ABlader::ResetState()
 	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
 	if (MovementMode == EMovementMode::MOVE_Flying || MovementMode == EMovementMode::MOVE_Falling)
 	{
+		// TODO: Block 1 Frame Walking
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
 	}
 
@@ -221,7 +222,7 @@ void ABlader::LightAttack()
 {
 	if (CanAttack())
 	{
-		if (GetVelocity().Size() >= 1300.f)
+		if (GetVelocity().Size() >= 1000.f && LightAttackIndex ==0)
 		{
 			DashLightAttack();
 		}
@@ -334,7 +335,7 @@ void ABlader::HeavyAttack()
 	{
 		// TODO: NOT RESET L/H Counter for custom combo
 
-		if (GetVelocity().Size() >= 1300.f)
+		if (GetVelocity().Size() >= 1000.f && HeavyAttackIndex == 0)
 		{
 			DashHeavyAttack();
 		}

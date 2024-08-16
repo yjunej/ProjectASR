@@ -20,7 +20,7 @@ public:
 
 private:
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	class AASRCharacter* Owner;
+	class ACharacter* Owner;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
 	float Speed;

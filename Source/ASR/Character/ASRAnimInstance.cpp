@@ -8,7 +8,7 @@
 void UASRAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-	Owner = Cast<AASRCharacter>(GetOwningActor());
+	Owner = Cast<ACharacter>(GetOwningActor());
 	if (Owner != nullptr)
 	{
 		MovementComponent = Owner->GetCharacterMovement();
