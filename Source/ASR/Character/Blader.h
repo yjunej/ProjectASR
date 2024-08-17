@@ -55,6 +55,9 @@ protected:
 	virtual void Input_Execution(const FInputActionValue& Value) override;
 	virtual void ResetCamera() override;
 
+	virtual void Input_Guard(const FInputActionValue& Value) override;
+	
+
 	// Enhanced Input
 	void Input_LightAttack(const FInputActionValue& Value);
 	void Input_HeavyAttack(const FInputActionValue& Value);
@@ -62,6 +65,8 @@ protected:
 	void Input_FirstSkill(const FInputActionValue& Value);
 	void Input_Ult(const FInputActionValue& Value);
 	void Input_Release_Ult(const FInputActionValue& Value);
+
+
 
 
 
@@ -80,12 +85,15 @@ private:
 
 	// Handling Combo Attack
 	void ExecuteLightAttack(int32 AttackIndex);
-	void ResetLightAttack();
-
 	void ExecuteHeavyAttack(int32 AttackIndex);
-	void ResetHeavyAttack();
-
 	void ExecuteAerialAttack();
+
+
+	// Override Parent Hook 
+	virtual void ResetLightAttack() override;
+	virtual void ResetHeavyAttack() override;
+	virtual void ResetFirstSkill() override;
+	virtual void ResetDodge() override;
 
 
 
@@ -140,6 +148,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* UltAction;
 
+
 	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> LightAttackMontages;
@@ -149,6 +158,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* DodgeMontage;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AerialAttackMontage;
@@ -211,8 +221,6 @@ private:
 
 
 public:
-	FORCEINLINE void ResetDodge() { bIsDodgePending = false; }
-	FORCEINLINE void ResetFirstSkill() { bIsFirstSkillPending = false; }
 	FORCEINLINE TArray<AActor*> GetUltTargets() const { return UltTargets; }
 	FORCEINLINE int32 GetUltTargetIndex() const { return UltTargetIndex; }
 	FORCEINLINE void SetUltTargetIndex(int32 Index) { UltTargetIndex = Index; }

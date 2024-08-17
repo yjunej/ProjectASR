@@ -129,6 +129,7 @@ bool ABlader::CanDodge() const
 	return false;
 }
 
+
 bool ABlader::CanAttakInAir() const
 {
 	return bCanAttackInAir && bIsLevitating;
@@ -327,6 +328,14 @@ void ABlader::Input_Release_Ult(const FInputActionValue& Value)
 	}
 }
 
+void ABlader::Input_Guard(const FInputActionValue& Value)
+{
+	if (bIsUltCharging)
+	{
+		ResetUlt();
+	}
+	Super::Input_Guard(Value);
+}
 
 
 void ABlader::HeavyAttack()
@@ -536,6 +545,16 @@ void ABlader::ResetHeavyAttack()
 {
 	bIsHeavyAttackPending = false;
 	HeavyAttackIndex = 0;
+}
+
+void ABlader::ResetFirstSkill()
+{
+	bIsFirstSkillPending = false;
+}
+
+void ABlader::ResetDodge()
+{
+	bIsDodgePending = false;
 }
 
 void ABlader::ExecuteAerialAttack()

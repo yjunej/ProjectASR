@@ -16,6 +16,7 @@
 #include "Blueprint/UserWidget.h"
 #include "ASR/HUD/ASRMainHUD.h"
 #include "ASR/Character/Enemy/BaseEnemy.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 
@@ -114,6 +115,9 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
 
+		EnhancedInputComponent->BindAction(GuardAction, ETriggerEvent::Started, this, &AASRCharacter::Input_Guard);
+		EnhancedInputComponent->BindAction(GuardAction, ETriggerEvent::Completed, this, &AASRCharacter::Input_Release_Guard);
+
 	}
 }
 
@@ -164,6 +168,27 @@ void AASRCharacter::Input_ToggleCrouch(const FInputActionValue& Value)
 	{
 		Crouch();
 	}
+}
+
+void AASRCharacter::Input_Guard(const FInputActionValue& Value)
+{
+	if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Guard)
+	{
+		bIsGuardPending = true;
+	}
+	else
+	{
+		Guard();
+	}
+}
+
+void AASRCharacter::Input_Release_Guard(const FInputActionValue& Value)
+{
+	if (CharacterState == EASRCharacterState::ECS_Guard)
+	{
+		CharacterState = EASRCharacterState::ECS_None;
+	}
+	PlayAnimMontage(GuardMontage, 1.f, FName("GuardEnd"));
 }
 
 void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
@@ -316,6 +341,38 @@ void AASRCharacter::Jump()
 	}
 }
 
+void AASRCharacter::Guard()
+{
+	if (CanGuard())
+	{
+		SetCharacterState(EASRCharacterState::ECS_Guard);
+
+		ResetLightAttack();
+		ResetHeavyAttack();
+		ResetFirstSkill();
+		ResetDodge();
+
+		// Rotate Before Dodge
+		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
+		if (LastInputVector.Size() != 0.f)
+		{
+			SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
+		}
+
+		PlayAnimMontage(GuardMontage);
+	}
+}
+
+bool AASRCharacter::CanGuard() const
+{
+	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Guard
+		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling())
+	{
+		return true;
+	}
+	return false;
+}
+
 void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType)
 {	// TODO
 
@@ -324,6 +381,15 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float 
 		return;
 	}
 
+	if (CharacterState == EASRCharacterState::ECS_Guard)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("GUARD!"));
+		FVector KnockbackForce = -GetActorForwardVector() * Damage * 10;
+		LaunchCharacter(KnockbackForce, true, true);
+		PlayAnimMontage(GuardAcceptMontage);
+		return;
+		//PlayAnimMontage);
+	}
 
 	SetHealth(Health - Damage);
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);

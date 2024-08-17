@@ -20,6 +20,7 @@ enum class EASRCharacterState : uint8
 	ECS_None		UMETA(DisplayName = "Default State"),
 	ECS_Attack		UMETA(DisplayName = "Attack"),
 	ECS_Dodge		UMETA(DisplayName = "Dodge"),
+	ECS_Guard		UMETA(DisplayName = "Guard"),
 	ECS_Flinching	UMETA(DisplayName = "Flinching"),
 	ECS_Stunned		UMETA(DisplayName = "Stunned"),
 	ECS_KnockDown	UMETA(DisplayName = "Knockout"),
@@ -53,6 +54,11 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
+	
+	virtual void Guard();
+	virtual bool CanGuard() const;
+
+
 
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
 
@@ -65,9 +71,19 @@ protected:
 	virtual void Input_Move(const FInputActionValue& Value);
 	virtual void Input_ToggleLockOn(const FInputActionValue& Value);
 	virtual void Input_Execution(const FInputActionValue& Value);
+	virtual void Input_Guard(const FInputActionValue& Value);
 
 	void Input_Look(const FInputActionValue& Value);
 	void Input_ToggleCrouch(const FInputActionValue& Value);
+	void Input_Release_Guard(const FInputActionValue& Value);
+
+
+	// TODO: Only use Hook for Skills
+	virtual void ResetLightAttack() {};
+	virtual void ResetHeavyAttack() {};
+	virtual void ResetFirstSkill() {};
+	virtual void ResetDodge() {};
+
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State)
@@ -102,6 +118,7 @@ protected:
 
 	bool bIsExecuting = false;
 	bool bIsInvulnerable = false;
+	bool bIsGuardPending = false;
 
 
 private:
@@ -127,6 +144,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ExecutionAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* GuardAction;
 
 
 
@@ -163,12 +182,19 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Sound, meta = (AllowPrivateAccess = "true"))
 	class USoundCue* HitSoundCue;
 
+
 	UPROPERTY(EditDefaultsOnly, Category = HUD, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> MainHUDWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* StandingDeathMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+
+	UAnimMontage* GuardAcceptMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GuardMontage;
 
 	class UASRMainHUD* MainHUDWidget;
 
