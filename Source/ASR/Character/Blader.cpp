@@ -15,6 +15,12 @@
 #include "Components/TimelineComponent.h"
 #include "ASR/Character/Enemy/BaseEnemy.h"
 
+#include "Components/SkyLightComponent.h"
+#include "Components/SkyAtmosphereComponent.h"
+#include "Components/DirectionalLightComponent.h"
+
+#include "Engine/DirectionalLight.h"
+
 
 ABlader::ABlader()
 {
@@ -106,27 +112,6 @@ void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 
 	}
-}
-
-bool ABlader::CanAttack() const
-{
-
-	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
-		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
-	{
-		return true;
-	}
-	return false;
-}
-
-bool ABlader::CanDodge() const
-{
-	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
-		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling())
-	{
-		return true;
-	}
-	return false;
 }
 
 
@@ -337,6 +322,12 @@ void ABlader::Input_Guard(const FInputActionValue& Value)
 	Super::Input_Guard(Value);
 }
 
+bool ABlader::CanAttack() const
+{
+	bool bCanAttack = Super::CanAttack();
+	return bCanAttack && !bIsLevitating;
+}
+
 
 void ABlader::HeavyAttack()
 {
@@ -381,9 +372,6 @@ void ABlader::DashHeavyAttack()
 void ABlader::Execution()
 {
 	// Camera Setting
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
-
 
 	SetCharacterState(EASRCharacterState::ECS_Attack);
 	ResetLightAttack();	
@@ -395,17 +383,21 @@ void ABlader::Execution()
 	FTransform TargetTransform = GetTargetingComponent()->GetTargetTransform();
 	float WarpDistance = ExecutionDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : ExecutionDistance;
 
+
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetTargetingComponent()->GetTargetActor());
+	if (Enemy != nullptr)
+	{
+		bIsExecuting = true;
+	}
+
+
 	WarpTransform.SetLocation(GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 	WarpTransform.SetRotation(TargetTransform.GetRotation());
 	WarpTransform.SetScale3D(FVector(1.f, 1.f, 1.f));
 
 	GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(FName("Execution"), WarpTransform);
 	PlayAnimMontage(ExecutionMontage);
-	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetTargetingComponent()->GetTargetActor());
-	if (Enemy != nullptr)
-	{
-		bIsExecuting = true;
-	}
+
 }
 
 
@@ -659,21 +651,26 @@ void ABlader::ResolveHeavyAttackPending()
 	}
 }
 
-void ABlader::ResolveDodgePending()
+void ABlader::ResolveDodgeAndGuardPending()
 {
-	if (bIsDodgePending)
+	if (bIsGuardPressed)
 	{
 		bIsDodgePending = false;
-
-		// Process Pending Dodge
-		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge)
+		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge || CharacterState == EASRCharacterState::ECS_Guard)
 		{
 			CharacterState = EASRCharacterState::ECS_None;
 		}
 
-		// Try Heavy Attack (CanAttack check in this function)
+		Guard();
+	}
+	else if (bIsDodgePending)
+	{
+		bIsDodgePending = false;
+		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge || CharacterState == EASRCharacterState::ECS_Guard)
+		{
+			CharacterState = EASRCharacterState::ECS_None;
+		}
 		Dodge();
-
 	}
 }
 
@@ -722,5 +719,11 @@ void ABlader::ApplyUltDamage()
 		FHitResult HitResult;
 		HitInterface->GetHit(HitResult, this, 10000.f, EASRDamageType::EDT_Die);
 	}
+}
+
+void ABlader::SetExecutionCamera()
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
 }
 

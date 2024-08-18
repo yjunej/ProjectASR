@@ -22,7 +22,6 @@ enum class EASRCharacterState : uint8
 	ECS_Dodge		UMETA(DisplayName = "Dodge"),
 	ECS_Guard		UMETA(DisplayName = "Guard"),
 	ECS_Flinching	UMETA(DisplayName = "Flinching"),
-	ECS_Stunned		UMETA(DisplayName = "Stunned"),
 	ECS_KnockDown	UMETA(DisplayName = "Knockout"),
 	ECS_Death		UMETA(DisplayName = "Death"),
 	ECS_MAX			UMETA(Hidden)
@@ -58,15 +57,16 @@ public:
 	virtual void Guard();
 	virtual bool CanGuard() const;
 
-
-
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
 
 	FOnHealthChanged OnHealthChanged;
 
+	void PlayRandomSection(UAnimMontage* Montage);
+	bool IsAttackFromFront(const FHitResult& HitResult) const;
+
+
 protected:
 	virtual void BeginPlay() override;
-
 	// Enhanced Input
 	virtual void Input_Move(const FInputActionValue& Value);
 	virtual void Input_ToggleLockOn(const FInputActionValue& Value);
@@ -78,11 +78,17 @@ protected:
 	void Input_Release_Guard(const FInputActionValue& Value);
 
 
+	virtual bool CanAttack() const;
+	virtual bool CanDodge() const;
+
+
 	// TODO: Only use Hook for Skills
 	virtual void ResetLightAttack() {};
 	virtual void ResetHeavyAttack() {};
 	virtual void ResetFirstSkill() {};
 	virtual void ResetDodge() {};
+
+
 
 
 
@@ -97,6 +103,12 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float MaxHealth = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float Stability = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float MaxStability = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat)
 	float ExecutionDistance = 400.f;
@@ -118,7 +130,7 @@ protected:
 
 	bool bIsExecuting = false;
 	bool bIsInvulnerable = false;
-	bool bIsGuardPending = false;
+	bool bIsGuardPressed = false;
 
 
 private:
@@ -216,6 +228,8 @@ public:
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE float GetExecutionDistance() const { return ExecutionDistance; }
+	FORCEINLINE float GetStability() const { return Stability; }
+	FORCEINLINE float GetMaxStability() const { return MaxStability; }
 
 	
 };

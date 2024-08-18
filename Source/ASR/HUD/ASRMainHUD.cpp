@@ -26,3 +26,15 @@ void UASRMainHUD::UpdateHealthBar()
 
 	}
 }
+
+void UASRMainHUD::UpdateStabilityBar()
+{
+	if (Owner != nullptr)
+	{
+		if (Owner->GetMaxStability() > 0)
+		{
+			StabilityBar->SetPercent(Owner->GetStability() / Owner->GetMaxStability());
+		}
+
+	}
+}

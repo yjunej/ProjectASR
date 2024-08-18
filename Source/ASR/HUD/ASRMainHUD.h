@@ -22,6 +22,10 @@ public:
 	UFUNCTION()
 	void UpdateHealthBar();
 
+	UFUNCTION()
+	void UpdateStabilityBar();
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class AASRCharacter* Owner;
 
@@ -29,7 +33,7 @@ public:
 	class UProgressBar* HealthBar;
 
 	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* AbilityBar;
+	class UProgressBar* StabilityBar;
 
 
 };

@@ -21,8 +21,6 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
-	bool CanAttack() const;
-	bool CanDodge() const;
 	bool CanAttakInAir() const;
 
 	void LightAttack();
@@ -57,6 +55,7 @@ protected:
 
 	virtual void Input_Guard(const FInputActionValue& Value) override;
 	
+	virtual bool CanAttack() const override;
 
 	// Enhanced Input
 	void Input_LightAttack(const FInputActionValue& Value);
@@ -116,7 +115,7 @@ private:
 	void ResolveHeavyAttackPending();
 
 	UFUNCTION(BlueprintCallable)
-	void ResolveDodgePending();
+	void ResolveDodgeAndGuardPending();
 	
 	UFUNCTION(BlueprintCallable)
 	bool IsInvulnerable() const { return bIsInvulnerable; }
@@ -218,6 +217,11 @@ private:
 	FTransform UltStartTransform;
 	UFUNCTION(BlueprintCallable)
 	void ApplyUltDamage();
+
+	// Execution
+	UFUNCTION(BlueprintCallable)
+	void SetExecutionCamera();
+
 
 
 public:

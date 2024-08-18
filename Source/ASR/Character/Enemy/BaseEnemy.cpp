@@ -177,7 +177,8 @@ float ABaseEnemy::ExecuteNormalAttack()
 bool ABaseEnemy::CanAttack()
 {
 	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
-		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
+		&& CharacterState != EASRCharacterState::ECS_Death && CharacterState != EASRCharacterState::ECS_Flinching &&
+		CharacterState != EASRCharacterState::ECS_KnockDown && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
 	{
 		return true;
 	}

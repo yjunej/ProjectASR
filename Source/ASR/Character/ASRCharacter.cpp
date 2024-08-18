@@ -64,6 +64,24 @@ AASRCharacter::AASRCharacter()
 
 }
 
+void AASRCharacter::PlayRandomSection(UAnimMontage* Montage)
+{
+	int32 NumSections = Montage->GetNumSections();
+	PlayAnimMontage(Montage, 1.f, Montage->GetSectionName(FMath::RandRange(0, NumSections - 1)));
+}
+
+bool AASRCharacter::IsAttackFromFront(const FHitResult& HitResult) const
+{
+	FVector AttackDirection = (HitResult.TraceStart - HitResult.TraceEnd).GetSafeNormal();
+	FVector CharacterForward = GetActorForwardVector();
+	FVector NormalizedAttackDirection = AttackDirection.GetSafeNormal();
+
+	float DotProduct = FVector::DotProduct(CharacterForward, NormalizedAttackDirection);
+
+	// forward 120 degrees
+	return DotProduct > 0.5f; 
+}
+
 void AASRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
@@ -172,11 +190,8 @@ void AASRCharacter::Input_ToggleCrouch(const FInputActionValue& Value)
 
 void AASRCharacter::Input_Guard(const FInputActionValue& Value)
 {
-	if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Guard)
-	{
-		bIsGuardPending = true;
-	}
-	else
+	bIsGuardPressed = true;
+	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Guard && CharacterState != EASRCharacterState::ECS_Dodge && CharacterState != EASRCharacterState::ECS_Flinching)
 	{
 		Guard();
 	}
@@ -184,11 +199,33 @@ void AASRCharacter::Input_Guard(const FInputActionValue& Value)
 
 void AASRCharacter::Input_Release_Guard(const FInputActionValue& Value)
 {
+	bIsGuardPressed = false;
 	if (CharacterState == EASRCharacterState::ECS_Guard)
 	{
 		CharacterState = EASRCharacterState::ECS_None;
+		PlayAnimMontage(GuardMontage, 1.f, FName("GuardEnd"));
 	}
-	PlayAnimMontage(GuardMontage, 1.f, FName("GuardEnd"));
+}
+
+bool AASRCharacter::CanAttack() const
+{
+	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
+		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
+		&& CharacterState != EASRCharacterState::ECS_Flinching)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool AASRCharacter::CanDodge() const
+{
+	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
+		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && CharacterState != EASRCharacterState::ECS_Flinching)
+	{
+		return true;
+	}
+	return false;
 }
 
 void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
@@ -224,7 +261,10 @@ void AASRCharacter::SetHealth(float NewHealth)
 
 void AASRCharacter::ResetState()
 {
-	CharacterState = EASRCharacterState::ECS_None;
+	if (CharacterState != EASRCharacterState::ECS_Death)
+	{
+		CharacterState = EASRCharacterState::ECS_None;
+	}
 }
 
 void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace)
@@ -373,50 +413,48 @@ bool AASRCharacter::CanGuard() const
 	return false;
 }
 
-void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType)
-{	// TODO
 
+void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType)
+{	
+	// Dead
 	if (CharacterState == EASRCharacterState::ECS_Death || bIsInvulnerable)
 	{
 		return;
 	}
 
-	if (CharacterState == EASRCharacterState::ECS_Guard)
+	// Gaurd
+	if (CharacterState == EASRCharacterState::ECS_Guard && IsAttackFromFront(HitResult))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("GUARD!"));
 		FVector KnockbackForce = -GetActorForwardVector() * Damage * 10;
 		LaunchCharacter(KnockbackForce, true, true);
 		PlayAnimMontage(GuardAcceptMontage);
+		// TODO: Add Stability System
 		return;
-		//PlayAnimMontage);
 	}
 
+	// Apply Damage
 	SetHealth(Health - Damage);
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
+	// Handle Death
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
 	{
 		HandleDeath();
 		return;
 	}
 
-
-
+	// Select Hit React Animation
 	FDamageTypeMapping* Mapping;
 	Mapping = DamageTypeMappings.Find(DamageType);
-	
-
-
 	if (Mapping != nullptr)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, GetHitSoundCue, GetActorLocation());
 		CharacterState = Mapping->CharacterState;
-		PlayAnimMontage(Mapping->HitReactionMontage);
+		PlayRandomSection(Mapping->HitReactionMontage);
 	}
 	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
 	}
 	
-
 }
