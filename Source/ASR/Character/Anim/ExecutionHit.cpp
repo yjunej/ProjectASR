@@ -21,19 +21,19 @@ void UExecutionHit::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* 
 		return;
 	}
 
-	UTargetingComponent* TargetingComponent = Character->GetTargetingComponent();
+	UTargetingComponent* TargetingComp = Character->GetTargetingComponent();
 
-	if (TargetingComponent == nullptr)
+	if (TargetingComp == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("FindTarget AnimNotify Null TargetingComponent"));
 		return;
 	}
 
-	ABaseEnemy* Enemy = Cast<ABaseEnemy>(TargetingComponent->GetTargetActor());
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(TargetingComp->GetTargetActor());
 	if (Enemy != nullptr)
 	{
 		Enemy->Executed();
-		TargetingComponent->ClearTarget();
+		TargetingComp->ClearTarget();
 	}
 
 }

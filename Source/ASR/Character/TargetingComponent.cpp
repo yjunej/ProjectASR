@@ -49,9 +49,15 @@ void UTargetingComponent::FindTarget()
 		TArray<AActor*> ActorsToIgnore;
 		ActorsToIgnore.Add(Cast<AActor>(Owner));
 
+		UWorld* World = GetWorld();
+		if (World == nullptr)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Targeting Component: NULL World"));
+			return;
+		}
 		
 		bool bHit = UKismetSystemLibrary::SphereTraceSingleForObjects(
-			GetWorld(),
+			World,
 			FollowCam->GetComponentLocation(),
 			TraceEnd,
 			TargetRadius,
@@ -343,8 +349,9 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 				FRotator LookRotator;
 				FRotator NewControlRotator;
 
-				LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetActorLocation(), TargetActor->GetActorLocation() - CameraOffset);
+				LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetActorLocation() + FVector(0.f, 0.f, CameraStartHeightOffset), TargetActor->GetActorLocation() - CameraOffset);
 				NewControlRotator = FMath::RInterpTo(Owner->GetController()->GetControlRotation(), LookRotator, DeltaTime, CameraRotationSpeed);
+				NewControlRotator.Pitch = FMath::Clamp(NewControlRotator.Pitch, CameraMinPitch, -CameraMinPitch);
 				Owner->GetController()->SetControlRotation(NewControlRotator);
 				
 				// TODO: Targeting Point UI

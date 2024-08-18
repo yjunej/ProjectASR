@@ -15,12 +15,6 @@
 #include "Components/TimelineComponent.h"
 #include "ASR/Character/Enemy/BaseEnemy.h"
 
-#include "Components/SkyLightComponent.h"
-#include "Components/SkyAtmosphereComponent.h"
-#include "Components/DirectionalLightComponent.h"
-
-#include "Engine/DirectionalLight.h"
-
 
 ABlader::ABlader()
 {
@@ -154,6 +148,10 @@ void ABlader::ResetState()
 	}
 	bCanAttackInAir = true;
 	bIsLevitating = false;
+
+	// Attack during Execution
+	ResetCamera();
+	bIsInvulnerable = false;
 }
 
 void ABlader::Input_Move(const FInputActionValue& Value)
@@ -396,6 +394,9 @@ void ABlader::Execution()
 	WarpTransform.SetScale3D(FVector(1.f, 1.f, 1.f));
 
 	GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(FName("Execution"), WarpTransform);
+
+	// TODO: Solve Anim Notify Bug
+	bIsInvulnerable = true;
 	PlayAnimMontage(ExecutionMontage);
 
 }

@@ -21,15 +21,15 @@ void UUnlockRootRotation::NotifyBegin(USkeletalMeshComponent* MeshComp, UAnimSeq
 		return;
 	}
 
-	UTargetingComponent* TargetingComponent = Character->GetTargetingComponent();
+	UTargetingComponent* TargetingComp = Character->GetTargetingComponent();
 
-	if (TargetingComponent == nullptr)
+	if (TargetingComp == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UnLockRR AnimNotify Null TargetingComponent"));
 		return;
 	}
 
-	if (TargetingComponent->IsTargeting() || TargetingComponent->GetSubTargetActor() != nullptr)
+	if (TargetingComp->IsTargeting() || TargetingComp->GetSubTargetActor() != nullptr)
 	{
 		return;
 	}
@@ -57,9 +57,9 @@ void UUnlockRootRotation::NotifyEnd(USkeletalMeshComponent* MeshComp, UAnimSeque
 			return;
 		}
 
-		UTargetingComponent* TargetingComponent = Character->GetTargetingComponent();
+		UTargetingComponent* TargetingComp = Character->GetTargetingComponent();
 
-		if (TargetingComponent == nullptr)
+		if (TargetingComp == nullptr)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("UnLockRR AnimNotify Null TargetingComponent"));
 			return;

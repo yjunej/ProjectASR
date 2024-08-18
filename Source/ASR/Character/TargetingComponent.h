@@ -74,10 +74,17 @@ private:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float CameraRotationSpeed = 50.f;
+	float CameraRotationSpeed = 15.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	FVector CameraOffset;
+	FVector CameraOffset = { 0.f ,0.f, 0.f };
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
+	float CameraStartHeightOffset = 250.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
+	float CameraMinPitch = -40.f;
+
 	
 	// TODO - Write Comprehensive Motion Warping Control Function
 	UPROPERTY(EditAnywhere, Category = NormalCombat, meta = (AllowPrivateAccess="true"))

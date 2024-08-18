@@ -172,7 +172,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UChildActorComponent* FollowCameraManager;
 
-
+	// TODO - Delete Duplicated Camera (Use Child Actor)
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* ExecutionCamera;
 
@@ -183,7 +183,7 @@ private:
 	class UMotionWarpingComponent* MotionWarpingComponent;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
-	class UTargetingComponent* TargetingComponent;
+	class UTargetingComponent* TargetingComp;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
@@ -223,7 +223,7 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
-	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComponent; }
+	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComp; }
 	FORCEINLINE UChildActorComponent* GetExecutionCameraManager() const { return ExecutionCameraManager; }
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }

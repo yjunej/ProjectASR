@@ -57,8 +57,8 @@ AASRCharacter::AASRCharacter()
 	ExecutionCameraManager->SetupAttachment(ExecutionCamera);
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
-	TargetingComponent = CreateDefaultSubobject<UTargetingComponent>(TEXT("Targeting"));
-	TargetingComponent->Owner = this;
+	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComp"));
+	TargetingComp->Owner = this;
 
 	CharacterState = EASRCharacterState::ECS_None;
 
@@ -160,7 +160,7 @@ void AASRCharacter::Input_Look(const FInputActionValue& Value)
 	FVector2D LookVector = Value.Get<FVector2D>();
 	if (Controller != nullptr)
 	{
-		if (TargetingComponent == nullptr || !(TargetingComponent->bIsTargeting))
+		if (TargetingComp == nullptr || !(TargetingComp->bIsTargeting))
 		{
 			if (!bIsExecuting)
 			{
@@ -230,16 +230,20 @@ bool AASRCharacter::CanDodge() const
 
 void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
 {
-	if (TargetingComponent != nullptr)
+	if (TargetingComp != nullptr)
 	{
-		if (TargetingComponent->bIsTargeting)
+		if (TargetingComp->bIsTargeting)
 		{
-			TargetingComponent->ClearTarget();
+			TargetingComp->ClearTarget();
 		}
 		else
 		{
-			TargetingComponent->FindTarget();
+			TargetingComp->FindTarget();
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL TargetingComponent"));
 	}
 }
 
@@ -307,13 +311,13 @@ void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRD
 
 bool AASRCharacter::CanExecution() const
 {
-	if (TargetingComponent == nullptr || TargetingComponent->GetTargetActor() == nullptr)
+	if (TargetingComp == nullptr || TargetingComp->GetTargetActor() == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No Comp Execution"));
 		return false;
 	}
 
-	ABaseEnemy* Enemy = Cast<ABaseEnemy>(TargetingComponent->GetTargetActor());
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(TargetingComp->GetTargetActor());
 	if (Enemy == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No Enemy Execution"));

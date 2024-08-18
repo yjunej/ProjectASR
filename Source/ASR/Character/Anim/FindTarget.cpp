@@ -21,9 +21,9 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		return;
 	}
 
-	UTargetingComponent* TargetingComponent = Blader->GetTargetingComponent();
+	UTargetingComponent* TargetingComp = Blader->GetTargetingComponent();
 
-	if (TargetingComponent == nullptr)
+	if (TargetingComp == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("FindTarget AnimNotify Null TargetingComponent"));
 		return;
@@ -66,12 +66,12 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 	
 
 
-	if (TargetingComponent->IsTargeting())
+	if (TargetingComp->IsTargeting())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("LockOn Mode"));
 
 		// Use LockOn Target Transform
-		FTransform TargetTransform = TargetingComponent->GetTargetTransform();
+		FTransform TargetTransform = TargetingComp->GetTargetTransform();
 		float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 		
 
@@ -81,12 +81,12 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 	else
 	{
 		// Find SubTarget
-		bool bFind = TargetingComponent->FindSubTarget();
+		bool bFind = TargetingComp->FindSubTarget();
 		if (bFind)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("SubTarget Mode"));
 
-			FTransform TargetTransform = TargetingComponent->GetTargetTransform();
+			FTransform TargetTransform = TargetingComp->GetTargetTransform();
 			float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 
 			WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
@@ -94,10 +94,10 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		}
 		else
 		{
-			if (TargetingComponent->GetLastSubTargetActor() != nullptr)
+			if (TargetingComp->GetLastSubTargetActor() != nullptr)
 			{
 				UE_LOG(LogTemp, Warning, TEXT("LastSubTarget Mode"));
-				FTransform TargetTransform = TargetingComponent->GetLastSubTargetTransform();
+				FTransform TargetTransform = TargetingComp->GetLastSubTargetTransform();
 				float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 				WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 				WarpTransform.SetRotation(TargetTransform.GetRotation());
