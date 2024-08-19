@@ -23,76 +23,65 @@ public:
 	
 	bool CanAttakInAir() const;
 
-	void LightAttack();
 	void HeavyAttack();
 	void DashLightAttack();
 	void DashHeavyAttack();
 	void Execution();
-	void Dodge();
 	void UseFirstSkill();
 
 	void PlayUltAttackMontage();
 	void UltEnd();
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	float LightAttackWarpDistance = 150.f;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float HeavyAttackWarpDistance = 150.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	float DashAttackWarpDistance = 500.f;
+
 
 
 protected:
 	virtual void BeginPlay() override;
 	
 	// ASRCharacter
-	virtual void ResetState() override;
 	virtual void Input_Move(const FInputActionValue& Value) override;
 	virtual void Input_Execution(const FInputActionValue& Value) override;
-	virtual void ResetCamera() override;
-
+	virtual	void Input_Dodge(const FInputActionValue& Value) override;
 	virtual void Input_Guard(const FInputActionValue& Value) override;
-	
+	virtual void Input_LightAttack(const FInputActionValue& Value) override;
+
+	virtual void ResetState() override;
+
 	virtual bool CanAttack() const override;
+	virtual void ResolveLightAttackPending() override;
+
 
 	// Enhanced Input
-	void Input_LightAttack(const FInputActionValue& Value);
 	void Input_HeavyAttack(const FInputActionValue& Value);
-	void Input_Dodge(const FInputActionValue& Value);
 	void Input_FirstSkill(const FInputActionValue& Value);
 	void Input_Ult(const FInputActionValue& Value);
 	void Input_Release_Ult(const FInputActionValue& Value);
 
-
+	// Override Parent Hook 
+	// TODO - Categorize Reset Func (Index Based or State Based)
+	virtual void LightAttack() override;
+	virtual void ResetHeavyAttack() override;
+	virtual void ResetFirstSkill() override;
 
 
 
 private:
 
 	// Button Pressed Amidst Other Actions
-	bool bIsLightAttackPending = false;
 	bool bIsHeavyAttackPending = false;
 	bool bIsFirstSkillPending = false;
 
-	bool bIsDodgePending = false;
-
-	int32 LightAttackIndex;
 	int32 HeavyAttackIndex;
 
 
 	// Handling Combo Attack
-	void ExecuteLightAttack(int32 AttackIndex);
 	void ExecuteHeavyAttack(int32 AttackIndex);
 	void ExecuteAerialAttack();
-
-
-	// Override Parent Hook 
-	virtual void ResetLightAttack() override;
-	virtual void ResetHeavyAttack() override;
-	virtual void ResetFirstSkill() override;
-	virtual void ResetDodge() override;
 
 
 
@@ -107,23 +96,13 @@ private:
 	void ResetUlt();
 
 
-	// Resolve Pending Actions
-	UFUNCTION(BlueprintCallable)
-	void ResolveLightAttackPending();
 
 	UFUNCTION(BlueprintCallable)
 	void ResolveHeavyAttackPending();
 
-	UFUNCTION(BlueprintCallable)
-	void ResolveDodgeAndGuardPending();
 	
 	UFUNCTION(BlueprintCallable)
 	bool IsInvulnerable() const { return bIsInvulnerable; }
-
-	UFUNCTION(BlueprintCallable)
-	void SetInvulnerable(bool InInvulnerable) { bIsInvulnerable = InInvulnerable; }
-
-
 
 
 private:
@@ -133,13 +112,7 @@ private:
 
 	// Enhanced Input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LightAttackAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* HeavyAttackAction;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* DodgeAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* FirstSkillAction;
@@ -150,14 +123,7 @@ private:
 
 	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	TArray<class UAnimMontage*> LightAttackMontages;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> HeavyAttackMontages;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* DodgeMontage;
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AerialAttackMontage;

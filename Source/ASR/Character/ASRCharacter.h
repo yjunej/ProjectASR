@@ -53,9 +53,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
-	
-	virtual void Guard();
-	virtual bool CanGuard() const;
 
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
 
@@ -72,6 +69,9 @@ protected:
 	virtual void Input_ToggleLockOn(const FInputActionValue& Value);
 	virtual void Input_Execution(const FInputActionValue& Value);
 	virtual void Input_Guard(const FInputActionValue& Value);
+	virtual void Input_Dodge(const FInputActionValue& Value);
+	virtual void Input_LightAttack(const FInputActionValue& Value);
+
 
 	void Input_Look(const FInputActionValue& Value);
 	void Input_ToggleCrouch(const FInputActionValue& Value);
@@ -79,17 +79,31 @@ protected:
 
 
 	virtual bool CanAttack() const;
+
+	virtual void Guard();
+	virtual bool CanGuard() const;
+
+	virtual void Dodge();
 	virtual bool CanDodge() const;
+	virtual void ResetDodge();
 
+	virtual void ResetLightAttack();
 
-	// TODO: Only use Hook for Skills
-	virtual void ResetLightAttack() {};
+	void ExecuteLightAttack(int32 AttackIndex);
+
+	// Handle logic that is fully state-based in the parent class.
+	// Use Hook method for character specific skill base logic
 	virtual void ResetHeavyAttack() {};
 	virtual void ResetFirstSkill() {};
-	virtual void ResetDodge() {};
 
+	virtual void LightAttack() {};
 
+	UFUNCTION(BlueprintCallable)
+	virtual void ResolveLightAttackPending();
 
+	UFUNCTION(BlueprintCallable)
+	virtual void ResolveDodgeAndGuardPending();
+	//
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State)
@@ -113,9 +127,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat)
 	float ExecutionDistance = 400.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float LightAttackWarpDistance = 150.f;
 
-	UFUNCTION(BlueprintCallable)
-	void SetHealth(float NewHealth);
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float DashAttackWarpDistance = 500.f;
+
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetState();
@@ -123,14 +140,26 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
 
-	bool CanExecution() const;
-
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetCamera();
+
+	UFUNCTION(BlueprintCallable)
+	void SetHealth(float NewHealth);
+
+	UFUNCTION(BlueprintCallable)
+	void SetInvulnerable(bool InInvulnerable) { bIsInvulnerable = InInvulnerable; }
+
+
+	bool CanExecution() const;
+
 
 	bool bIsExecuting = false;
 	bool bIsInvulnerable = false;
 	bool bIsGuardPressed = false;
+	bool bIsDodgePending = false;
+	bool bIsLightAttackPending = false;
+
+	int32 LightAttackIndex;
 
 
 private:
@@ -159,6 +188,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* GuardAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* DodgeAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* LightAttackAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	TArray<class UAnimMontage*> LightAttackMontages;
 
 
 private:
@@ -187,7 +224,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
+	
 
+	// TODO - Delete Hit SoundCue
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Sound, meta = (AllowPrivateAccess = "true"))
 	class USoundCue* GetHitSoundCue;
 
@@ -207,6 +246,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* GuardMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DodgeMontage;
 
 	class UASRMainHUD* MainHUDWidget;
 
@@ -230,6 +272,8 @@ public:
 	FORCEINLINE float GetExecutionDistance() const { return ExecutionDistance; }
 	FORCEINLINE float GetStability() const { return Stability; }
 	FORCEINLINE float GetMaxStability() const { return MaxStability; }
+	FORCEINLINE float GetDashAttackWarpDistance() const { return DashAttackWarpDistance; }
+	FORCEINLINE float GetLightAttackWarpDistance() const { return LightAttackWarpDistance; }
 
 	
 };

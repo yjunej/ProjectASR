@@ -35,6 +35,7 @@ AASRCharacter::AASRCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = 700.f;
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->RotationRate.Yaw = 900.f;
+	GetCharacterMovement()->MaxWalkSpeed = 1300.f;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->bEnableCameraLag = true;
@@ -57,7 +58,7 @@ AASRCharacter::AASRCharacter()
 	ExecutionCameraManager->SetupAttachment(ExecutionCamera);
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
-	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComp"));
+	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
 	TargetingComp->Owner = this;
 
 	CharacterState = EASRCharacterState::ECS_None;
@@ -128,7 +129,9 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &AASRCharacter::Input_ToggleCrouch);
 		EnhancedInputComponent->BindAction(ToggleLockOnAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_ToggleLockOn);
 		EnhancedInputComponent->BindAction(ExecutionAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Execution);
+		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Dodge);
 
+		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_LightAttack);
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
@@ -143,6 +146,12 @@ void AASRCharacter::Input_Move(const FInputActionValue& Value)
 {
 	FVector2D MoveVector = Value.Get<FVector2D>();
 	PrevInput = MoveVector;
+
+	// Guard Accept Not use Root motion (Knockback by launch..)
+	if (CharacterState == EASRCharacterState::ECS_Guard)
+	{
+		return;
+	}
 
 	if (Controller != nullptr)
 	{
@@ -197,6 +206,99 @@ void AASRCharacter::Input_Guard(const FInputActionValue& Value)
 	}
 }
 
+void AASRCharacter::Input_Dodge(const FInputActionValue& Value)
+{
+	if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge)
+	{
+		bIsDodgePending = true;
+	}
+	else
+	{
+		Dodge();
+	}
+}
+
+void AASRCharacter::Input_LightAttack(const FInputActionValue& Value)
+{
+	if (CharacterState == EASRCharacterState::ECS_Attack)
+	{
+		bIsLightAttackPending = true;
+	}
+	else
+	{
+		LightAttack();
+	}
+}
+
+
+void AASRCharacter::ResetLightAttack()
+{
+	bIsLightAttackPending = false;
+	LightAttackIndex = 0;
+}
+
+void AASRCharacter::ExecuteLightAttack(int32 AttackIndex)
+{
+	if (AttackIndex >= LightAttackMontages.Num())
+	{
+		LightAttackIndex = 0;
+	}
+	else
+	{
+		if (LightAttackMontages.IsValidIndex(AttackIndex) && LightAttackMontages[AttackIndex] != nullptr)
+		{
+			SetCharacterState(EASRCharacterState::ECS_Attack);
+			PlayAnimMontage(LightAttackMontages[AttackIndex]);
+
+			if (LightAttackIndex + 1 >= LightAttackMontages.Num())
+			{
+				LightAttackIndex = 0;
+			}
+			else
+			{
+				++LightAttackIndex;
+			}
+		}
+	}
+}
+
+void AASRCharacter::ResolveLightAttackPending()
+{
+	if (bIsLightAttackPending)
+	{
+		bIsLightAttackPending = false;
+		if (CharacterState == EASRCharacterState::ECS_Attack)
+		{
+			CharacterState = EASRCharacterState::ECS_None;
+		}
+		LightAttack();
+	}
+}
+
+void AASRCharacter::ResolveDodgeAndGuardPending()
+{
+	if (bIsGuardPressed)
+	{
+		bIsDodgePending = false;
+		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge || CharacterState == EASRCharacterState::ECS_Guard)
+		{
+			CharacterState = EASRCharacterState::ECS_None;
+		}
+
+		Guard();
+	}
+	else if (bIsDodgePending)
+	{
+		bIsDodgePending = false;
+		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge || CharacterState == EASRCharacterState::ECS_Guard)
+		{
+			CharacterState = EASRCharacterState::ECS_None;
+		}
+		Dodge();
+	}
+}
+
+
 void AASRCharacter::Input_Release_Guard(const FInputActionValue& Value)
 {
 	bIsGuardPressed = false;
@@ -218,6 +320,30 @@ bool AASRCharacter::CanAttack() const
 	return false;
 }
 
+void AASRCharacter::Dodge()
+{
+	if (CanDodge())
+	{
+		SetCharacterState(EASRCharacterState::ECS_Dodge);
+
+		ResetLightAttack();
+		ResetHeavyAttack();
+
+		// Rotate Before Dodge
+		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
+		if (LastInputVector.Size() != 0.f)
+		{
+			SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
+		}
+
+
+		GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
+			FName("Dodge"), GetActorLocation() + GetActorForwardVector() * 150,
+			GetActorRotation());
+		PlayAnimMontage(DodgeMontage);
+	}
+}
+
 bool AASRCharacter::CanDodge() const
 {
 	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
@@ -226,6 +352,11 @@ bool AASRCharacter::CanDodge() const
 		return true;
 	}
 	return false;
+}
+
+void AASRCharacter::ResetDodge()
+{
+	bIsDodgePending = false;
 }
 
 void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
@@ -337,7 +468,8 @@ void AASRCharacter::ResetCamera()
 {
 	// Execution Camera To Follow Camera
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	if (PlayerController != nullptr)
+	APawn* ControlledPawn = PlayerController->GetPawn();
+	if (PlayerController != nullptr && this == ControlledPawn)
 	{
 		PlayerController->SetViewTargetWithBlend(FollowCameraManager->GetChildActor(), 0.4f, EViewTargetBlendFunction::VTBlend_EaseInOut, 0.8f, false);
 	}
@@ -422,6 +554,12 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float 
 {	
 	// Dead
 	if (CharacterState == EASRCharacterState::ECS_Death || bIsInvulnerable)
+	{
+		return;
+	}
+
+
+	if (Cast<ABaseEnemy>(Attacker) == nullptr)
 	{
 		return;
 	}

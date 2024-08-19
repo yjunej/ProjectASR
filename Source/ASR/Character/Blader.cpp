@@ -19,13 +19,11 @@
 ABlader::ABlader()
 {
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
-	GetMesh()->SetRelativeRotation(FRotator(0.0f, 0.0f, -90.f));
+	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.f, 0.0f));
 
     WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-    WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket"));  // 소켓에 부착
+    WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket"));
 	
-	GetCharacterMovement()->MaxWalkSpeed = 1050.f;
-
 	TimelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineComponent"));
 	FloatCurve = nullptr; // Draw In Editor
 
@@ -85,10 +83,6 @@ void ABlader::PostInitializeComponents()
 	GetMesh()->HideBoneByName(FName("weapon_l"), EPhysBodyOp::PBO_Term);
 	GetMesh()->HideBoneByName(FName("weapon_r"), EPhysBodyOp::PBO_Term);
 	GetMesh()->HideBoneByName(FName("grenade"), EPhysBodyOp::PBO_Term);
-
-	const USkeletalMeshSocket* RHKatanaSocket = GetMesh()->GetSocketByName(FName("RightHandKatanaSocket"));
-
-
 }
 
 void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -97,14 +91,10 @@ void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_LightAttack);
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_HeavyAttack);
-		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &ABlader::Input_Dodge);
 		EnhancedInputComponent->BindAction(FirstSkillAction, ETriggerEvent::Triggered, this, &ABlader::Input_FirstSkill);
 		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Started, this, &ABlader::Input_Ult);
 		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Completed, this, &ABlader::Input_Release_Ult);
-
-
 	}
 }
 
@@ -178,10 +168,6 @@ void ABlader::Input_Execution(const FInputActionValue& Value)
 
 }
 
-void ABlader::ResetCamera()
-{
-	Super::ResetCamera();
-}
 
 void ABlader::Input_LightAttack(const FInputActionValue& Value)
 {
@@ -190,16 +176,7 @@ void ABlader::Input_LightAttack(const FInputActionValue& Value)
 		ResetUlt();
 	}
 	bIsHeavyAttackPending = false;
-	
-	if (CharacterState == EASRCharacterState::ECS_Attack)
-	{
-		bIsLightAttackPending = true;
-	}
-	else
-	{
-		LightAttack();
-	}
-
+	Super::Input_LightAttack(Value);
 }
 
 void ABlader::LightAttack()
@@ -246,14 +223,7 @@ void ABlader::Input_Dodge(const FInputActionValue& Value)
 	{
 		ResetUlt();
 	}
-	if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge)
-	{
-		bIsDodgePending = true;
-	}
-	else
-	{
-		Dodge();
-	}
+	Super::Input_Dodge(Value);
 
 }
 
@@ -402,30 +372,6 @@ void ABlader::Execution()
 }
 
 
-void ABlader::Dodge()
-{
-	if (CanDodge())
-	{
-		SetCharacterState(EASRCharacterState::ECS_Dodge); 
-
-		ResetLightAttack();
-		ResetHeavyAttack();
-
-		// Rotate Before Dodge
-		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
-		if (LastInputVector.Size() != 0.f)
-		{
-			SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
-		}
-
-
-		GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
-			FName("Dodge"), GetActorLocation() + GetActorForwardVector() * 150,
-			GetActorRotation());
-		PlayAnimMontage(DodgeMontage); 
-	}
-}
-
 void ABlader::UseFirstSkill()
 {
 	if (CanAttack())
@@ -447,31 +393,6 @@ void ABlader::PlayUltAttackMontage()
 	}
 }
 
-
-void ABlader::ExecuteLightAttack(int32 AttackIndex)
-{
-	if (AttackIndex >= LightAttackMontages.Num())
-	{
-		LightAttackIndex = 0;
-	}
-	else
-	{
-		if (LightAttackMontages.IsValidIndex(AttackIndex) && LightAttackMontages[AttackIndex] != nullptr)
-		{
-			SetCharacterState(EASRCharacterState::ECS_Attack);
-			PlayAnimMontage(LightAttackMontages[AttackIndex]);
-
-			if (LightAttackIndex + 1 >= LightAttackMontages.Num())
-			{
-				LightAttackIndex = 0;
-			}
-			else
-			{
-				++LightAttackIndex;
-			}
-		}
-	}
-}
 
 void ABlader::ExecuteLightAttackInAir(int32 AttackIndex)
 {
@@ -498,13 +419,6 @@ void ABlader::ExecuteLightAttackInAir(int32 AttackIndex)
 			}
 		}
 	}
-}
-
-
-void ABlader::ResetLightAttack()
-{
-	bIsLightAttackPending = false;
-	LightAttackIndex = 0;
 }
 
 void ABlader::ExecuteHeavyAttack(int32 AttackIndex)
@@ -545,10 +459,6 @@ void ABlader::ResetFirstSkill()
 	bIsFirstSkillPending = false;
 }
 
-void ABlader::ResetDodge()
-{
-	bIsDodgePending = false;
-}
 
 void ABlader::ExecuteAerialAttack()
 {
@@ -604,7 +514,8 @@ void ABlader::ResolveLightAttackPending()
 {
 	if (bIsFirstSkillPending)
 	{
-		bIsFirstSkillPending = false;
+		bIsFirstSkillPending = false; 
+		bIsLightAttackPending = false;
 		if (CharacterState == EASRCharacterState::ECS_Attack)
 		{
 			CharacterState = EASRCharacterState::ECS_None;
@@ -612,25 +523,7 @@ void ABlader::ResolveLightAttackPending()
 		UseFirstSkill();
 	}
 
-	if (bIsLightAttackPending)
-	{
-
-		bIsLightAttackPending = false;
-
-		// Process Pending L Attack
-		if (CharacterState == EASRCharacterState::ECS_Attack)
-		{
-
-			CharacterState = EASRCharacterState::ECS_None;
-		}
-
-		// Try Light Attack (CanAttack check in this function)
-		LightAttack();
-
-	}
-	
-	// TODO: make sophisticated Pending Action System - Categorize Actions
-
+	Super::ResolveLightAttackPending();
 
 }
 
@@ -649,29 +542,6 @@ void ABlader::ResolveHeavyAttackPending()
 		// Try Heavy Attack (CanAttack check in this function)
 		HeavyAttack();
 
-	}
-}
-
-void ABlader::ResolveDodgeAndGuardPending()
-{
-	if (bIsGuardPressed)
-	{
-		bIsDodgePending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge || CharacterState == EASRCharacterState::ECS_Guard)
-		{
-			CharacterState = EASRCharacterState::ECS_None;
-		}
-
-		Guard();
-	}
-	else if (bIsDodgePending)
-	{
-		bIsDodgePending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge || CharacterState == EASRCharacterState::ECS_Guard)
-		{
-			CharacterState = EASRCharacterState::ECS_None;
-		}
-		Dodge();
 	}
 }
 
