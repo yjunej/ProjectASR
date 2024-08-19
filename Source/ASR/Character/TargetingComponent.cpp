@@ -350,9 +350,12 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 				FRotator NewControlRotator;
 
 				LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetActorLocation() + FVector(0.f, 0.f, CameraStartHeightOffset), TargetActor->GetActorLocation() - CameraOffset);
-				NewControlRotator = FMath::RInterpTo(Owner->GetController()->GetControlRotation(), LookRotator, DeltaTime, CameraRotationSpeed);
+
+				AController* OwnerController = Owner->GetController();
+				
+				NewControlRotator = FMath::RInterpTo(OwnerController->GetControlRotation(), LookRotator, DeltaTime, CameraRotationSpeed);
 				NewControlRotator.Pitch = FMath::Clamp(NewControlRotator.Pitch, CameraMinPitch, -CameraMinPitch);
-				Owner->GetController()->SetControlRotation(NewControlRotator);
+				OwnerController->SetControlRotation(NewControlRotator);
 				
 				// TODO: Targeting Point UI
 				//PlaceDecalActor();

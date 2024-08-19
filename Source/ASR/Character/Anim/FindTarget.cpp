@@ -2,8 +2,8 @@
 
 
 #include "FindTarget.h"
-#include "ASR/Character/Blader.h"
 #include "ASR/Character/TargetingComponent.h"
+#include "ASR/Character/ASRCharacter.h"
 #include "MotionWarpingComponent.h"
 
 void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
@@ -14,14 +14,14 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		UE_LOG(LogTemp, Warning, TEXT("FindTarget AnimNotify Null Owner"));
 		return;
 	}
-	ABlader* Blader = Cast<ABlader>(Owner);
-	if (Blader == nullptr)
+	AASRCharacter* ASRCharacter = Cast<AASRCharacter>(Owner);
+	if (ASRCharacter == nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("FindTarget AnimNotify Null Blader"));
+		UE_LOG(LogTemp, Warning, TEXT("FindTarget AnimNotify Null ASRCharacter"));
 		return;
 	}
 
-	UTargetingComponent* TargetingComp = Blader->GetTargetingComponent();
+	UTargetingComponent* TargetingComp = ASRCharacter->GetTargetingComponent();
 
 	if (TargetingComp == nullptr)
 	{
@@ -50,17 +50,17 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 	float MaxWarpDistance;
 	if (SectionName == "DashAttack")
 	{
-		MaxWarpDistance = Blader->DashAttackWarpDistance;
+		MaxWarpDistance = ASRCharacter->GetDashAttackWarpDistance();
 		TargetName = FName("ForwardDash");
 	}
 	else if (SectionName == "Execution")
 	{
-		MaxWarpDistance = Blader->GetExecutionDistance();
+		MaxWarpDistance = ASRCharacter->GetExecutionDistance();
 		TargetName = FName("Execution");
 	}
 	else
 	{
-		MaxWarpDistance = Blader->LightAttackWarpDistance;
+		MaxWarpDistance = ASRCharacter->GetLightAttackWarpDistance();
 	}
 
 	
@@ -75,7 +75,7 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 		
 
-		WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
+		WarpTransform.SetLocation(ASRCharacter->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 		WarpTransform.SetRotation(TargetTransform.GetRotation());
 	}
 	else
@@ -89,7 +89,7 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 			FTransform TargetTransform = TargetingComp->GetTargetTransform();
 			float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
 
-			WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
+			WarpTransform.SetLocation(ASRCharacter->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 			WarpTransform.SetRotation(TargetTransform.GetRotation());
 		}
 		else
@@ -99,7 +99,7 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 				UE_LOG(LogTemp, Warning, TEXT("LastSubTarget Mode"));
 				FTransform TargetTransform = TargetingComp->GetLastSubTargetTransform();
 				float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
-				WarpTransform.SetLocation(Blader->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
+				WarpTransform.SetLocation(ASRCharacter->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 				WarpTransform.SetRotation(TargetTransform.GetRotation());
 
 			}
@@ -107,8 +107,8 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 			{
 				UE_LOG(LogTemp, Warning, TEXT("Forward Mode"));
 				//WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * WarpDistance);
-				WarpTransform.SetLocation(Blader->GetActorLocation() + Blader->GetActorForwardVector() * MaxWarpDistance);
-				WarpTransform.SetRotation(FQuat(Blader->GetActorRotation()));
+				WarpTransform.SetLocation(ASRCharacter->GetActorLocation() + ASRCharacter->GetActorForwardVector() * MaxWarpDistance);
+				WarpTransform.SetRotation(FQuat(ASRCharacter->GetActorRotation()));
 			}
 			// Use Forward Vector
 				
@@ -118,12 +118,12 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 	}	
 	WarpTransform.SetScale3D(FVector(1.f, 1.f, 1.f));
 
-	if (Blader->GetMotionWarpingComponent() == nullptr)
+	if (ASRCharacter->GetMotionWarpingComponent() == nullptr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("FindTarget AnimNotify Null MotionWarpingComponent"));
 		return;
 	}
 	
 
-	Blader->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(TargetName, WarpTransform);
+	ASRCharacter->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(TargetName, WarpTransform);
 }

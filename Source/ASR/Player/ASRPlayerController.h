@@ -6,6 +6,9 @@
 #include "GameFramework/PlayerController.h"
 #include "ASRPlayerController.generated.h"
 
+class UInputAction;
+class UInputMappingContext;
+struct FInputActionValue;
 /**
  * 
  */
@@ -16,6 +19,7 @@ class ASR_API AASRPlayerController : public APlayerController
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void SetupInputComponent() override;
 
 public: 
 	void SetKillScore(float KillScore);
@@ -26,4 +30,38 @@ public:
 
 	class URangerHUD* RangerHUD;
 
+private:
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* DefaultMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SwapAction;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* RestoreAction;
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<class AASRCharacter> NewCharacterClass;
+
+
+	UPROPERTY(EditDefaultsOnly, Category = "Character")
+	TSubclassOf<AASRCharacter> OriginalCharacterClass;
+
+	UPROPERTY(EditDefaultsOnly)
+	AASRCharacter* ControlCharacter;
+
+	UPROPERTY()
+	AASRCharacter* NextCharacter;
+
+	UPROPERTY()
+	AASRCharacter* OriginalCharacter;
+
+	UFUNCTION(BlueprintCallable)
+	void SwapCharacter();
+
+	UFUNCTION(BlueprintCallable)
+	void RestoreOriginalCharacter();
+
+	bool bSpawned = false;
 };
