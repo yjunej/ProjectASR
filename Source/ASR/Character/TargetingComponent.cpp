@@ -351,6 +351,10 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 
 				LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetActorLocation() + FVector(0.f, 0.f, CameraStartHeightOffset), TargetActor->GetActorLocation() - CameraOffset);
 
+				if (Owner == nullptr)
+				{
+					return;
+				}
 				AController* OwnerController = Owner->GetController();
 				
 				NewControlRotator = FMath::RInterpTo(OwnerController->GetControlRotation(), LookRotator, DeltaTime, CameraRotationSpeed);
