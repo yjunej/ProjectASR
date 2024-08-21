@@ -88,6 +88,8 @@ protected:
 	virtual bool CanDodge() const;
 	virtual void ResetDodge();
 
+	virtual void Execution();
+
 	virtual void ResetLightAttack();
 
 
@@ -151,6 +153,10 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void SetInvulnerable(bool InInvulnerable) { bIsInvulnerable = InInvulnerable; }
 
+	UFUNCTION(BlueprintCallable)
+	virtual void SetExecutionCamera();
+
+	
 
 	bool CanExecution() const;
 
@@ -200,15 +206,16 @@ private:
 	TArray<class UAnimMontage*> LightAttackMontages;
 
 
+
 private:
 	// Camera Setting
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
 
-	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UChildActorComponent* FollowCameraManager;
 
 	// TODO - Delete Duplicated Camera (Use Child Actor)
@@ -251,6 +258,10 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* DodgeMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ExecutionMontage;
+
 
 	class UASRMainHUD* MainHUDWidget;
 

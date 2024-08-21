@@ -130,7 +130,7 @@ void ABlader::ResetState()
 	ResetLightAttack();
 	ResetHeavyAttack();
 	ResetDodge();
-	bIsFirstSkillPending = false;
+	ResetSkills();
 
 	if (GetTargetingComponent() != nullptr)
 	{
@@ -155,16 +155,16 @@ void ABlader::Input_Move(const FInputActionValue& Value)
 
 void ABlader::Input_Execution(const FInputActionValue& Value)
 {
-	Super::Input_Execution(Value);
 
 	if (bIsUltCharging)
 	{
 		ResetUlt();
 	}
-	if (CanExecution() && !bIsExecuting && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
+	if (GetCharacterMovement()->IsFalling() || GetCharacterMovement()->IsFlying())
 	{
-		Execution();
+		return;
 	}
+	Super::Input_Execution(Value);
 
 }
 
@@ -338,40 +338,6 @@ void ABlader::DashHeavyAttack()
 	PlayAnimMontage(DashHeavyAttackMontage);
 }
 
-void ABlader::Execution()
-{
-	// Camera Setting
-
-	SetCharacterState(EASRCharacterState::ECS_Attack);
-	ResetLightAttack();	
-	ResetHeavyAttack();
-	ResetSkills();
-	ResetDodge();
-
-	FTransform WarpTransform;
-	FTransform TargetTransform = GetTargetingComponent()->GetTargetTransform();
-	float WarpDistance = ExecutionDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : ExecutionDistance;
-
-
-	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetTargetingComponent()->GetTargetActor());
-	if (Enemy != nullptr)
-	{
-		bIsExecuting = true;
-	}
-
-
-	WarpTransform.SetLocation(GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
-	WarpTransform.SetRotation(TargetTransform.GetRotation());
-	WarpTransform.SetScale3D(FVector(1.f, 1.f, 1.f));
-
-	GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(FName("Execution"), WarpTransform);
-
-	// TODO: Solve Anim Notify Bug
-	bIsInvulnerable = true;
-	PlayAnimMontage(ExecutionMontage);
-
-}
-
 
 void ABlader::FirstSkill()
 {
@@ -381,8 +347,7 @@ void ABlader::FirstSkill()
 	{
 		ResetLightAttack();
 		ResetHeavyAttack();
-		bIsDodgePending = false;
-
+		ResetDodge();
 		ExecuteAerialAttack();
 	}
 }
@@ -598,10 +563,3 @@ void ABlader::ApplyUltDamage()
 		HitInterface->GetHit(HitResult, this, 10000.f, EASRDamageType::EDT_Die);
 	}
 }
-
-void ABlader::SetExecutionCamera()
-{
-	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
-}
-

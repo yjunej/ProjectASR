@@ -21,18 +21,24 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void FirstSkill();
+	void DashLightAttack();
+	void DashHeavyAttack();
 
 	virtual float GetFirstSkillWarpDistance() const override;
 
 
 protected:
 	virtual void LightAttack() override;
+	virtual void ResetSkills() override;
+	virtual void ResetState() override;
+
 
 	void Input_FirstSkill(const FInputActionValue& Value);
 
 
 
 	virtual void ResolveLightAttackPending() override;
+	virtual void SetExecutionCamera() override;
 
 
 
@@ -47,8 +53,18 @@ private:
 
 	void ExecuteFirstSkill();
 
+	
+
+	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* FirstSkillMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DashLightAttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* DashHeavyAttackMontage;
+	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float FirstSkillWarpDistance = 500.f;

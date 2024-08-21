@@ -26,7 +26,6 @@ public:
 	void HeavyAttack();
 	void DashLightAttack();
 	void DashHeavyAttack();
-	void Execution();
 	void FirstSkill();
 
 	void PlayUltAttackMontage();
@@ -149,8 +148,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> LightAttackInAirMontages;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* ExecutionMontage;
 
 
 	//
@@ -184,14 +181,11 @@ private:
 	UFUNCTION(BlueprintCallable)
 	void ApplyUltDamage();
 
-	// Execution
-	UFUNCTION(BlueprintCallable)
-	void SetExecutionCamera();
-
 
 
 public:
 	FORCEINLINE TArray<AActor*> GetUltTargets() const { return UltTargets; }
 	FORCEINLINE int32 GetUltTargetIndex() const { return UltTargetIndex; }
 	FORCEINLINE void SetUltTargetIndex(int32 Index) { UltTargetIndex = Index; }
+
 };

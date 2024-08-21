@@ -17,6 +17,7 @@
 #include "NiagaraComponent.h"
 #include "ASR/Character/Enemy/BaseAIController.h"
 #include "Sound/SoundCue.h"
+#include "ASR/Character/Slayer.h"
 
 
 
@@ -128,11 +129,19 @@ void ABaseEnemy::Executed()
 		if (Pawn != nullptr)
 		{
 			// TODO - Intergrate on GetHit
-			RotateToAttacker(Pawn);
+			RotateToAttacker(Pawn, false);
+			
 			HandleHitTransform(Pawn, EASRDamageType::EDT_Default, 1000.f);
 			SetCharacterState(EASRCharacterState::ECS_Death);
 			SetHealth(0.f);
-			PlayAnimMontage(ExecutionMontage);
+			if (Cast<ASlayer>(Pawn) != nullptr)
+			{
+				PlayAnimMontage(SmashExecutionMontage);
+			}
+			else
+			{
+				PlayAnimMontage(ExecutionMontage);
+			}
 			SpawnBloodEffect(GetActorLocation(), FVector(4.f, 2.f, 2.f));
 		}
 	} 
@@ -330,10 +339,14 @@ void ABaseEnemy::AerialKnockdown()
 	TimelineComponent->PlayFromStart();
 }
 
-void ABaseEnemy::RotateToAttacker(AActor* Attacker)
+void ABaseEnemy::RotateToAttacker(AActor* Attacker, bool bIsRunFromAttacker)
 {
 	FRotator LookAtAttackerRotator = GetActorRotation();
 	LookAtAttackerRotator.Yaw = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), Attacker->GetActorLocation()).Yaw;
+	if (bIsRunFromAttacker)
+	{
+		LookAtAttackerRotator.Yaw += 180.0f;
+	}
 	SetActorRotation(LookAtAttackerRotator);
 }
 
@@ -490,7 +503,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 	if (Mapping != nullptr)
 	{
 		CharacterState = Mapping->CharacterState;			
-		RotateToAttacker(Attacker);
+		RotateToAttacker(Attacker, false);
 		HandleHitTransform(Attacker, DamageType, Damage);
 
 		if (DamageType == EASRDamageType::EDT_Die)

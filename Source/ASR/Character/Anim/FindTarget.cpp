@@ -51,7 +51,7 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 	if (SectionName == "DashAttack")
 	{
 		MaxWarpDistance = ASRCharacter->GetDashAttackWarpDistance();
-		TargetName = FName("ForwardDash");
+		TargetName = FName("DashAttack");
 	}
 	else if (SectionName == "Execution")
 	{

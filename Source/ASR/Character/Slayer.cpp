@@ -5,6 +5,8 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Kismet/GameplayStatics.h"
+
 
 
 ASlayer::ASlayer()
@@ -18,6 +20,8 @@ ASlayer::ASlayer()
 
 	WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandGreatSwordSocket"));
+
+	ExecutionDistance = 700.f;
 }
 
 void ASlayer::PostInitializeComponents()
@@ -44,30 +48,56 @@ void ASlayer::FirstSkill()
 	{
 		ResetLightAttack();
 		ResetHeavyAttack();
-		bIsDodgePending = false;
-
+		ResetDodge();
 		ExecuteFirstSkill();
 	}
+}
+
+void ASlayer::DashLightAttack()
+{
+	SetCharacterState(EASRCharacterState::ECS_Attack);
+	ResetLightAttack();
+	ResetHeavyAttack();
+	ResetSkills();
+	ResetDodge();
+	PlayAnimMontage(DashLightAttackMontage);
+}
+
+void ASlayer::DashHeavyAttack()
+{
 }
 
 void ASlayer::LightAttack()
 {
 	if (CanAttack())
 	{
-		//if (GetVelocity().Size() >= 1000.f && LightAttackIndex == 0)
-		//{
-		//	DashLightAttack();
-		//}
-		//else
-		//{
+		if (GetVelocity().Size() >= 950.f && LightAttackIndex == 0)
+		{
+			DashLightAttack();
+		}
+		else
+		{
 			//ResetHeavyAttack();
-		ExecuteLightAttack(LightAttackIndex);
-		//}
+			ExecuteLightAttack(LightAttackIndex);
+		}
 	}
 	//else if (CanAttakInAir())
 	//{
 	//	ExecuteLightAttackInAir(LightAttackIndex);
 	//}
+}
+
+void ASlayer::ResetSkills()
+{
+	bIsFirstSkillPending = false;
+}
+
+void ASlayer::ResetState()
+{
+	Super::ResetState();
+	ResetLightAttack();
+	ResetDodge();
+	ResetSkills();
 }
 
 void ASlayer::Input_FirstSkill(const FInputActionValue& Value)
@@ -108,4 +138,10 @@ void ASlayer::ExecuteFirstSkill()
 {
 	SetCharacterState(EASRCharacterState::ECS_Attack);
 	PlayAnimMontage(FirstSkillMontage);
+}
+
+void ASlayer::SetExecutionCamera()
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
 }

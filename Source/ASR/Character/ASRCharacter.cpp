@@ -364,6 +364,35 @@ void AASRCharacter::ResetDodge()
 	bIsDodgePending = false;
 }
 
+void AASRCharacter::Execution()
+{
+	SetCharacterState(EASRCharacterState::ECS_Attack);
+	ResetLightAttack();
+	ResetHeavyAttack();
+	ResetSkills();
+	ResetDodge();
+
+	FTransform WarpTransform;
+	FTransform TargetTransform = GetTargetingComponent()->GetTargetTransform();
+	float WarpDistance = ExecutionDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : ExecutionDistance;
+
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetTargetingComponent()->GetTargetActor());
+	if (Enemy != nullptr)
+	{
+		bIsExecuting = true;
+	}
+
+	WarpTransform.SetLocation(GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
+	WarpTransform.SetRotation(TargetTransform.GetRotation());
+	WarpTransform.SetScale3D(FVector(1.f, 1.f, 1.f));
+
+	GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(FName("Execution"), WarpTransform);
+
+	// TODO: Solve Anim Notify Bug
+	bIsInvulnerable = true;
+	PlayAnimMontage(ExecutionMontage);
+}
+
 void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
 {
 	if (TargetingComp != nullptr)
@@ -385,6 +414,10 @@ void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
 
 void AASRCharacter::Input_Execution(const FInputActionValue& Value)
 {
+	if (CanExecution())
+	{
+		Execution();
+	}
 }
 
 
@@ -397,6 +430,12 @@ void AASRCharacter::SetHealth(float NewHealth)
 		Health = NewHealth;
 		OnHealthChanged.Broadcast();
 	}
+}
+
+void AASRCharacter::SetExecutionCamera()
+{
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
 }
 
 void AASRCharacter::ResetState()
@@ -466,7 +505,7 @@ bool AASRCharacter::CanExecution() const
 		return false;
 	}
 
-	return true;
+	return !bIsExecuting;
 }
 
 void AASRCharacter::ResetCamera()

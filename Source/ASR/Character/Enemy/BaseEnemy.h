@@ -122,6 +122,9 @@ private:
 	UAnimMontage* ExecutionMontage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* SmashExecutionMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<UAnimMontage*> NormalAttackMontages;
 
 	// TimeLine
@@ -166,11 +169,10 @@ private:
 
 
 	// Hit Postprocess func
-	void RotateToAttacker(AActor* Attacker);
+	void RotateToAttacker(AActor* Attacker, bool bIsRunFromAttacker);
 	void StepBackFromAttacker(AActor* Attacker, float Distance);
 	void HandleHitTransform(AActor* Attacker, EASRDamageType DamageType, float Damage);
 	void AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType);
-	void MoveCharacterWithVLerp(float Damage, float Duration);
 
 	void DisableCollision();
 
