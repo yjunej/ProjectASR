@@ -60,6 +60,7 @@ public:
 
 	void PlayRandomSection(UAnimMontage* Montage);
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
+	virtual float GetFirstSkillWarpDistance() const;
 
 
 protected:
@@ -89,21 +90,22 @@ protected:
 
 	virtual void ResetLightAttack();
 
+
 	void ExecuteLightAttack(int32 AttackIndex);
 
 	// Handle logic that is fully state-based in the parent class.
 	// Use Hook method for character specific skill base logic
 	virtual void ResetHeavyAttack() {};
-	virtual void ResetFirstSkill() {};
+	virtual void ResetSkills() {};
 
 	virtual void LightAttack() {};
+	//
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResolveLightAttackPending();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResolveDodgeAndGuardPending();
-	//
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State)

@@ -237,6 +237,11 @@ void AASRCharacter::ResetLightAttack()
 	LightAttackIndex = 0;
 }
 
+float AASRCharacter::GetFirstSkillWarpDistance() const
+{
+	return LightAttackWarpDistance;
+}
+
 void AASRCharacter::ExecuteLightAttack(int32 AttackIndex)
 {
 	if (AttackIndex >= LightAttackMontages.Num())
@@ -525,7 +530,7 @@ void AASRCharacter::Guard()
 
 		ResetLightAttack();
 		ResetHeavyAttack();
-		ResetFirstSkill();
+		ResetSkills();
 		ResetDodge();
 
 		// Rotate Before Dodge

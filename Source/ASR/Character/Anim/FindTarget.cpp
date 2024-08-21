@@ -58,6 +58,11 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		MaxWarpDistance = ASRCharacter->GetExecutionDistance();
 		TargetName = FName("Execution");
 	}
+	else if (SectionName == "FirstSkill")
+	{
+		MaxWarpDistance = ASRCharacter->GetFirstSkillWarpDistance();
+		TargetName = FName("FirstSkill");
+	}
 	else
 	{
 		MaxWarpDistance = ASRCharacter->GetLightAttackWarpDistance();

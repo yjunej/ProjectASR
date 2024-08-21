@@ -4,6 +4,8 @@
 #include "Slayer.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
+#include "EnhancedInputComponent.h"
+
 
 ASlayer::ASlayer()
 {
@@ -26,6 +28,28 @@ void ASlayer::PostInitializeComponents()
 	const USkeletalMeshSocket* RHKatanaSocket = GetMesh()->GetSocketByName(FName("RightHandKatanaSocket"));
 }
 
+void ASlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(SlayerFirstSkillAction, ETriggerEvent::Triggered, this, &ASlayer::Input_FirstSkill);
+	}
+}
+
+void ASlayer::FirstSkill()
+{
+	if (CanAttack())
+	{
+		ResetLightAttack();
+		ResetHeavyAttack();
+		bIsDodgePending = false;
+
+		ExecuteFirstSkill();
+	}
+}
+
 void ASlayer::LightAttack()
 {
 	if (CanAttack())
@@ -44,4 +68,44 @@ void ASlayer::LightAttack()
 	//{
 	//	ExecuteLightAttackInAir(LightAttackIndex);
 	//}
+}
+
+void ASlayer::Input_FirstSkill(const FInputActionValue& Value)
+{
+	bIsLightAttackPending = false;
+	if (CharacterState == EASRCharacterState::ECS_Attack)
+	{
+		bIsFirstSkillPending = true;
+	}
+	else
+	{
+		FirstSkill();
+	}
+}
+
+void ASlayer::ResolveLightAttackPending()
+{
+	if (bIsFirstSkillPending)
+	{
+		bIsFirstSkillPending = false;
+		bIsLightAttackPending = false;
+		if (CharacterState == EASRCharacterState::ECS_Attack)
+		{
+			CharacterState = EASRCharacterState::ECS_None;
+		}
+		FirstSkill();
+	}
+	// Only Resolve Light Attack in Parent function
+	Super::ResolveLightAttackPending();
+}
+
+float ASlayer::GetFirstSkillWarpDistance() const
+{
+	return FirstSkillWarpDistance;
+}
+
+void ASlayer::ExecuteFirstSkill()
+{
+	SetCharacterState(EASRCharacterState::ECS_Attack);
+	PlayAnimMontage(FirstSkillMontage);
 }

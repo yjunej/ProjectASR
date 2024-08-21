@@ -125,7 +125,7 @@ private:
 	TArray<UAnimMontage*> NormalAttackMontages;
 
 	// TimeLine
-	UPROPERTY(VisibleAnywhere, Category = "Timeline")
+	UPROPERTY(VisibleAnywhere, Category = Timeline)
 	class UTimelineComponent* TimelineComponent;
 
 	UFUNCTION()
@@ -152,6 +152,8 @@ private:
 	void InitializeTimeline();
 	void StopTimeline();
 	float KnockbackDistance = 50.f;
+	float BaseKnockbackDIstance = 50.f;
+
 	float AirSmashDistance = 400.f;
 
 	FVector StartLocation;
@@ -166,9 +168,10 @@ private:
 	// Hit Postprocess func
 	void RotateToAttacker(AActor* Attacker);
 	void StepBackFromAttacker(AActor* Attacker, float Distance);
-	void HandleHitTransform(AActor* Attacker, EASRDamageType DamageType);
+	void HandleHitTransform(AActor* Attacker, EASRDamageType DamageType, float Damage);
 	void AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType);
-	
+	void MoveCharacterWithVLerp(float Damage, float Duration);
+
 	void DisableCollision();
 
 	// Combat - Consider to apply Component Design

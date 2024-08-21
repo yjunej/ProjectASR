@@ -129,7 +129,7 @@ void ABaseEnemy::Executed()
 		{
 			// TODO - Intergrate on GetHit
 			RotateToAttacker(Pawn);
-			HandleHitTransform(Pawn, EASRDamageType::EDT_Default);
+			HandleHitTransform(Pawn, EASRDamageType::EDT_Default, 1000.f);
 			SetCharacterState(EASRCharacterState::ECS_Death);
 			SetHealth(0.f);
 			PlayAnimMontage(ExecutionMontage);
@@ -293,6 +293,7 @@ void ABaseEnemy::HandleTimelineFinished()
 		ResetState();
 		bIsAirSmash = false;
 	}
+	KnockbackDistance = BaseKnockbackDIstance;
 }
 
 void ABaseEnemy::StopTimeline()
@@ -343,7 +344,7 @@ void ABaseEnemy::StepBackFromAttacker(AActor* Attacker, float Distance)
 }
 
 
-void ABaseEnemy::HandleHitTransform(AActor* Attacker, EASRDamageType DamageType)
+void ABaseEnemy::HandleHitTransform(AActor* Attacker, EASRDamageType DamageType, float Damage)
 {
 
 	if (TimelineComponent != nullptr)
@@ -365,9 +366,14 @@ void ABaseEnemy::HandleHitTransform(AActor* Attacker, EASRDamageType DamageType)
 			ZMatching.Z = Attacker->GetActorLocation().Z - 25.f >= 0.f ? Attacker->GetActorLocation().Z - 25.f : 0.f;
 			SetActorLocation(ZMatching);
 		}
+		else if (DamageType == EASRDamageType::EDT_KnockDownFrontBig)
+		{
+			KnockbackDistance = Damage;
+			ApplyKnockback();
+		}
 		else // Knockback
 		{
-			UE_LOG(LogTemp, Warning, TEXT("KnockBack!!"));
+			UE_LOG(LogTemp, Warning, TEXT("Normal KnockBack"));
 			ApplyKnockback();
 		}
 	}
@@ -421,6 +427,7 @@ void ABaseEnemy::AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapp
 	}
 
 }
+
 
 void ABaseEnemy::DisableCollision()
 {
@@ -484,7 +491,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 	{
 		CharacterState = Mapping->CharacterState;			
 		RotateToAttacker(Attacker);
-		HandleHitTransform(Attacker, DamageType);
+		HandleHitTransform(Attacker, DamageType, Damage);
 
 		if (DamageType == EASRDamageType::EDT_Die)
 		{

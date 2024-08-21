@@ -27,7 +27,7 @@ public:
 	void DashLightAttack();
 	void DashHeavyAttack();
 	void Execution();
-	void UseFirstSkill();
+	void FirstSkill();
 
 	void PlayUltAttackMontage();
 	void UltEnd();
@@ -66,7 +66,7 @@ protected:
 	// TODO - Categorize Reset Func (Index Based or State Based)
 	virtual void LightAttack() override;
 	virtual void ResetHeavyAttack() override;
-	virtual void ResetFirstSkill() override;
+	virtual void ResetSkills() override;
 
 
 
@@ -115,7 +115,7 @@ private:
 	UInputAction* HeavyAttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* FirstSkillAction;
+	UInputAction* BladerFirstSkillAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* UltAction;

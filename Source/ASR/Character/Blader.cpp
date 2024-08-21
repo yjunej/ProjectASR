@@ -92,7 +92,7 @@ void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_HeavyAttack);
-		EnhancedInputComponent->BindAction(FirstSkillAction, ETriggerEvent::Triggered, this, &ABlader::Input_FirstSkill);
+		EnhancedInputComponent->BindAction(BladerFirstSkillAction, ETriggerEvent::Triggered, this, &ABlader::Input_FirstSkill);
 		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Started, this, &ABlader::Input_Ult);
 		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Completed, this, &ABlader::Input_Release_Ult);
 	}
@@ -229,6 +229,7 @@ void ABlader::Input_Dodge(const FInputActionValue& Value)
 
 void ABlader::Input_FirstSkill(const FInputActionValue& Value)
 {
+	UE_LOG(LogTemp, Warning, TEXT("INPUT_FIRSTSKILL!"));
 	if (bIsUltCharging)
 	{
 		ResetUlt();
@@ -241,7 +242,7 @@ void ABlader::Input_FirstSkill(const FInputActionValue& Value)
 	}
 	else
 	{
-		UseFirstSkill();
+		FirstSkill();
 	}
 }
 
@@ -322,7 +323,7 @@ void ABlader::DashLightAttack()
 	SetCharacterState(EASRCharacterState::ECS_Attack);
 	ResetLightAttack();
 	ResetHeavyAttack();
-	ResetFirstSkill();
+	ResetSkills();
 	ResetDodge();
 	PlayAnimMontage(DashLightAttackMontage);
 }
@@ -332,7 +333,7 @@ void ABlader::DashHeavyAttack()
 	SetCharacterState(EASRCharacterState::ECS_Attack);
 	ResetLightAttack();
 	ResetHeavyAttack();
-	ResetFirstSkill();
+	ResetSkills();
 	ResetDodge();
 	PlayAnimMontage(DashHeavyAttackMontage);
 }
@@ -344,7 +345,7 @@ void ABlader::Execution()
 	SetCharacterState(EASRCharacterState::ECS_Attack);
 	ResetLightAttack();	
 	ResetHeavyAttack();
-	ResetFirstSkill();
+	ResetSkills();
 	ResetDodge();
 
 	FTransform WarpTransform;
@@ -372,8 +373,10 @@ void ABlader::Execution()
 }
 
 
-void ABlader::UseFirstSkill()
+void ABlader::FirstSkill()
 {
+	UE_LOG(LogTemp, Warning, TEXT("FIRSTSKILL!"));
+
 	if (CanAttack())
 	{
 		ResetLightAttack();
@@ -454,7 +457,7 @@ void ABlader::ResetHeavyAttack()
 	HeavyAttackIndex = 0;
 }
 
-void ABlader::ResetFirstSkill()
+void ABlader::ResetSkills()
 {
 	bIsFirstSkillPending = false;
 }
@@ -462,9 +465,13 @@ void ABlader::ResetFirstSkill()
 
 void ABlader::ExecuteAerialAttack()
 {
+	UE_LOG(LogTemp, Warning, TEXT("EXECUTEAERIAL!"));
+
 	if (AerialAttackMontage != nullptr)
 	{
 		SetCharacterState(EASRCharacterState::ECS_Attack);
+		UE_LOG(LogTemp, Warning, TEXT("PLAYANIM!"));
+
 		PlayAnimMontage(AerialAttackMontage);
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 		bIsLevitating = true;
@@ -520,7 +527,7 @@ void ABlader::ResolveLightAttackPending()
 		{
 			CharacterState = EASRCharacterState::ECS_None;
 		}
-		UseFirstSkill();
+		FirstSkill();
 	}
 
 	Super::ResolveLightAttackPending();
