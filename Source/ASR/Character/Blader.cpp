@@ -127,10 +127,9 @@ void ABlader::ResetState()
 	}
 
 	// Reset Attack Pendig & Count
-	ResetLightAttack();
-	ResetHeavyAttack();
-	ResetDodge();
+	ResetNormalAttack();
 	ResetSkills();
+	ResetDodge();
 
 	if (GetTargetingComponent() != nullptr)
 	{
@@ -169,33 +168,33 @@ void ABlader::Input_Execution(const FInputActionValue& Value)
 }
 
 
-void ABlader::Input_LightAttack(const FInputActionValue& Value)
+void ABlader::Input_NormalAttack(const FInputActionValue& Value)
 {
 	if (bIsUltCharging)
 	{
 		ResetUlt();
 	}
 	bIsHeavyAttackPending = false;
-	Super::Input_LightAttack(Value);
+	Super::Input_NormalAttack(Value);
 }
 
-void ABlader::LightAttack()
+void ABlader::NormalAttack()
 {
 	if (CanAttack())
 	{
-		if (GetVelocity().Size() >= 1000.f && LightAttackIndex ==0)
+		if (GetVelocity().Size() >= 1000.f && NormalAttackIndex ==0)
 		{
-			DashLightAttack();
+			DashAttack();
 		}
 		else
 		{
 			ResetHeavyAttack();
-			ExecuteLightAttack(LightAttackIndex);
+			ExecuteNormalAttack(NormalAttackIndex);
 		}
 	}
 	else if (CanAttakInAir())
 	{
-		ExecuteLightAttackInAir(LightAttackIndex);
+		ExecuteNormalAttackInAir(NormalAttackIndex);
 	}
 }
 
@@ -206,7 +205,7 @@ void ABlader::Input_HeavyAttack(const FInputActionValue& Value)
 	{
 		ResetUlt();
 	}
-	bIsLightAttackPending = false;
+	bIsNormalAttackPending = false;
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
 		bIsHeavyAttackPending = true;
@@ -234,7 +233,7 @@ void ABlader::Input_FirstSkill(const FInputActionValue& Value)
 	{
 		ResetUlt();
 	}
-	bIsLightAttackPending = false;
+	bIsNormalAttackPending = false;
 	bIsHeavyAttackPending = false;
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
@@ -310,7 +309,7 @@ void ABlader::HeavyAttack()
 		}
 		else
 		{
-			ResetLightAttack();
+			ResetNormalAttack();
 			ExecuteHeavyAttack(HeavyAttackIndex);
 		}
 
@@ -318,21 +317,19 @@ void ABlader::HeavyAttack()
 	}
 }
 
-void ABlader::DashLightAttack()
+void ABlader::DashAttack()
 {
 	SetCharacterState(EASRCharacterState::ECS_Attack);
-	ResetLightAttack();
-	ResetHeavyAttack();
+	ResetNormalAttack();
 	ResetSkills();
 	ResetDodge();
-	PlayAnimMontage(DashLightAttackMontage);
+	PlayAnimMontage(DashAttackMontage);
 }
 
 void ABlader::DashHeavyAttack()
 {
 	SetCharacterState(EASRCharacterState::ECS_Attack);
-	ResetLightAttack();
-	ResetHeavyAttack();
+	ResetNormalAttack();
 	ResetSkills();
 	ResetDodge();
 	PlayAnimMontage(DashHeavyAttackMontage);
@@ -345,7 +342,7 @@ void ABlader::FirstSkill()
 
 	if (CanAttack())
 	{
-		ResetLightAttack();
+		ResetNormalAttack();
 		ResetHeavyAttack();
 		ResetDodge();
 		ExecuteAerialAttack();
@@ -362,28 +359,28 @@ void ABlader::PlayUltAttackMontage()
 }
 
 
-void ABlader::ExecuteLightAttackInAir(int32 AttackIndex)
+void ABlader::ExecuteNormalAttackInAir(int32 AttackIndex)
 {
-	if (AttackIndex >= LightAttackInAirMontages.Num())
+	if (AttackIndex >= NormalAttackInAirMontages.Num())
 	{
-		LightAttackIndex = 0;
+		NormalAttackIndex = 0;
 	}
 	else
 	{
-		if (LightAttackInAirMontages.IsValidIndex(AttackIndex) && LightAttackInAirMontages[AttackIndex] != nullptr)
+		if (NormalAttackInAirMontages.IsValidIndex(AttackIndex) && NormalAttackInAirMontages[AttackIndex] != nullptr)
 		{
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
 			SetCharacterState(EASRCharacterState::ECS_Attack);
-			PlayAnimMontage(LightAttackInAirMontages[AttackIndex]);
+			PlayAnimMontage(NormalAttackInAirMontages[AttackIndex]);
 
-			if (LightAttackIndex + 1 >= LightAttackInAirMontages.Num())
+			if (NormalAttackIndex + 1 >= NormalAttackInAirMontages.Num())
 			{
-				LightAttackIndex = 0;
+				NormalAttackIndex = 0;
 				bCanAttackInAir = false;	
 			}
 			else
 			{
-				++LightAttackIndex;
+				++NormalAttackIndex;
 			}
 		}
 	}
@@ -424,6 +421,7 @@ void ABlader::ResetHeavyAttack()
 
 void ABlader::ResetSkills()
 {
+	ResetHeavyAttack();
 	bIsFirstSkillPending = false;
 }
 
@@ -487,7 +485,7 @@ void ABlader::ResolveLightAttackPending()
 	if (bIsFirstSkillPending)
 	{
 		bIsFirstSkillPending = false; 
-		bIsLightAttackPending = false;
+		bIsNormalAttackPending = false;
 		if (CharacterState == EASRCharacterState::ECS_Attack)
 		{
 			CharacterState = EASRCharacterState::ECS_None;
@@ -505,13 +503,11 @@ void ABlader::ResolveHeavyAttackPending()
 	{
 		bIsHeavyAttackPending = false;
 
-		// Process Pending H Attack
 		if (CharacterState == EASRCharacterState::ECS_Attack)
 		{
 			CharacterState = EASRCharacterState::ECS_None;
 		}
 
-		// Try Heavy Attack (CanAttack check in this function)
 		HeavyAttack();
 
 	}

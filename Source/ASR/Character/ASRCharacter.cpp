@@ -131,7 +131,7 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(ExecutionAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Execution);
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Dodge);
 
-		EnhancedInputComponent->BindAction(LightAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_LightAttack);
+		EnhancedInputComponent->BindAction(NormalAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_NormalAttack);
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
@@ -218,50 +218,50 @@ void AASRCharacter::Input_Dodge(const FInputActionValue& Value)
 	}
 }
 
-void AASRCharacter::Input_LightAttack(const FInputActionValue& Value)
+void AASRCharacter::Input_NormalAttack(const FInputActionValue& Value)
 {
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
-		bIsLightAttackPending = true;
+		bIsNormalAttackPending = true;
 	}
 	else
 	{
-		LightAttack();
+		NormalAttack();
 	}
 }
 
 
-void AASRCharacter::ResetLightAttack()
+void AASRCharacter::ResetNormalAttack()
 {
-	bIsLightAttackPending = false;
-	LightAttackIndex = 0;
+	bIsNormalAttackPending = false;
+	NormalAttackIndex = 0;
 }
 
 float AASRCharacter::GetFirstSkillWarpDistance() const
 {
-	return LightAttackWarpDistance;
+	return NormalAttackWarpDistance;
 }
 
-void AASRCharacter::ExecuteLightAttack(int32 AttackIndex)
+void AASRCharacter::ExecuteNormalAttack(int32 AttackIndex)
 {
-	if (AttackIndex >= LightAttackMontages.Num())
+	if (AttackIndex >= NormalAttackMontages.Num())
 	{
-		LightAttackIndex = 0;
+		NormalAttackIndex = 0;
 	}
 	else
 	{
-		if (LightAttackMontages.IsValidIndex(AttackIndex) && LightAttackMontages[AttackIndex] != nullptr)
+		if (NormalAttackMontages.IsValidIndex(AttackIndex) && NormalAttackMontages[AttackIndex] != nullptr)
 		{
 			SetCharacterState(EASRCharacterState::ECS_Attack);
-			PlayAnimMontage(LightAttackMontages[AttackIndex]);
+			PlayAnimMontage(NormalAttackMontages[AttackIndex]);
 
-			if (LightAttackIndex + 1 >= LightAttackMontages.Num())
+			if (NormalAttackIndex + 1 >= NormalAttackMontages.Num())
 			{
-				LightAttackIndex = 0;
+				NormalAttackIndex = 0;
 			}
 			else
 			{
-				++LightAttackIndex;
+				++NormalAttackIndex;
 			}
 		}
 	}
@@ -269,14 +269,14 @@ void AASRCharacter::ExecuteLightAttack(int32 AttackIndex)
 
 void AASRCharacter::ResolveLightAttackPending()
 {
-	if (bIsLightAttackPending)
+	if (bIsNormalAttackPending)
 	{
-		bIsLightAttackPending = false;
+		bIsNormalAttackPending = false;
 		if (CharacterState == EASRCharacterState::ECS_Attack)
 		{
 			CharacterState = EASRCharacterState::ECS_None;
 		}
-		LightAttack();
+		NormalAttack();
 	}
 }
 
@@ -331,8 +331,8 @@ void AASRCharacter::Dodge()
 	{
 		SetCharacterState(EASRCharacterState::ECS_Dodge);
 
-		ResetLightAttack();
-		ResetHeavyAttack();
+		ResetNormalAttack();
+		ResetSkills();
 
 		// Rotate Before Dodge
 		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
@@ -367,8 +367,7 @@ void AASRCharacter::ResetDodge()
 void AASRCharacter::Execution()
 {
 	SetCharacterState(EASRCharacterState::ECS_Attack);
-	ResetLightAttack();
-	ResetHeavyAttack();
+	ResetNormalAttack();
 	ResetSkills();
 	ResetDodge();
 
@@ -567,8 +566,7 @@ void AASRCharacter::Guard()
 	{
 		SetCharacterState(EASRCharacterState::ECS_Guard);
 
-		ResetLightAttack();
-		ResetHeavyAttack();
+		ResetNormalAttack();
 		ResetSkills();
 		ResetDodge();
 

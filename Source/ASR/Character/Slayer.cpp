@@ -39,6 +39,7 @@ void ASlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInputComponent->BindAction(SlayerFirstSkillAction, ETriggerEvent::Triggered, this, &ASlayer::Input_FirstSkill);
+		EnhancedInputComponent->BindAction(SlayerSecondSkillAction, ETriggerEvent::Triggered, this, &ASlayer::Input_SecondSkill);
 	}
 }
 
@@ -46,63 +47,77 @@ void ASlayer::FirstSkill()
 {
 	if (CanAttack())
 	{
-		ResetLightAttack();
-		ResetHeavyAttack();
+		ResetNormalAttack();
 		ResetDodge();
 		ExecuteFirstSkill();
 	}
 }
 
-void ASlayer::DashLightAttack()
-{
-	SetCharacterState(EASRCharacterState::ECS_Attack);
-	ResetLightAttack();
-	ResetHeavyAttack();
-	ResetSkills();
-	ResetDodge();
-	PlayAnimMontage(DashLightAttackMontage);
-}
-
-void ASlayer::DashHeavyAttack()
-{
-}
-
-void ASlayer::LightAttack()
+void ASlayer::SecondSkill()
 {
 	if (CanAttack())
 	{
-		if (GetVelocity().Size() >= 950.f && LightAttackIndex == 0)
+		ResetNormalAttack();
+		ResetDodge();
+		ExecuteSecondSkill();
+	}
+}
+
+void ASlayer::DashAttack()
+{
+	SetCharacterState(EASRCharacterState::ECS_Attack);
+	ResetNormalAttack();
+	ResetSkills();
+	ResetDodge();
+	PlayAnimMontage(DashAttackMontage);
+}
+
+void ASlayer::NormalAttack()
+{
+	if (CanAttack())
+	{
+		if (GetVelocity().Size() >= 950.f && NormalAttackIndex == 0)
 		{
-			DashLightAttack();
+			DashAttack();
 		}
 		else
 		{
-			//ResetHeavyAttack();
-			ExecuteLightAttack(LightAttackIndex);
+			ExecuteNormalAttack(NormalAttackIndex);
 		}
 	}
-	//else if (CanAttakInAir())
-	//{
-	//	ExecuteLightAttackInAir(LightAttackIndex);
-	//}
 }
 
 void ASlayer::ResetSkills()
 {
 	bIsFirstSkillPending = false;
+	bIsSecondSkillPending = false;
+}
+
+void ASlayer::ResolveHeavyAttackPending()
+{
+	if (bIsSecondSkillPending)
+	{
+		bIsSecondSkillPending = false;
+		bIsNormalAttackPending = false;
+		if (CharacterState == EASRCharacterState::ECS_Attack)
+		{
+			CharacterState = EASRCharacterState::ECS_None;
+		}
+		SecondSkill();
+	}
 }
 
 void ASlayer::ResetState()
 {
 	Super::ResetState();
-	ResetLightAttack();
+	ResetNormalAttack();
 	ResetDodge();
 	ResetSkills();
 }
 
 void ASlayer::Input_FirstSkill(const FInputActionValue& Value)
 {
-	bIsLightAttackPending = false;
+	bIsNormalAttackPending = false;
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
 		bIsFirstSkillPending = true;
@@ -113,12 +128,25 @@ void ASlayer::Input_FirstSkill(const FInputActionValue& Value)
 	}
 }
 
+void ASlayer::Input_SecondSkill(const FInputActionValue& Value)
+{
+	bIsNormalAttackPending = false;
+	if (CharacterState == EASRCharacterState::ECS_Attack)
+	{
+		bIsSecondSkillPending = true;
+	}
+	else
+	{
+		SecondSkill();
+	}
+}
+
 void ASlayer::ResolveLightAttackPending()
 {
 	if (bIsFirstSkillPending)
 	{
 		bIsFirstSkillPending = false;
-		bIsLightAttackPending = false;
+		bIsNormalAttackPending = false;
 		if (CharacterState == EASRCharacterState::ECS_Attack)
 		{
 			CharacterState = EASRCharacterState::ECS_None;
@@ -138,6 +166,12 @@ void ASlayer::ExecuteFirstSkill()
 {
 	SetCharacterState(EASRCharacterState::ECS_Attack);
 	PlayAnimMontage(FirstSkillMontage);
+}
+
+void ASlayer::ExecuteSecondSkill()
+{
+	SetCharacterState(EASRCharacterState::ECS_Attack);
+	PlayAnimMontage(SecondSkillMontage);
 }
 
 void ASlayer::SetExecutionCamera()

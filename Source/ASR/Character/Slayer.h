@@ -20,21 +20,26 @@ public:
 	virtual void PostInitializeComponents() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void FirstSkill();
-	void DashLightAttack();
-	void DashHeavyAttack();
+	void FirstSkill(); // Key E 
+	void SecondSkill(); // Key R
+	void DashAttack();
 
 	virtual float GetFirstSkillWarpDistance() const override;
 
 
 protected:
-	virtual void LightAttack() override;
+
+	// Hook
+	virtual void NormalAttack() override;
 	virtual void ResetSkills() override;
+	virtual void ResolveHeavyAttackPending() override;
+
+
 	virtual void ResetState() override;
 
 
 	void Input_FirstSkill(const FInputActionValue& Value);
-
+	void Input_SecondSkill(const FInputActionValue& Value);
 
 
 	virtual void ResolveLightAttackPending() override;
@@ -46,13 +51,19 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* WeaponMeshComponent;
 
+	// Enhanced Inpyut
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SlayerFirstSkillAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SlayerSecondSkillAction;
+
+
 	bool bIsFirstSkillPending = false;
+	bool bIsSecondSkillPending = false;
 
 	void ExecuteFirstSkill();
-
+	void ExecuteSecondSkill();
 	
 
 	// Animations
@@ -60,10 +71,10 @@ private:
 	UAnimMontage* FirstSkillMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* DashLightAttackMontage;
+	UAnimMontage* SecondSkillMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* DashHeavyAttackMontage;
+	UAnimMontage* DashAttackMontage;
 	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))

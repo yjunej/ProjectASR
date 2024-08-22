@@ -65,7 +65,7 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 	}
 	else
 	{
-		MaxWarpDistance = ASRCharacter->GetLightAttackWarpDistance();
+		MaxWarpDistance = ASRCharacter->GetNormalAttackWarpDistance();
 	}
 
 	

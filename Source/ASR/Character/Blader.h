@@ -24,7 +24,7 @@ public:
 	bool CanAttakInAir() const;
 
 	void HeavyAttack();
-	void DashLightAttack();
+	void DashAttack();
 	void DashHeavyAttack();
 	void FirstSkill();
 
@@ -47,7 +47,7 @@ protected:
 	virtual void Input_Execution(const FInputActionValue& Value) override;
 	virtual	void Input_Dodge(const FInputActionValue& Value) override;
 	virtual void Input_Guard(const FInputActionValue& Value) override;
-	virtual void Input_LightAttack(const FInputActionValue& Value) override;
+	virtual void Input_NormalAttack(const FInputActionValue& Value) override;
 
 	virtual void ResetState() override;
 
@@ -63,10 +63,9 @@ protected:
 
 	// Override Parent Hook 
 	// TODO - Categorize Reset Func (Index Based or State Based)
-	virtual void LightAttack() override;
-	virtual void ResetHeavyAttack() override;
+	virtual void NormalAttack() override;
 	virtual void ResetSkills() override;
-
+	virtual void ResolveHeavyAttackPending() override;
 
 
 private:
@@ -83,11 +82,12 @@ private:
 	void ExecuteAerialAttack();
 
 
+	void ResetHeavyAttack();
 
 	// Aerial Combo
 	bool AerialAttack();
 
-	void ExecuteLightAttackInAir(int32 AttackIndex);
+	void ExecuteNormalAttackInAir(int32 AttackIndex);
 
 	// Ult
 	bool bIsUltCharging = false;
@@ -96,8 +96,6 @@ private:
 
 
 
-	UFUNCTION(BlueprintCallable)
-	void ResolveHeavyAttackPending();
 
 	
 	UFUNCTION(BlueprintCallable)
@@ -131,7 +129,7 @@ private:
 	UAnimMontage* AerialSmashMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* DashLightAttackMontage;
+	UAnimMontage* DashAttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* DashHeavyAttackMontage;
@@ -146,7 +144,7 @@ private:
 	UAnimMontage* UltLastAttackMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	TArray<class UAnimMontage*> LightAttackInAirMontages;
+	TArray<class UAnimMontage*> NormalAttackInAirMontages;
 
 
 

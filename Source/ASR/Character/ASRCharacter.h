@@ -71,7 +71,7 @@ protected:
 	virtual void Input_Execution(const FInputActionValue& Value);
 	virtual void Input_Guard(const FInputActionValue& Value);
 	virtual void Input_Dodge(const FInputActionValue& Value);
-	virtual void Input_LightAttack(const FInputActionValue& Value);
+	virtual void Input_NormalAttack(const FInputActionValue& Value);
 
 
 	void Input_Look(const FInputActionValue& Value);
@@ -90,17 +90,18 @@ protected:
 
 	virtual void Execution();
 
-	virtual void ResetLightAttack();
+	virtual void ResetNormalAttack();
 
 
-	void ExecuteLightAttack(int32 AttackIndex);
+	void ExecuteNormalAttack(int32 AttackIndex);
 
 	// Handle logic that is fully state-based in the parent class.
 	// Use Hook method for character specific skill base logic
-	virtual void ResetHeavyAttack() {};
 	virtual void ResetSkills() {};
+	virtual void NormalAttack() {};
 
-	virtual void LightAttack() {};
+	UFUNCTION(BlueprintCallable)
+	virtual void ResolveHeavyAttackPending() {};
 	//
 
 	UFUNCTION(BlueprintCallable)
@@ -132,7 +133,7 @@ protected:
 	float ExecutionDistance = 400.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	float LightAttackWarpDistance = 150.f;
+	float NormalAttackWarpDistance = 150.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float DashAttackWarpDistance = 500.f;
@@ -165,9 +166,9 @@ protected:
 	bool bIsInvulnerable = false;
 	bool bIsGuardPressed = false;
 	bool bIsDodgePending = false;
-	bool bIsLightAttackPending = false;
+	bool bIsNormalAttackPending = false;
 
-	int32 LightAttackIndex;
+	int32 NormalAttackIndex;
 
 
 private:
@@ -200,10 +201,10 @@ private:
 	UInputAction* DodgeAction;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LightAttackAction;
+	UInputAction* NormalAttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	TArray<class UAnimMontage*> LightAttackMontages;
+	TArray<class UAnimMontage*> NormalAttackMontages;
 
 
 
@@ -286,7 +287,7 @@ public:
 	FORCEINLINE float GetStability() const { return Stability; }
 	FORCEINLINE float GetMaxStability() const { return MaxStability; }
 	FORCEINLINE float GetDashAttackWarpDistance() const { return DashAttackWarpDistance; }
-	FORCEINLINE float GetLightAttackWarpDistance() const { return LightAttackWarpDistance; }
+	FORCEINLINE float GetNormalAttackWarpDistance() const { return NormalAttackWarpDistance; }
 
 	
 };
