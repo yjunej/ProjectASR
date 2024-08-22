@@ -26,9 +26,12 @@ void ABaseAIController::OnPossess(APawn* InPawn)
 void ABaseAIController::SetBlackboardKeys()
 {
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
-	BBComponent->SetValueAsObject(FName("Target"), UGameplayStatics::GetPlayerCharacter(this, 0));
-	BBComponent->SetValueAsFloat(FName("StrafeDistance"), StrafeDistance);
-	BBComponent->SetValueAsBool(FName("bSaveAttack"), true);
+	BBComponent->SetValueAsObject(AttackTargetKeyName, UGameplayStatics::GetPlayerCharacter(this, 0));
+
+
+	//BBComponent->SetValueAsObject(FName("Target"), UGameplayStatics::GetPlayerCharacter(this, 0));
+	//BBComponent->SetValueAsFloat(FName("StrafeDistance"), StrafeDistance);
+	//BBComponent->SetValueAsBool(FName("bSaveAttack"), true);
 
 
 	float DelaySecond = 2.f;

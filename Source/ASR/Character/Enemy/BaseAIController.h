@@ -28,5 +28,9 @@ protected:
 private:
 	FTimerHandle TimerHandle;
 
+	UPROPERTY(EditDefaultsOnly)
+	FName AttackTargetKeyName;
+
+
 
 };

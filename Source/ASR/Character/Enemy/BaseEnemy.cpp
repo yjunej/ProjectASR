@@ -41,7 +41,7 @@ ABaseEnemy::ABaseEnemy()
 	// Set this for Enemy that spanwned by spanwer
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
-	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate.Yaw = 250.f;
 
 	WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
@@ -89,6 +89,11 @@ void ABaseEnemy::BeginPlay()
 	}
 }
 
+
+void ABaseEnemy::NotifyAttackEnd()
+{
+	OnAttackEnd.Broadcast();
+}
 
 void ABaseEnemy::SetHealth(float NewHealth)
 {
@@ -174,6 +179,10 @@ float ABaseEnemy::ExecuteNormalAttack()
 				NormalAttackMontages[NormalAttackIndex], 1.0f, EMontagePlayReturnType::Duration,
 				0.0f, true
 			);
+			FOnMontageEnded LMontageEnded;
+			LMontageEnded.BindUObject(this, &ABaseEnemy::OnMontageEnded);
+			AnimInstance->Montage_SetEndDelegate(LMontageEnded, NormalAttackMontages[NormalAttackIndex]);
+
 			NormalAttackIndex++;
 			return AnimDuration;
 		}
@@ -260,6 +269,14 @@ void ABaseEnemy::SpawnBloodEffect(FVector HitPoint, FVector ScaleVector)
 			GetActorRotation(),
 			ScaleVector
 		);
+	}
+}
+
+void ABaseEnemy::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
+{
+	if (NormalAttackMontages.Contains(Montage))
+	{
+		NotifyAttackEnd();
 	}
 }
 

@@ -11,6 +11,8 @@
 #include "BaseEnemy.generated.h"
 
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnd);
+
 UENUM(BlueprintType)
 enum class EEnemyBehaviorState : uint8
 {
@@ -50,6 +52,16 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float ExecutionThresholdHealth = 200.f;
 
+	//
+	UPROPERTY(BlueprintAssignable, Category= AI)
+	FOnAttackEnd OnAttackEnd;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
+	bool bIsCombatReady = false;
+
+
+	void NotifyAttackEnd();
 
 	FOnHealthChanged OnHealthChanged;
 
@@ -126,6 +138,13 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<UAnimMontage*> NormalAttackMontages;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* CombatReadyMontage;
+
+	UFUNCTION()
+	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
+
 
 	// TimeLine
 	UPROPERTY(VisibleAnywhere, Category = Timeline)
