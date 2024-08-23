@@ -389,7 +389,17 @@ void AASRCharacter::Execution()
 
 	// TODO: Solve Anim Notify Bug
 	bIsInvulnerable = true;
+
+
 	PlayAnimMontage(ExecutionMontage);
+	FOnMontageEnded LMontageEnded;
+	LMontageEnded.BindUObject(this, &AASRCharacter::OnExecutionMontageEnd);
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (AnimInstance != nullptr)
+	{
+		AnimInstance->Montage_SetEndDelegate(LMontageEnded, ExecutionMontage);
+	}
+
 }
 
 void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
@@ -516,8 +526,11 @@ void AASRCharacter::ResetCamera()
 	{
 		PlayerController->SetViewTargetWithBlend(FollowCameraManager->GetChildActor(), 0.4f, EViewTargetBlendFunction::VTBlend_EaseInOut, 0.8f, false);
 	}
-	bIsExecuting = false;
+}
 
+void AASRCharacter::OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupted)
+{
+	bIsExecuting = false;
 }
 
 void AASRCharacter::HandleDeath()

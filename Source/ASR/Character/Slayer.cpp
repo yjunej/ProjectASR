@@ -5,6 +5,8 @@
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Camera/CameraActor.h"
+#include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -21,6 +23,11 @@ ASlayer::ASlayer()
 	WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 	WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandGreatSwordSocket"));
 
+	UltCameraChildComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("UltCamera"));
+	UltCameraChildComponent->SetChildActorClass(ACameraActor::StaticClass());
+	UltCameraChildComponent->SetupAttachment(RootComponent);
+	UltCameraChildComponent->SetRelativeTransform(UltCameraTransform);
+	
 	ExecutionDistance = 700.f;
 }
 
@@ -40,6 +47,8 @@ void ASlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 	{
 		EnhancedInputComponent->BindAction(SlayerFirstSkillAction, ETriggerEvent::Triggered, this, &ASlayer::Input_FirstSkill);
 		EnhancedInputComponent->BindAction(SlayerSecondSkillAction, ETriggerEvent::Triggered, this, &ASlayer::Input_SecondSkill);
+		EnhancedInputComponent->BindAction(SlayerUltAction, ETriggerEvent::Triggered, this, &ASlayer::Input_Ult);
+
 	}
 }
 
@@ -70,6 +79,11 @@ void ASlayer::DashAttack()
 	ResetSkills();
 	ResetDodge();
 	PlayAnimMontage(DashAttackMontage);
+}
+
+void ASlayer::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 void ASlayer::NormalAttack()
@@ -141,6 +155,15 @@ void ASlayer::Input_SecondSkill(const FInputActionValue& Value)
 	}
 }
 
+void ASlayer::Input_Ult(const FInputActionValue& Value)
+{
+	if (CanAttack())
+	{
+		SetCharacterState(EASRCharacterState::ECS_Attack);
+		PlayAnimMontage(UltMontage);
+	}
+}
+
 void ASlayer::ResolveLightAttackPending()
 {
 	if (bIsFirstSkillPending)
@@ -174,8 +197,8 @@ void ASlayer::ExecuteSecondSkill()
 	PlayAnimMontage(SecondSkillMontage);
 }
 
-void ASlayer::SetExecutionCamera()
+void ASlayer::SetUltCamera()
 {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
+	PlayerController->SetViewTargetWithBlend(UltCameraChildComponent->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
 }

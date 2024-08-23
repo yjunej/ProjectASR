@@ -210,7 +210,7 @@ private:
 
 private:
 	// Camera Setting
-	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -262,6 +262,10 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ExecutionMontage;
+
+	UFUNCTION()
+	void OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupted);
+
 
 
 	class UASRMainHUD* MainHUDWidget;
