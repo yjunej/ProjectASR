@@ -18,6 +18,7 @@
 #include "ASR/Character/Enemy/BaseAIController.h"
 #include "Sound/SoundCue.h"
 #include "ASR/Character/Slayer.h"
+#include "ASR/Character/Enemy/AI/PatrolRoute.h"
 
 
 
@@ -50,6 +51,8 @@ ABaseEnemy::ABaseEnemy()
 	// [Blueprint]
 	// - Enable bUseAccelerationForPaths
 	// - Setting BehaviorTree
+
+	// AI
 }
 
 
@@ -555,6 +558,41 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
 	}
+}
+
+APatrolRoute* ABaseEnemy::GetPatrolRoute_Implementation() const
+{
+	return PatrolRoute;
+}
+
+float ABaseEnemy::SetMovementSpeed_Implementation(EEnemyMovementSpeed EnemyMovementSpeed)
+{
+	float NewSpeed;
+
+	switch (EnemyMovementSpeed)
+	{
+	case EEnemyMovementSpeed::EMS_Idle:
+		NewSpeed = 0.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Walk:
+		NewSpeed = 100.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Jog:
+		NewSpeed = 300.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Run:
+		NewSpeed = 500.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Sprint:
+		NewSpeed = 700.f;
+		break;
+	case EEnemyMovementSpeed::EMS_MAX:
+	default:
+		NewSpeed = 0.f;
+		break;
+	}
+	GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+	return NewSpeed;
 }
 
 void ABaseEnemy::Tick(float DeltaTime)

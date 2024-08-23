@@ -18,6 +18,13 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	
 	void SetBlackboardKeys();
+
+	UFUNCTION(BlueprintCallable)
+	void SetPassiveState();
+
+	UFUNCTION(BlueprintCallable)
+	void SetAttackState(AActor* TargetActor);
+
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float StrafeDistance = 800.f;
@@ -30,6 +37,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	FName AttackTargetKeyName;
+
+	UPROPERTY(EditDefaultsOnly)
+	FName AIStateKeyName;
 
 
 

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "ASR/Interfaces/HitInterface.h"
+#include "ASR/Interfaces/EnemyAIInterface.h"
 #include "ASR/Enums/ASRDamageType.h"
 #include "ASR/Character/ASRCharacter.h" // Refactoring After Complete Basic System
 
@@ -29,7 +30,7 @@ enum class EEnemyBehaviorState : uint8
 
 
 UCLASS()
-class ASR_API ABaseEnemy : public ACharacter, public IHitInterface
+class ASR_API ABaseEnemy : public ACharacter, public IHitInterface, public IEnemyAIInterface
 {
 	GENERATED_BODY()
 
@@ -42,6 +43,9 @@ public:
 	// HitInterface
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
 
+	// EnemyAIInterface
+	virtual APatrolRoute* GetPatrolRoute_Implementation() const override;
+	virtual float SetMovementSpeed_Implementation(EEnemyMovementSpeed EnemyMovementSpeed) override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float Health = 100.f;
@@ -55,7 +59,6 @@ public:
 	//
 	UPROPERTY(BlueprintAssignable, Category= AI)
 	FOnAttackEnd OnAttackEnd;
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	bool bIsCombatReady = false;
@@ -142,6 +145,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* CombatReadyMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* CombatEndMontage;
+
 	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
@@ -207,10 +213,12 @@ private:
 	TArray<AActor*> HitActors;
 	int32 NormalAttackIndex = 0;
 
-
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* WeaponMeshComponent;
 
+	//AI
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
+	class APatrolRoute* PatrolRoute;
 
 
 public:

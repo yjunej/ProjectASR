@@ -6,6 +6,7 @@
 #include "ASR/Character/Enemy/BaseEnemy.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "ASR/Enums/EnemyAIState.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -27,15 +28,28 @@ void ABaseAIController::SetBlackboardKeys()
 {
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
 	BBComponent->SetValueAsObject(AttackTargetKeyName, UGameplayStatics::GetPlayerCharacter(this, 0));
+	BBComponent->SetValueAsEnum(AIStateKeyName, uint8(EEnemyAIState::EAS_Passive));
 
 
+	// Legacy
 	//BBComponent->SetValueAsObject(FName("Target"), UGameplayStatics::GetPlayerCharacter(this, 0));
 	//BBComponent->SetValueAsFloat(FName("StrafeDistance"), StrafeDistance);
 	//BBComponent->SetValueAsBool(FName("bSaveAttack"), true);
+	//float DelaySecond = 2.f;
+	//GetWorldTimerManager().SetTimer(TimerHandle, this, &ABaseAIController::ExecuteNormalAttack, DelaySecond, true);
+}
 
+void ABaseAIController::SetPassiveState()
+{
+	UBlackboardComponent* BBComponent = GetBlackboardComponent();
+	BBComponent->SetValueAsEnum(AIStateKeyName, uint8(EEnemyAIState::EAS_Passive));
+}
 
-	float DelaySecond = 2.f;
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ABaseAIController::ExecuteNormalAttack, DelaySecond, true);
+void ABaseAIController::SetAttackState(AActor* TargetActor )
+{
+	UBlackboardComponent* BBComponent = GetBlackboardComponent();
+	BBComponent->SetValueAsObject(AttackTargetKeyName, TargetActor);
+	BBComponent->SetValueAsEnum(AIStateKeyName, uint8(EEnemyAIState::EAS_Attack));
 }
 
 void ABaseAIController::ExecuteNormalAttack()

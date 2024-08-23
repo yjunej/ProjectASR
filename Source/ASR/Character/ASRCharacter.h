@@ -24,6 +24,7 @@ enum class EASRCharacterState : uint8
 	ECS_Flinching	UMETA(DisplayName = "Flinching"),
 	ECS_KnockDown	UMETA(DisplayName = "Knockout"),
 	ECS_Death		UMETA(DisplayName = "Death"),
+
 	ECS_MAX			UMETA(Hidden)
 };
 
