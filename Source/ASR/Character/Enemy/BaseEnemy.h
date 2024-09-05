@@ -180,9 +180,9 @@ private:
 	void InitializeTimeline();
 	void StopTimeline();
 	float KnockbackDistance = 50.f;
-	float BaseKnockbackDIstance = 50.f;
+	float BaseKnockbackDistance = 50.f;
 
-	float AirSmashDistance = 400.f;
+	float AirSmashDistance = 50.f;
 
 	FVector StartLocation;
 	void ApplyKnockback();

@@ -4,6 +4,8 @@
 #include "FindTarget.h"
 #include "ASR/Character/TargetingComponent.h"
 #include "ASR/Character/ASRCharacter.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/CapsuleComponent.h"
 #include "MotionWarpingComponent.h"
 
 void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
@@ -63,6 +65,44 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		MaxWarpDistance = ASRCharacter->GetFirstSkillWarpDistance();
 		TargetName = FName("FirstSkill");
 	}
+	else if (SectionName == "ToGround") // Target Independent Morping 
+	{
+		
+		TargetName = FName("ToGround");
+
+		
+		// Need to Edit Engine Code to enable while jumping (or custom state)
+		// ASRCharacter->GetCharacterMovement()->FindFloor(ASRCharacter->GetCapsuleComponent()->GetComponentLocation(), FindFloorResult, false);
+		FVector StartLocation = ASRCharacter->GetActorLocation();
+		FVector EndLocation = StartLocation - FVector(0.f, 0.f, 10000.f);
+		FHitResult HitResult;
+		FCollisionQueryParams CollisionParams;
+		//CollisionParams.AddIgnoredActor(ASRCharacter);
+
+		bool bHit = ASRCharacter->GetWorld()->LineTraceSingleByChannel(
+			HitResult,
+			StartLocation,
+			EndLocation,
+			ECC_Visibility,
+			CollisionParams
+		);
+
+		if (bHit)
+		{
+			WarpTransform.SetLocation(HitResult.ImpactPoint);
+		}
+		else
+		{
+			WarpTransform.SetLocation(ASRCharacter->GetActorLocation());
+		}
+
+
+		WarpTransform.SetRotation(FQuat::Identity);
+		WarpTransform.SetScale3D(FVector(1.f, 1.f, 1.f));
+		ASRCharacter->GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromTransform(TargetName, WarpTransform);
+		return;
+	}
+
 	else
 	{
 		MaxWarpDistance = ASRCharacter->GetNormalAttackWarpDistance();

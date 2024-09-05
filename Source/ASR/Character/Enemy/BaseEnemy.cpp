@@ -322,7 +322,7 @@ void ABaseEnemy::HandleTimelineFinished()
 		ResetState();
 		bIsAirSmash = false;
 	}
-	KnockbackDistance = BaseKnockbackDIstance;
+	KnockbackDistance = BaseKnockbackDistance;
 }
 
 void ABaseEnemy::StopTimeline()
