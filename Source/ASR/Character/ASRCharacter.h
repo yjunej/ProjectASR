@@ -63,6 +63,8 @@ public:
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
 	virtual float GetFirstSkillWarpDistance() const;
 
+	// TODO - Interface 
+	virtual void OnAttackEnemy() {};
 
 protected:
 	virtual void BeginPlay() override;

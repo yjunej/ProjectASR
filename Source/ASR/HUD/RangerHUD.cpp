@@ -17,6 +17,17 @@ void URangerHUD::SetCrosshairVisibility(ESlateVisibility InVisibility)
 	CrosshairRight->SetVisibility(InVisibility);
 }
 
+void URangerHUD::SetCrosshairColor(FLinearColor Color)
+{
+	CrosshairCenter->Background.TintColor = Color;
+	CrosshairTop->Background.TintColor = Color;
+	CrosshairBottom->Background.TintColor = Color;
+	CrosshairLeft->Background.TintColor = Color;
+	CrosshairRight->Background.TintColor = Color;
+}
+	
+
+
 void URangerHUD::SetCrosshair()
 {
 	UCanvasPanelSlot* CanvasPanelSlot;

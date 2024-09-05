@@ -17,6 +17,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void Destroyed() override;
 
+	AActor* ProjectileOwner;
+
 protected:
 	virtual void BeginPlay() override;
 

@@ -41,5 +41,7 @@ public:
 	float CrosshairSpreadRate = 1.f;
 	
 	void SetCrosshairVisibility(ESlateVisibility InVisibility);
+	void SetCrosshairColor(FLinearColor Color);
+
 	void SetCrosshair();
 };

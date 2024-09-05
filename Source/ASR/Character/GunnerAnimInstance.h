@@ -3,14 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Animation/AnimInstance.h"
-#include "ASRAnimInstance.generated.h"
+#include "ASRAnimInstance.h"
+#include "Gunner.h"
+#include "GunnerAnimInstance.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ASR_API UASRAnimInstance : public UAnimInstance
+class ASR_API UGunnerAnimInstance : public UASRAnimInstance
 {
 	GENERATED_BODY()
 	
@@ -18,39 +19,50 @@ public:
 	virtual void NativeInitializeAnimation() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
-protected:
+private:
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	class ACharacter* Owner;
-
-	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	float Speed;
+	class AGunner* GunnerCharacter;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	bool bIsFalling;
+	bool bIsInAir;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	bool bIsAccelerating;
+	bool bIsWeaponEquipped;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	bool bIsCrouched;
+	bool bIsAiming;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	float DisplacementSinceLastUpdate;
-	
-	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	float DisplacementSpeed;
+	float AimMoveYawOffset;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	FVector2D Acceleration2D;
-
-
-	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	FVector CurrentWorldLocation;
-
+	float LeanAngle;
 
 	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
-	class UCharacterMovementComponent* MovementComponent;
+	float AimOffsetYaw;
 
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	float AimOffsetPitch;
 
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FRotator CharacterRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FRotator DeltaAimRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FTransform LeftHandMatchingTransform;
+
+	UPROPERTY(BlueprintReadOnly, Category = Character, meta = (AllowPrivateAccess = "true"))
+	FRotator RightHandMatchingRotation;
+
+	UPROPERTY(BlueprintReadOnly, Category = MultiPlayer, meta = (AllowPrivateAccess = "true"))
+	bool bUseFABRIK;
+
+	UPROPERTY(BlueprintReadOnly, Category = MultiPlayer, meta = (AllowPrivateAccess = "true"))
+	bool bUseAimOffset;
+
+	UPROPERTY(BlueprintReadOnly, Category = MultiPlayer, meta = (AllowPrivateAccess = "true"))
+	bool bUseRightHandMatching;
 
 };
