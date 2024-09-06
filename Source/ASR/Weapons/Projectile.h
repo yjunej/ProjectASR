@@ -23,7 +23,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
-	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherCOmp, FVector NormalImpulse,
+	virtual void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse,
 		const FHitResult& HitResult);
 
 private:
@@ -44,6 +44,8 @@ private:
 	UPROPERTY(EditAnywhere)
 	class USoundCue* HitObjectSound;
 
+	UPROPERTY(EditAnywhere)
+	float ProjectileDamage;
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* HitEnemyParticle;

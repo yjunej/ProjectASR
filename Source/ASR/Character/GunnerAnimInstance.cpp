@@ -31,6 +31,7 @@ void UGunnerAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 	bIsAiming = GunnerCharacter->IsAiming();
 	bIsCrouched = GunnerCharacter->bIsCrouched;
+	bUseOnlyDefaultSlot = GunnerCharacter->bUseOnlyDefaultSlot;
 
 	FRotator AimRotation = GunnerCharacter->GetBaseAimRotation();
 	FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(GunnerCharacter->GetVelocity());

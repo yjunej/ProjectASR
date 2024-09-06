@@ -13,6 +13,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "ASR/Weapons/BulletCase.h"
 #include "ASR/Weapons/Projectile.h"
+#include "ASR/Weapons/Drone.h"
 
 
 
@@ -24,6 +25,7 @@ AGunner::AGunner()
 {
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.f, 0.0f));
+	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 
 	// Slower
 	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
@@ -84,9 +86,8 @@ void AGunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(SlayerFirstSkillAction, ETriggerEvent::Triggered, this, &AGunner::Input_FirstSkill);
-		EnhancedInputComponent->BindAction(SlayerSecondSkillAction, ETriggerEvent::Triggered, this, &AGunner::Input_SecondSkill);
-		EnhancedInputComponent->BindAction(SlayerUltAction, ETriggerEvent::Triggered, this, &AGunner::Input_Ult);
+		EnhancedInputComponent->BindAction(GunnerFirstSkillAction, ETriggerEvent::Triggered, this, &AGunner::Input_FirstSkill);
+		EnhancedInputComponent->BindAction(GunnerUltAction, ETriggerEvent::Triggered, this, &AGunner::Input_Ult);
 
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &AGunner::Input_Aim);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this, &AGunner::Input_StopAiming);
@@ -98,6 +99,8 @@ void AGunner::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AGunner::FirstSkill()
 {
+	UE_LOG(LogTemp, Warning, TEXT("FirstSkill!"));
+
 	if (CanAttack())
 	{
 		ResetNormalAttack();
@@ -182,11 +185,15 @@ void AGunner::ResetState()
 	ResetNormalAttack();
 	ResetDodge();
 	ResetSkills();
+	bStartFire = false;
+	bUseOnlyDefaultSlot = false;
+	GunnerAnimState = EGunnerAnimState::EGA_Normal;
 }
 
 void AGunner::Input_FirstSkill(const FInputActionValue& Value)
 {
-	bIsNormalAttackPending = false;
+	UE_LOG(LogTemp, Warning, TEXT("InputFirstSkill!"));
+
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
 		bIsFirstSkillPending = true;
@@ -227,6 +234,7 @@ void AGunner::Input_Fire(const FInputActionValue& Value)
 void AGunner::Input_StopFiring(const FInputActionValue& Value)
 {
 	Fire(false);
+	ResetState();
 }
 
 void AGunner::Input_Aim(const FInputActionValue& Value)
@@ -260,6 +268,15 @@ void AGunner::ResolveLightAttackPending()
 	}
 	// Only Resolve Light Attack in Parent function
 	Super::ResolveLightAttackPending();
+}
+
+void AGunner::Dodge()
+{
+	Super::Dodge();
+	if (CanDodge())
+	{
+		bUseOnlyDefaultSlot = true;
+	}
 }
 
 float AGunner::GetFirstSkillWarpDistance() const
@@ -382,8 +399,40 @@ void AGunner::InterpFOV(float DeltaSeconds)
 
 void AGunner::ExecuteFirstSkill()
 {
+	UE_LOG(LogTemp, Warning, TEXT("ExecuteFirstSkill!"));
 	SetCharacterState(EASRCharacterState::ECS_Attack);
+	bUseOnlyDefaultSlot = true;
 	PlayAnimMontage(FirstSkillMontage);
+		if (DroneClass != nullptr)
+		{
+			FVector SpawnLocation = GetActorLocation() + FVector(0, 0, 100.f);  // Spawn above the player
+			FRotator SpawnRotation = GetActorRotation();
+
+			FActorSpawnParameters SpawnParams;
+			SpawnParams.Owner = this;
+			SpawnParams.Instigator = GetInstigator();
+
+			// Spawn the drone
+		
+
+			float DistanceBetweenDrones = 100.f;  
+			FVector DroneLocationOffset = FVector(0.f, -DistanceBetweenDrones * Drones.Num(), 0.f);  // Offset in Y-axis for left alignment
+			
+			FTimerHandle TimerHandle;
+			
+
+			ADrone* SpawnedDrone = GetWorld()->SpawnActor<ADrone>(DroneClass, SpawnLocation + DroneLocationOffset, SpawnRotation, SpawnParams);
+
+			if (SpawnedDrone)
+			{
+				// Attach drone to player
+				SpawnedDrone->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
+				SpawnedDrone->SetOwner(this);  // Set the player as the owner
+				SpawnedDrone->SetDroneOwnerGunner(this);
+				SpawnedDrone->FollowRelativePosition +=  DroneLocationOffset;
+				Drones.Add(SpawnedDrone);
+			}
+		}
 }
 
 void AGunner::ExecuteSecondSkill()
@@ -395,10 +444,14 @@ void AGunner::ExecuteSecondSkill()
 void AGunner::Fire(bool bFire)
 {
 	bStartFire = bFire;
-	if (bStartFire)
+	if (CharacterState == EASRCharacterState::ECS_None || CharacterState == EASRCharacterState::ECS_Attack)
 	{
-		FireWithTimer();
+		if (bStartFire)
+		{
+			FireWithTimer();
+		}
 	}
+
 }
 
 void AGunner::FireWithTimer()
@@ -409,6 +462,11 @@ void AGunner::FireWithTimer()
 
 		PlayFireMontage(bIsAiming);
 		WeaponFire(HitPoint);
+
+		for (ADrone* Drone : Drones)
+		{
+			Drone->Fire(HitPoint);
+		}
 
 		AddControllerYawInput(0.5 * FMath::RandRange(-SpreadRate, SpreadRate));
 		AddControllerPitchInput(-0.2f + FMath::RandRange(-SpreadRate, SpreadRate));
@@ -462,7 +520,7 @@ void AGunner::Reload()
 
 void AGunner::ReloadFinished()
 {
-	GunnerAnimState = EGunnerAnimState::EGA_Normal;
+	ResetState();
 	Ammo = 30.f;
 	GunnerPlayerController->SetRangerAmmo(Ammo);
 	if (bStartFire)
@@ -515,14 +573,12 @@ void AGunner::WeaponFire(const FVector& HitTargetPoint)
 	const USkeletalMeshSocket* ProjectileSpawnSocket = WeaponMeshComponent->GetSocketByName(FName("MuzzleFlash"));
 	if (ProjectileSpawnSocket != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("PROJECTILE SPAWN1"));
 
 		FTransform SocketTransform = ProjectileSpawnSocket->GetSocketTransform(WeaponMeshComponent);
 		FVector ToDestVector = HitTargetPoint - SocketTransform.GetLocation();
 		FRotator DestRotation = ToDestVector.Rotation();
 		if (ProjectileClass != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("PROJECTILE SPAWN2"));
 
 			FActorSpawnParameters ActorSpawnParameters;
 			ActorSpawnParameters.Owner = GetOwner();
@@ -530,7 +586,6 @@ void AGunner::WeaponFire(const FVector& HitTargetPoint)
 			UWorld* World = GetWorld();
 			if (World != nullptr)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("PROJECTILE SPAWN3"));
 
 				AProjectile* SpawnedProjectile = World->SpawnActor<AProjectile>(
 					ProjectileClass, SocketTransform.GetLocation(),

@@ -72,9 +72,14 @@ public:
 	float CrosshairCrouchCoef;
 	float CrosshairAimCoef;
 	FVector GetHitPoint() const;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	float DefaultSpringArmLength = 230.f;
 	FVector DefaultSpringArmSocketOffest = FVector(0.f, 40.f, 70.f);
 	FVector DefaultSpringArmLocation = FVector(0.f, 0.f, 115.f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bUseOnlyDefaultSlot;
+
+	TArray<class ADrone*> Drones;
 
 
 
@@ -104,6 +109,7 @@ protected:
 
 	virtual void ResolveLightAttackPending() override;
 
+	virtual void Dodge() override;
 
 
 
@@ -112,13 +118,11 @@ private:
 
 	// Enhanced Inpyut
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SlayerFirstSkillAction;
+	UInputAction* GunnerFirstSkillAction;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SlayerSecondSkillAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SlayerUltAction;
+	UInputAction* GunnerUltAction;
 
 	bool bIsFirstSkillPending = false;
 	bool bIsSecondSkillPending = false;
@@ -144,13 +148,17 @@ private:
 	void PlayReloadMontage();
 	void WeaponFire(const FVector& HitTargetPoint);
 	FTimerHandle CrosshairTimerHandle;
-	void OnHitEnemy();
 	void ResetCrosshairColor();
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	TSubclassOf<class ABulletCase> CaseClass;
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	TSubclassOf<class AProjectile> ProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	TSubclassOf<class ADrone> DroneClass;
+
+	
 
 	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
@@ -192,6 +200,10 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float FirstSkillWarpDistance = 500.f;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Niagara, meta = (AllowPrivateAccess = "true"))
+	class UNiagaraSystem* MeshNiagara;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	FTransform UltCameraTransform = FTransform(

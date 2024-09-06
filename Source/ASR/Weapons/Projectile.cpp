@@ -53,20 +53,19 @@ void AProjectile::BeginPlay()
 	
 }
 
-void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherCOmp, FVector NormalImpulse, const FHitResult& HitResult)
+void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& HitResult)
 { 
 	UE_LOG(LogTemp, Warning, TEXT("Projectile OnHit!"));
 
 	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
 	if (HitInterface != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Projectile Hit!"));
-		HitInterface->GetHit(HitResult, this, 75.f, EASRDamageType::EDT_FrontSmall);
+		HitInterface->GetHit(HitResult, this, ProjectileDamage, EASRDamageType::EDT_FrontSmall);
 		AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);
 		if (ASRCharacter != nullptr)
 		{
 			ASRCharacter->OnAttackEnemy();
-			UGameplayStatics::PlaySoundAtLocation(this, HitEnemySound, ASRCharacter->GetActorLocation(), 1.f);
+			UGameplayStatics::PlaySoundAtLocation(this, HitEnemySound, ASRCharacter->GetActorLocation(), 2.f);
 		}
 	}
 

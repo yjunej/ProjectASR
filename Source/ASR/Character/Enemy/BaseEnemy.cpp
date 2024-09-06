@@ -17,6 +17,7 @@
 #include "NiagaraComponent.h"
 #include "ASR/Character/Enemy/BaseAIController.h"
 #include "Sound/SoundCue.h"
+#include "ASR/Character/ASRCharacter.h"
 #include "ASR/Character/Slayer.h"
 #include "ASR/Character/Enemy/AI/PatrolRoute.h"
 
@@ -505,6 +506,12 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 		return;
 	}
 	
+	if (Cast<AASRCharacter>(Attacker) != nullptr)
+	{
+		ApplyHitStop(HitStopDuration, HitStopTimeDilation);
+		AASRCharacter* ASRCharacter = Cast<AASRCharacter>(Attacker);
+		ASRCharacter->ApplyHitStop(HitStopDuration, HitStopTimeDilation);
+	}
 
 
 	SetHealth(Health - Damage);
@@ -640,4 +647,16 @@ void ABaseEnemy::SphereTrace(float End, float Radius, float BaseDamage, EASRDama
 			}
 		}
 	}
+}
+
+void ABaseEnemy::ApplyHitStop(float Duration, float TimeDilation)
+{
+	CustomTimeDilation = 0.f;
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABaseEnemy::ResetTimeDilation, Duration, false);
+}
+
+void ABaseEnemy::ResetTimeDilation()
+{
+	CustomTimeDilation = 1.0f;
 }

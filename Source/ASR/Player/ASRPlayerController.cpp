@@ -6,6 +6,7 @@
 #include "ASR/Character/ASRCharacter.h"
 #include "ASR/HUD/RangerHUD.h"
 #include "ASR/HUD/CharacterOverlay.h"
+#include "ASR/Character/Gunner.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
@@ -93,13 +94,16 @@ void AASRPlayerController::SwapCharacter()
 			NextCharacter = GetWorld()->SpawnActor<AASRCharacter>(NewCharacterClass, NewLocation, Rotation);
 			bSpawned = true;
 			Possess(NextCharacter);
+
+			// TODO - UI Switching
+			ESlateVisibility GunnerHUDTemp = Cast<AGunner>(NextCharacter) == nullptr ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
+			RangerHUD->SetVisibility(GunnerHUDTemp);
 			Swap(NextCharacter, ControlCharacter);
 		}
 		else
 		{
 			Possess(NextCharacter);
 			Swap(NextCharacter, ControlCharacter);
-
 		}
 	}
 }

@@ -216,9 +216,22 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* WeaponMeshComponent;
 
+	FTimerHandle HitStopTimerHandle;
+
+	void ApplyHitStop(float Duration, float TimeDilation);
+	void ResetTimeDilation();
+
+	UPROPERTY(EditDefaultsOnly, Category=HitStop)
+	float HitStopDuration;
+
+	UPROPERTY(EditDefaultsOnly, Category = HitStop)
+	float HitStopTimeDilation;
+
+
 	//AI
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
 	class APatrolRoute* PatrolRoute;
+
 
 
 public:

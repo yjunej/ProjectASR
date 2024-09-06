@@ -65,4 +65,6 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = MultiPlayer, meta = (AllowPrivateAccess = "true"))
 	bool bUseRightHandMatching;
 
+	UPROPERTY(BlueprintReadOnly, Category = AnimSlot, meta = (AllowPrivateAccess = "true"))
+	bool bUseOnlyDefaultSlot;
 };

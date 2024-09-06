@@ -655,3 +655,15 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float 
 	}
 	
 }
+
+void AASRCharacter::ApplyHitStop(float Duration, float TimeDilation)
+{
+	CustomTimeDilation = 0.f;
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AASRCharacter::ResetTimeDilation, Duration, false);
+}
+
+void AASRCharacter::ResetTimeDilation()
+{
+	CustomTimeDilation = 1.0f;
+}

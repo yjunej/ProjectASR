@@ -66,6 +66,9 @@ public:
 	// TODO - Interface 
 	virtual void OnAttackEnemy() {};
 
+	void ApplyHitStop(float Duration, float TimeDilation);
+	void ResetTimeDilation();
+
 protected:
 	virtual void BeginPlay() override;
 	// Enhanced Input
