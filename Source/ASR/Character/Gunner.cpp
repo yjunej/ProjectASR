@@ -28,7 +28,6 @@ AGunner::AGunner()
 	GetMesh()->VisibilityBasedAnimTickOption = EVisibilityBasedAnimTickOption::AlwaysTickPoseAndRefreshBones;
 
 	// Slower
-	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 1024.f;
 
 	WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
@@ -133,6 +132,15 @@ FVector AGunner::GetHitPoint() const
 	return HitPoint;
 }
 
+void AGunner::EndUlt()
+{
+	bIsUltMode = false;
+	Ammo = 30.f;
+	FireSpeed *= 2;
+	float EndUltSpeed = bIsAiming ? ArmedMaxWalkSpeedAiming : ArmedMaxWalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = EndUltSpeed;
+}
+
 void AGunner::BeginPlay()
 {
 	Super::BeginPlay();
@@ -192,7 +200,6 @@ void AGunner::ResetState()
 
 void AGunner::Input_FirstSkill(const FInputActionValue& Value)
 {
-	UE_LOG(LogTemp, Warning, TEXT("InputFirstSkill!"));
 
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
@@ -221,8 +228,19 @@ void AGunner::Input_Ult(const FInputActionValue& Value)
 {
 	if (CanAttack())
 	{
+		ResetNormalAttack();
+		ResetDodge();
 		SetCharacterState(EASRCharacterState::ECS_Attack);
+		bUseOnlyDefaultSlot = true;
 		PlayAnimMontage(UltMontage);
+		bIsUltMode = true;
+		bIsAiming = true;
+		FireSpeed *= 0.5;
+
+		GetCharacterMovement()->MaxWalkSpeed = 1200.f;
+		FTimerHandle UltTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(UltTimerHandle, this, &AGunner::EndUlt, 10.f, false);
+
 	}
 }
 
@@ -239,18 +257,30 @@ void AGunner::Input_StopFiring(const FInputActionValue& Value)
 
 void AGunner::Input_Aim(const FInputActionValue& Value)
 {
+	if (bIsUltMode)
+	{
+		return;
+	}
 	bIsAiming = true;
 	GetCharacterMovement()->MaxWalkSpeed = ArmedMaxWalkSpeedAiming;
 }
 
 void AGunner::Input_StopAiming(const FInputActionValue& Value)
 {
+	if (bIsUltMode)
+	{
+		return;
+	}
 	bIsAiming = false;
 	GetCharacterMovement()->MaxWalkSpeed = ArmedMaxWalkSpeed;
 }
 
 void AGunner::Input_Reload(const FInputActionValue& Value)
 {
+	if (bIsUltMode)
+	{
+		return;
+	}
 	Reload();
 }
 
@@ -399,7 +429,6 @@ void AGunner::InterpFOV(float DeltaSeconds)
 
 void AGunner::ExecuteFirstSkill()
 {
-	UE_LOG(LogTemp, Warning, TEXT("ExecuteFirstSkill!"));
 	SetCharacterState(EASRCharacterState::ECS_Attack);
 	bUseOnlyDefaultSlot = true;
 	PlayAnimMontage(FirstSkillMontage);
@@ -493,7 +522,7 @@ void AGunner::PlayFireMontage(bool bAiming)
 
 void AGunner::StartFireTimer()
 {
-	GetWorldTimerManager().SetTimer(FireTimer, this, &AGunner::EndFireTimer, 0.1f);
+	GetWorldTimerManager().SetTimer(FireTimer, this, &AGunner::EndFireTimer, FireSpeed);
 }
 
 void AGunner::EndFireTimer()
@@ -566,7 +595,10 @@ void AGunner::WeaponFire(const FVector& HitTargetPoint)
 			}
 		}
 	}
-	Ammo = FMath::Clamp(Ammo - 1, 0, 40);
+	if (!bIsUltMode)
+	{
+		Ammo = FMath::Clamp(Ammo - 1, 0, 40);
+	}
 	GunnerPlayerController->SetRangerAmmo(Ammo);
 
 	// Fire Projectile
@@ -586,9 +618,8 @@ void AGunner::WeaponFire(const FVector& HitTargetPoint)
 			UWorld* World = GetWorld();
 			if (World != nullptr)
 			{
-
 				AProjectile* SpawnedProjectile = World->SpawnActor<AProjectile>(
-					ProjectileClass, SocketTransform.GetLocation(),
+					bIsUltMode ? UltProjectileClass : ProjectileClass, SocketTransform.GetLocation(),
 					DestRotation, ActorSpawnParameters
 				);
 				SpawnedProjectile->ProjectileOwner = this;

@@ -66,6 +66,12 @@ public:
 	float ArmedMaxWalkSpeed = 600.f;
 	UPROPERTY(EditAnywhere)
 	float ArmedMaxWalkSpeedAiming = 350.f;
+
+	UPROPERTY(EditAnywhere)
+	float UltArmedMaxWalkSpeed = 1200.f;
+	UPROPERTY(EditAnywhere)
+	float UltArmedMaxWalkSpeedAiming = 800.f;
+
 	class AASRPlayerController* GunnerPlayerController;
 	float SpreadRate;
 	float CrosshairInAirCoef;
@@ -80,7 +86,10 @@ public:
 	bool bUseOnlyDefaultSlot;
 
 	TArray<class ADrone*> Drones;
+	void EndUlt();
+	bool bIsUltMode;
 
+	float FireSpeed = 0.1f;
 
 
 protected:
@@ -154,6 +163,9 @@ private:
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	TSubclassOf<class AProjectile> ProjectileClass;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	TSubclassOf<class AProjectile> UltProjectileClass;
 
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	TSubclassOf<class ADrone> DroneClass;

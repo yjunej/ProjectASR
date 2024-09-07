@@ -357,9 +357,13 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 				}
 				AController* OwnerController = Owner->GetController();
 				
-				NewControlRotator = FMath::RInterpTo(OwnerController->GetControlRotation(), LookRotator, DeltaTime, CameraRotationSpeed);
-				NewControlRotator.Pitch = FMath::Clamp(NewControlRotator.Pitch, CameraMinPitch, -CameraMinPitch);
-				OwnerController->SetControlRotation(NewControlRotator);
+				if (OwnerController != nullptr)
+				{
+					NewControlRotator = FMath::RInterpTo(OwnerController->GetControlRotation(), LookRotator, DeltaTime, CameraRotationSpeed);
+					NewControlRotator.Pitch = FMath::Clamp(NewControlRotator.Pitch, CameraMinPitch, -CameraMinPitch);
+					OwnerController->SetControlRotation(NewControlRotator);
+				}
+
 				
 				// TODO: Targeting Point UI
 				//PlaceDecalActor();
@@ -376,6 +380,14 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 			ClearTarget();
 		}
 	}
+
+	else
+	{
+		ClearTarget();
+		ClearSubTarget();
+		return;
+	}
+
 	if (SubTargetActor != nullptr)
 	{
 		if (SubTargetActor->GetDistanceTo(GetOwner()) < ClearSubTargetDistance)
