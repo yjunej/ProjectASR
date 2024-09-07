@@ -14,6 +14,7 @@
 #include "TargetingComponent.h"
 #include "Components/TimelineComponent.h"
 #include "ASR/Character/Enemy/BaseEnemy.h"
+#include "ASR/Weapons/MeleeWeapon.h"
 
 
 ABlader::ABlader()
@@ -21,12 +22,8 @@ ABlader::ABlader()
 	GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.f, 0.0f));
 
-    WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-    WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket"));
-	
 	TimelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineComponent"));
 	FloatCurve = nullptr; // Draw In Editor
-
 }
 
 void ABlader::Tick(float DeltaTime)
@@ -112,6 +109,17 @@ void ABlader::BeginPlay()
 	if (FloatCurve)
 	{
 		InitializeTimeline();
+	}
+	if (MeleeWeaponClass != nullptr)
+	{
+		MeleeWeapon = GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
+
+		if (MeleeWeapon != nullptr)
+		{
+			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+			MeleeWeapon->AttachToComponent(GetMesh(), AttachRules, FName("RightHandKatanaSocket"));
+			MeleeWeapon->WeaponOwner = this;
+		}
 	}
 }
 

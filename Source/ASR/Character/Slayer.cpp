@@ -8,6 +8,7 @@
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "ASR/Weapons/MeleeWeapon.h"
 
 
 
@@ -19,9 +20,6 @@ ASlayer::ASlayer()
 	// Slower
 	GetCharacterMovement()->MaxWalkSpeed = 1000.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 1024.f;
-
-	WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandGreatSwordSocket"));
 
 	UltCameraChildComponent = CreateDefaultSubobject<UChildActorComponent>(TEXT("UltCamera"));
 	UltCameraChildComponent->SetChildActorClass(ACameraActor::StaticClass());
@@ -36,7 +34,6 @@ void ASlayer::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	GetMesh()->HideBoneByName(FName("shield_inner"), EPhysBodyOp::PBO_Term);
 	GetMesh()->HideBoneByName(FName("sword_bottom"), EPhysBodyOp::PBO_Term);
-	const USkeletalMeshSocket* RHKatanaSocket = GetMesh()->GetSocketByName(FName("RightHandKatanaSocket"));
 }
 
 void ASlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -84,6 +81,17 @@ void ASlayer::DashAttack()
 void ASlayer::BeginPlay()
 {
 	Super::BeginPlay();
+	if (MeleeWeaponClass != nullptr)
+	{
+		MeleeWeapon = GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
+
+		if (MeleeWeapon != nullptr)
+		{
+			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+			MeleeWeapon->AttachToComponent(GetMesh(), AttachRules, FName("RightHandGreatSwordSocket"));
+			MeleeWeapon->WeaponOwner = this;
+		}
+	}
 }
 
 void ASlayer::NormalAttack()

@@ -28,6 +28,9 @@ ABaseEnemy::ABaseEnemy()
 	PrimaryActorTick.bCanEverTick = true;
 	TimelineComponent = CreateDefaultSubobject<UTimelineComponent>(TEXT("TimelineComponent"));
 
+	GetMesh()->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
+
 	InfoWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("InfoWidgetComponent"));
 	InfoWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	InfoWidgetComponent->SetDrawSize(FVector2D(250.f, 250.f));
@@ -47,7 +50,7 @@ ABaseEnemy::ABaseEnemy()
 	GetCharacterMovement()->RotationRate.Yaw = 250.f;
 
 	WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket"));  // 소켓에 부착
+	WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket")); 
 
 	// [Blueprint]
 	// - Enable bUseAccelerationForPaths

@@ -103,9 +103,11 @@ private:
 
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<class AMeleeWeapon> MeleeWeaponClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* WeaponMeshComponent;
+	AMeleeWeapon* MeleeWeapon;
 
 	// Enhanced Input
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
