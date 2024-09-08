@@ -41,7 +41,7 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	// HitInterface
-	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) override;
+	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 
 	// EnemyAIInterface
 	virtual APatrolRoute* GetPatrolRoute_Implementation() const override;
@@ -96,9 +96,6 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleDeath();
-
-	UFUNCTION(BlueprintCallable)
-	virtual void SpawnBloodEffect(FVector HitPoint, FVector ScaleVector); // TODO - Scale Niagara Particle
 
 private:
 	
@@ -171,12 +168,6 @@ private:
 	UPROPERTY(EditAnywhere, Category = Timeline)
 	UCurveFloat* AirSmashCurve;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = FX, meta = (AllowPrivateAccess = "true"))
-	class UNiagaraSystem* HitBloodEffect;
-
-
-
-
 	void InitializeTimeline();
 	void StopTimeline();
 	float KnockbackDistance = 50.f;
@@ -203,12 +194,12 @@ private:
 
 	// Combat - Consider to apply Component Design
 	UFUNCTION(BlueprintCallable)
-	virtual float NormalAttack();
-	virtual float ExecuteNormalAttack();
+	virtual bool NormalAttack();
+	virtual bool ExecuteNormalAttack();
 	virtual bool CanAttack();
 	
 	UFUNCTION(BlueprintCallable)
-	void SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
+	void SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
 
 	TArray<AActor*> HitActors;
 	int32 NormalAttackIndex = 0;

@@ -17,6 +17,8 @@
 #include "ASR/HUD/ASRMainHUD.h"
 #include "ASR/Character/Enemy/BaseEnemy.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "NiagaraFunctionLibrary.h"
+
 
 
 
@@ -455,12 +457,13 @@ void AASRCharacter::ResetState()
 	}
 }
 
-void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace)
+
+void AASRCharacter::SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace)
 {
 	HitActors.Empty();
 	TArray<FHitResult> HitResults;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * End;
+	FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * TraceDistance;
 
 
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(CollisionChannel));
@@ -468,7 +471,7 @@ void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRD
 
 
 	bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
-		this, GetActorLocation(), TraceEnd, Radius, ObjectTypes, false, TArray<AActor*>(),
+		this, GetActorLocation(), TraceEnd, TraceRadius, ObjectTypes, false, TArray<AActor*>(),
 		bDrawDebugTrace? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
 		HitResults, true, FLinearColor::Red, FLinearColor::Green, 5.0f);
 
@@ -483,10 +486,8 @@ void AASRCharacter::SphereTrace(float End, float Radius, float BaseDamage, EASRD
 				IHitInterface* HitInterface = Cast<IHitInterface>(HitActor);
 				if (HitInterface != nullptr)
 				{
-					UGameplayStatics::PlaySoundAtLocation(this, HitSoundCue, HitActor->GetActorLocation());
-					HitInterface->GetHit(HitResult, this, BaseDamage, DamageType);
+					HitInterface->GetHit(HitResult, this, HitData);
 					HitActors.AddUnique(HitActor);
-
 				}
 			}
 		}
@@ -605,7 +606,7 @@ bool AASRCharacter::CanGuard() const
 }
 
 
-void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType)
+void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {	
 	// Dead
 	if (CharacterState == EASRCharacterState::ECS_Death || bIsInvulnerable)
@@ -622,7 +623,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float 
 	// Gaurd
 	if (CharacterState == EASRCharacterState::ECS_Guard && IsAttackFromFront(HitResult))
 	{
-		FVector KnockbackForce = -GetActorForwardVector() * Damage * 10;
+		FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
 		LaunchCharacter(KnockbackForce, true, true);
 		PlayAnimMontage(GuardAcceptMontage);
 		// TODO: Add Stability System
@@ -630,7 +631,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float 
 	}
 
 	// Apply Damage
-	SetHealth(Health - Damage);
+	SetHealth(Health - HitData.Damage);
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
 	// Handle Death
@@ -642,10 +643,25 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, float 
 
 	// Select Hit React Animation
 	FDamageTypeMapping* Mapping;
-	Mapping = DamageTypeMappings.Find(DamageType);
+	Mapping = DamageTypeMappings.Find(HitData.DamageType);
 	if (Mapping != nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, GetHitSoundCue, GetActorLocation());
+		// Effects
+		if (HitData.HitSound != nullptr)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound, GetActorLocation());
+		}
+		if (HitData.HitEffect != nullptr)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				HitData.HitEffect,
+				HitResult.ImpactPoint,
+				GetActorRotation(),
+				FVector(1.f)
+			);
+		}
+
 		CharacterState = Mapping->CharacterState;
 		PlayRandomSection(Mapping->HitReactionMontage);
 	}

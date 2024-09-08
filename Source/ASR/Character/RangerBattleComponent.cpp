@@ -231,17 +231,17 @@ void URangerBattleComponent::SetHUDCrosshair(float DeltaSeconds)
 	}
 	if (PlayerController != nullptr)
 	{
-		URangerHUD* RangerHUD = PlayerController->RangerHUD;
-		if (RangerHUD != nullptr)
+		URangerHUD* GunnerHUD = PlayerController->GunnerHUD;
+		if (GunnerHUD != nullptr)
 		{
 
 			if (EquippedWeapon != nullptr)
 			{
-				RangerHUD->SetCrosshairVisibility(ESlateVisibility::SelfHitTestInvisible);
+				GunnerHUD->SetCrosshairVisibility(ESlateVisibility::SelfHitTestInvisible);
 			}
 			else
 			{
-				RangerHUD->SetCrosshairVisibility(ESlateVisibility::Hidden);
+				GunnerHUD->SetCrosshairVisibility(ESlateVisibility::Hidden);
 			}
 
 			FVector2D JogSpeedRange(0.f, 600.f);
@@ -277,8 +277,8 @@ void URangerBattleComponent::SetHUDCrosshair(float DeltaSeconds)
 
 			SpreadRate *= CrosshairCrouchCoef * CrosshairInAirCoef * CrosshairAimCoef;
 
-			RangerHUD->CrosshairSpreadRate = SpreadRate;
-			RangerHUD->SetCrosshair();
+			GunnerHUD->CrosshairSpreadRate = SpreadRate;
+			GunnerHUD->SetCrosshair();
 		}
 	}
 }

@@ -26,9 +26,10 @@ public:
 	void SetRangerAmmo(int32 Ammo);
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<UUserWidget> RangerHUDClass;
+	TSubclassOf<UUserWidget> GunenrHUDClass;
 
-	class URangerHUD* RangerHUD;
+	class URangerHUD* GunnerHUD;
+
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))

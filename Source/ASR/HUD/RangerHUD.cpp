@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Components/Border.h"
 #include "Components/CanvasPanelSlot.h"
+#include "Components/Image.h"
 
 
 void URangerHUD::SetCrosshairVisibility(ESlateVisibility InVisibility)
@@ -52,4 +53,18 @@ void URangerHUD::SetCrosshair()
 	NewPosition = CanvasPanelSlot->GetPosition();
 	NewPosition.X = CrosshairInterval * CrosshairSpreadRate;
 	CanvasPanelSlot->SetPosition(NewPosition);
+}
+
+void URangerHUD::SetUltOverlay(bool IsEnable)
+{
+	if (IsEnable)
+	{
+		UltOverlayImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		PlayAnimation(UltOverlayImageAnim, 0.0f, 0.f, EUMGSequencePlayMode::PingPong);
+	}
+	else
+	{
+		UltOverlayImage->SetVisibility(ESlateVisibility::Hidden);
+		StopAnimation(UltOverlayImageAnim);
+	}
 }

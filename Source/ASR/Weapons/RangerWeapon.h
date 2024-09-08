@@ -82,7 +82,7 @@ private:
 	TSubclassOf<class ABulletCase> CaseClass;
 
 	UPROPERTY(EditAnywhere, Category = UI)
-	class URangerHUD* RangerHUD;
+	class URangerHUD* GunnerHUD;
 
 	// Zoom FOV
 	UPROPERTY(EditAnywhere)

@@ -7,6 +7,24 @@
 #include "ASR/Enums/ASRDamageType.h"
 #include "HitInterface.generated.h"
 
+USTRUCT(BlueprintType)
+struct FHitData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	float Damage = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	EASRDamageType DamageType = EASRDamageType::EDT_Default;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	USoundBase* HitSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UNiagaraSystem* HitEffect = nullptr;
+};
+
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI)
 class UHitInterface : public UInterface
@@ -24,5 +42,5 @@ class ASR_API IHitInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	//
-	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType) = 0;
+	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) = 0;
 };

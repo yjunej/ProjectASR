@@ -30,10 +30,17 @@ public:
 	class UBorder* CrosshairLeft;
 
 	UPROPERTY(meta = (BindWidget))
+	class UImage* UltOverlayImage;
+
+	UPROPERTY(meta = (BindWidget))
 	class UBorder* CrosshairRight;
 
 	UPROPERTY(meta = (BindWidget))
 	class UCharacterOverlay* CharacterOverlay;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	class UWidgetAnimation* UltOverlayImageAnim;
+
 
 	UPROPERTY(EditAnywhere)
 	float CrosshairInterval = 30.f;
@@ -42,6 +49,6 @@ public:
 	
 	void SetCrosshairVisibility(ESlateVisibility InVisibility);
 	void SetCrosshairColor(FLinearColor Color);
-
 	void SetCrosshair();
+	void SetUltOverlay(bool IsEnable);
 };

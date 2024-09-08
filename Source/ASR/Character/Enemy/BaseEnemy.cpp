@@ -154,22 +154,21 @@ void ABaseEnemy::Executed()
 			{
 				PlayAnimMontage(ExecutionMontage);
 			}
-			SpawnBloodEffect(GetActorLocation(), FVector(4.f, 2.f, 2.f));
 		}
 	} 
 }
 
-float ABaseEnemy::NormalAttack()
+bool ABaseEnemy::NormalAttack()
 {
 	float AnimDuration = 0.f;
 	if (CanAttack())
 	{
-		AnimDuration = ExecuteNormalAttack();
+		return ExecuteNormalAttack();
 	}
-	return AnimDuration;
+	return false;
 }
 
-float ABaseEnemy::ExecuteNormalAttack()
+bool ABaseEnemy::ExecuteNormalAttack()
 {
 	if (NormalAttackMontages.Num() > 0)
 	{
@@ -182,7 +181,7 @@ float ABaseEnemy::ExecuteNormalAttack()
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		if (AnimInstance != nullptr)
 		{
-			float AnimDuration = AnimInstance->Montage_Play(
+			AnimInstance->Montage_Play(
 				NormalAttackMontages[NormalAttackIndex], 1.0f, EMontagePlayReturnType::Duration,
 				0.0f, true
 			);
@@ -191,12 +190,12 @@ float ABaseEnemy::ExecuteNormalAttack()
 			AnimInstance->Montage_SetEndDelegate(LMontageEnded, NormalAttackMontages[NormalAttackIndex]);
 
 			NormalAttackIndex++;
-			return AnimDuration;
+			return true;
 		}
 
 
 	}
-	return 0.f;
+	return false;
 }
 
 bool ABaseEnemy::CanAttack()
@@ -264,20 +263,6 @@ void ABaseEnemy::HandleDeath()
 	DisableCollision();
 }
 
-void ABaseEnemy::SpawnBloodEffect(FVector HitPoint, FVector ScaleVector)
-{
-	if (HitBloodEffect != nullptr)
-	{
-		// 파티클 시스템을 액터의 위치에 스폰
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),      
-			HitBloodEffect,   
-			HitPoint,
-			GetActorRotation(),
-			ScaleVector
-		);
-	}
-}
 
 void ABaseEnemy::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
@@ -500,7 +485,7 @@ void ABaseEnemy::SetCharacterState(EASRCharacterState InCharacterState)
 	}
 }
 
-void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Damage, EASRDamageType DamageType)
+void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {
 	// [TODO] Block Handling Before Take Damage
 	
@@ -517,42 +502,47 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, float Dam
 	}
 
 
-	SetHealth(Health - Damage);
+	SetHealth(Health - HitData.Damage);
 
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
+	// Effects
+	if (HitData.HitSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound, GetActorLocation());
+	}
+	if (HitData.HitEffect != nullptr)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			HitData.HitEffect,
+			HitResult.ImpactPoint,
+			GetActorRotation(),
+			FVector(1.f)
+		);
+	}
+
+	// Death
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
 	{
-		SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
 		HandleDeath();
 		return;
 	}
 
+	// Animation
 	FDamageTypeMapping* Mapping;
-	Mapping = DamageTypeMappings.Find(DamageType);
+	Mapping = DamageTypeMappings.Find(HitData.DamageType);
 	if (Mapping != nullptr)
 	{
+
 		CharacterState = Mapping->CharacterState;			
 		RotateToAttacker(Attacker, false);
-		HandleHitTransform(Attacker, DamageType, Damage);
-
-		if (DamageType == EASRDamageType::EDT_Die)
-		{
-			SpawnBloodEffect(GetActorLocation(), FVector(50.f ,50.f, 50.f));
-			SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
-			SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
-			SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
-			SpawnBloodEffect(GetActorLocation(), FVector(50.f, 50.f, 50.f));
-		}
-		else
-		{
-			SpawnBloodEffect(HitResult.ImpactPoint, FVector(1.f));
-		}
+		HandleHitTransform(Attacker, HitData.DamageType, HitData.Damage);
 
 
 		if (GetCharacterMovement()->IsFalling() || GetCharacterMovement()->IsFlying())
 		{
-			AerialHitAnimMapping(Attacker, Mapping, DamageType);
+			AerialHitAnimMapping(Attacker, Mapping, HitData.DamageType);
 		}
 		if (Mapping->HitReactionMontage != nullptr)
 		{
@@ -616,19 +606,19 @@ void ABaseEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 }
 
 
-void ABaseEnemy::SphereTrace(float End, float Radius, float BaseDamage, EASRDamageType DamageType, ECollisionChannel CollisionChannel, bool bDrawDebugTrace)
+void ABaseEnemy::SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace)
 {
 	HitActors.Empty();
 	TArray<FHitResult> HitResults;
 	TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-	FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * End;
+	FVector TraceEnd = GetActorLocation() + GetActorForwardVector() * TraceDistance;
 
 
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(CollisionChannel));
 
 
 	bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
-		this, GetActorLocation(), TraceEnd, Radius, ObjectTypes, false, TArray<AActor*>(),
+		this, GetActorLocation(), TraceEnd, TraceRadius, ObjectTypes, false, TArray<AActor*>(),
 		bDrawDebugTrace ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None,
 		HitResults, true, FLinearColor::Red, FLinearColor::Green, 5.0f);
 
@@ -644,7 +634,7 @@ void ABaseEnemy::SphereTrace(float End, float Radius, float BaseDamage, EASRDama
 				if (HitInterface != nullptr)
 				{
 					//UGameplayStatics::PlaySoundAtLocation(this, HitSoundCue, HitActor->GetActorLocation());
-					HitInterface->GetHit(HitResult, this, BaseDamage, DamageType);
+					HitInterface->GetHit(HitResult, this, HitData);
 					HitActors.AddUnique(HitActor);
 				}
 			}

@@ -56,10 +56,11 @@ void AMeleeWeapon::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, A
 		IHitInterface* HitInterface = Cast<IHitInterface>(WeaponBoxHitResult.GetActor());
 		if (HitInterface != nullptr)
 		{
-			HitInterface->GetHit(WeaponBoxHitResult, WeaponOwner, 100.f, EASRDamageType::EDT_FrontSmall);
+			// Deprecated
+			FHitData HitData = { .Damage = 100.f, .DamageType = EASRDamageType::EDT_FrontSmall };
+			HitInterface->GetHit(WeaponBoxHitResult, WeaponOwner, HitData);
 		}
 
-		// TODO - Improve by using CreateFields
 	}
 }
 

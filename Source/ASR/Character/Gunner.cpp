@@ -139,6 +139,14 @@ void AGunner::EndUlt()
 	FireSpeed *= 2;
 	float EndUltSpeed = bIsAiming ? ArmedMaxWalkSpeedAiming : ArmedMaxWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeed = EndUltSpeed;
+	if (Controller != nullptr)
+	{
+		AASRPlayerController* ASRController = Cast<AASRPlayerController>(Controller);
+		if (ASRController->GunnerHUD != nullptr)
+		{
+			ASRController->GunnerHUD->SetUltOverlay(false);
+		}
+	}
 }
 
 void AGunner::BeginPlay()
@@ -238,6 +246,16 @@ void AGunner::Input_Ult(const FInputActionValue& Value)
 		FireSpeed *= 0.5;
 
 		GetCharacterMovement()->MaxWalkSpeed = 1200.f;
+		
+		if (Controller != nullptr)
+		{
+			AASRPlayerController* ASRController = Cast<AASRPlayerController>(Controller);
+			if (ASRController->GunnerHUD != nullptr)
+			{
+				ASRController->GunnerHUD->SetUltOverlay(true);
+			}
+		}
+
 		FTimerHandle UltTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(UltTimerHandle, this, &AGunner::EndUlt, 10.f, false);
 
@@ -357,11 +375,11 @@ void AGunner::SetHUDCrosshair(float DeltaSeconds)
 	}
 	if (GunnerPlayerController != nullptr)
 	{
-		URangerHUD* RangerHUD = GunnerPlayerController->RangerHUD;
-		if (RangerHUD != nullptr)
+		URangerHUD* GunnerHUD = GunnerPlayerController->GunnerHUD;
+		if (GunnerHUD != nullptr)
 		{
 
-			RangerHUD->SetCrosshairVisibility(ESlateVisibility::SelfHitTestInvisible);
+			GunnerHUD->SetCrosshairVisibility(ESlateVisibility::SelfHitTestInvisible);
 
 			FVector2D JogSpeedRange(0.f, 600.f);
 			FVector2D ClampRange(1.f, 2.f);
@@ -396,8 +414,8 @@ void AGunner::SetHUDCrosshair(float DeltaSeconds)
 
 			SpreadRate *= CrosshairCrouchCoef * CrosshairInAirCoef * CrosshairAimCoef;
 
-			RangerHUD->CrosshairSpreadRate = SpreadRate;
-			RangerHUD->SetCrosshair();
+			GunnerHUD->CrosshairSpreadRate = SpreadRate;
+			GunnerHUD->SetCrosshair();
 		}
 	}
 }
@@ -631,15 +649,15 @@ void AGunner::WeaponFire(const FVector& HitTargetPoint)
 
 void AGunner::OnAttackEnemy()
 {
-	URangerHUD* RangerHUD = GunnerPlayerController->RangerHUD;
-	RangerHUD->SetCrosshairColor(FLinearColor::Red);
+	URangerHUD* GunnerHUD = GunnerPlayerController->GunnerHUD;
+	GunnerHUD->SetCrosshairColor(FLinearColor::Red);
 	GetWorld()->GetTimerManager().SetTimer(CrosshairTimerHandle, this, &AGunner::ResetCrosshairColor, 0.5f, false);
 }
 
 void AGunner::ResetCrosshairColor()
 {
-	URangerHUD* RangerHUD = GunnerPlayerController->RangerHUD;
-	RangerHUD->SetCrosshairColor(FLinearColor::Green);
+	URangerHUD* GunnerHUD = GunnerPlayerController->GunnerHUD;
+	GunnerHUD->SetCrosshairColor(FLinearColor::Green);
 }
 
 void AGunner::SetUltCamera()

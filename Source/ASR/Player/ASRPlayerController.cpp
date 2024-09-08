@@ -17,11 +17,11 @@ void AASRPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 
-	if (RangerHUDClass != nullptr)
+	if (GunenrHUDClass != nullptr)
 	{
-		RangerHUD = CreateWidget<URangerHUD>(GetWorld(), RangerHUDClass);
-		RangerHUD->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-		RangerHUD->AddToViewport();
+		GunnerHUD = CreateWidget<URangerHUD>(GetWorld(), GunenrHUDClass);
+		GunnerHUD->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		GunnerHUD->AddToViewport();
 	}
 
 	ACharacter* PlayCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
@@ -55,21 +55,22 @@ void AASRPlayerController::SetupInputComponent()
 
 void AASRPlayerController::SetKillScore(float KillScore)
 {
-	if (RangerHUD != nullptr && RangerHUD->CharacterOverlay != nullptr)
+	if (GunnerHUD != nullptr && GunnerHUD->CharacterOverlay != nullptr)
 	{
 		FString KillScoreString = FString::Printf(TEXT("%d"), FMath::FloorToInt(KillScore));
-		RangerHUD->CharacterOverlay->KillScoreText->SetText(FText::FromString(KillScoreString));
+		GunnerHUD->CharacterOverlay->KillScoreText->SetText(FText::FromString(KillScoreString));
 	}
 }
 
 void AASRPlayerController::SetRangerAmmo(int32 Ammo)
 {
-	if (RangerHUD != nullptr && RangerHUD->CharacterOverlay != nullptr)
+	if (GunnerHUD != nullptr && GunnerHUD->CharacterOverlay != nullptr)
 	{
 		FString AmmoString = FString::Printf(TEXT("%d"),Ammo);
-		RangerHUD->CharacterOverlay->AmmoAmountText->SetText(FText::FromString(AmmoString));
+		GunnerHUD->CharacterOverlay->AmmoAmountText->SetText(FText::FromString(AmmoString));
 	}
 }
+
 
 void AASRPlayerController::SwapCharacter()
 {
@@ -97,7 +98,7 @@ void AASRPlayerController::SwapCharacter()
 
 			// TODO - UI Switching
 			ESlateVisibility GunnerHUDTemp = Cast<AGunner>(NextCharacter) == nullptr ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
-			RangerHUD->SetVisibility(GunnerHUDTemp);
+			GunnerHUD->SetVisibility(GunnerHUDTemp);
 			Swap(NextCharacter, ControlCharacter);
 		}
 		else

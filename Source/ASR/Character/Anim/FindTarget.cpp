@@ -50,6 +50,8 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 	}
 
 	float MaxWarpDistance;
+	float MinWarpDistance = 140.f;
+
 	if (SectionName == "DashAttack")
 	{
 		MaxWarpDistance = ASRCharacter->GetDashAttackWarpDistance();
@@ -118,7 +120,10 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 		// Use LockOn Target Transform
 		FTransform TargetTransform = TargetingComp->GetTargetTransform();
 		float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
-		
+		if (WarpDistance < MinWarpDistance)
+		{
+			WarpDistance = 0.f;
+		}
 
 		WarpTransform.SetLocation(ASRCharacter->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 		WarpTransform.SetRotation(TargetTransform.GetRotation());
@@ -133,6 +138,10 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 
 			FTransform TargetTransform = TargetingComp->GetTargetTransform();
 			float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
+			if (WarpDistance < MinWarpDistance)
+			{
+				WarpDistance = 0.f;
+			}
 
 			WarpTransform.SetLocation(ASRCharacter->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 			WarpTransform.SetRotation(TargetTransform.GetRotation());
@@ -144,6 +153,10 @@ void UFindTarget::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* An
 				UE_LOG(LogTemp, Warning, TEXT("LastSubTarget Mode"));
 				FTransform TargetTransform = TargetingComp->GetLastSubTargetTransform();
 				float WarpDistance = MaxWarpDistance > TargetTransform.GetLocation().Length() ? TargetTransform.GetLocation().Length() : MaxWarpDistance;
+				if (WarpDistance < MinWarpDistance)
+				{
+					WarpDistance = 0.f;
+				}
 				WarpTransform.SetLocation(ASRCharacter->GetActorLocation() + TargetTransform.GetLocation().GetSafeNormal() * WarpDistance);
 				WarpTransform.SetRotation(TargetTransform.GetRotation());
 
