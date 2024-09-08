@@ -38,6 +38,9 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UCharacterOverlay* CharacterOverlay;
 
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* AmmoProgressBar;
+
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	class UWidgetAnimation* UltOverlayImageAnim;
 
@@ -46,9 +49,11 @@ public:
 	float CrosshairInterval = 30.f;
 
 	float CrosshairSpreadRate = 1.f;
+	float MagazineCapacity;
 	
 	void SetCrosshairVisibility(ESlateVisibility InVisibility);
 	void SetCrosshairColor(FLinearColor Color);
 	void SetCrosshair();
 	void SetUltOverlay(bool IsEnable);
+	void SetAmmoProgressBarPercent(float AmmoPercent);
 };

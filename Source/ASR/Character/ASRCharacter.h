@@ -163,7 +163,8 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void SetExecutionCamera();
 
-	
+	UFUNCTION(BlueprintCallable)
+	virtual void HandleDeath();
 
 	bool CanExecution() const;
 
@@ -264,12 +265,9 @@ private:
 	UFUNCTION()
 	void OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 
-
-
 	class UASRMainHUD* MainHUDWidget;
 
-	UFUNCTION(BlueprintCallable)
-	virtual void HandleDeath();
+
 
 public:
 	// Getter & Setter

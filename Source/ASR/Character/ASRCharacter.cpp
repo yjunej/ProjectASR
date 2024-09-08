@@ -69,8 +69,12 @@ AASRCharacter::AASRCharacter()
 
 void AASRCharacter::PlayRandomSection(UAnimMontage* Montage)
 {
-	int32 NumSections = Montage->GetNumSections();
-	PlayAnimMontage(Montage, 1.f, Montage->GetSectionName(FMath::RandRange(0, NumSections - 1)));
+	if (Montage != nullptr)
+	{
+		int32 NumSections = Montage->GetNumSections();
+		PlayAnimMontage(Montage, 1.f, Montage->GetSectionName(FMath::RandRange(0, NumSections - 1)));
+	}
+
 }
 
 bool AASRCharacter::IsAttackFromFront(const FHitResult& HitResult) const
@@ -149,8 +153,9 @@ void AASRCharacter::Input_Move(const FInputActionValue& Value)
 	FVector2D MoveVector = Value.Get<FVector2D>();
 	PrevInput = MoveVector;
 
-	// Guard Accept Not use Root motion (Knockback by launch..)
-	if (CharacterState == EASRCharacterState::ECS_Guard)
+	// Guard Accept, Gunner Flinching Not use Root motion (Knockback by launch..)
+	if (CharacterState == EASRCharacterState::ECS_Guard || CharacterState == EASRCharacterState::ECS_Flinching ||
+		CharacterState == EASRCharacterState::ECS_KnockDown || CharacterState == EASRCharacterState::ECS_Death)
 	{
 		return;
 	}
@@ -320,7 +325,7 @@ bool AASRCharacter::CanAttack() const
 {
 	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
 		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
-		&& CharacterState != EASRCharacterState::ECS_Flinching)
+		&& CharacterState != EASRCharacterState::ECS_Flinching && CharacterState != EASRCharacterState::ECS_KnockDown)
 	{
 		return true;
 	}
@@ -620,7 +625,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 		return;
 	}
 
-	// Gaurd
+	// Guard
 	if (CharacterState == EASRCharacterState::ECS_Guard && IsAttackFromFront(HitResult))
 	{
 		FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;

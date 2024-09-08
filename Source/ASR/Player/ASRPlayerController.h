@@ -23,7 +23,7 @@ protected:
 
 public: 
 	void SetKillScore(float KillScore);
-	void SetRangerAmmo(int32 Ammo);
+	void SetRangerAmmo(float AmmoPercent);
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UUserWidget> GunenrHUDClass;
@@ -43,11 +43,11 @@ private:
 	UInputAction* RestoreAction;
 
 	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<class AASRCharacter> NewCharacterClass;
+	TSoftClassPtr<class AASRCharacter> NewCharacterClass;
 
 
-	UPROPERTY(EditDefaultsOnly, Category = "Character")
-	TSubclassOf<AASRCharacter> OriginalCharacterClass;
+	UPROPERTY(EditDefaultsOnly)
+	TSoftClassPtr<AASRCharacter> OriginalCharacterClass;
 
 	UPROPERTY(EditDefaultsOnly)
 	AASRCharacter* ControlCharacter;

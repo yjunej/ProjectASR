@@ -55,6 +55,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	FName AttentionPointKeyName = "AttentionPoint";
 
+	UPROPERTY(EditDefaultsOnly)
+	FName CharacterStateKeyName = "CharacterState";
+
 	// Perception
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	class UAIPerceptionComponent* AIPerception;

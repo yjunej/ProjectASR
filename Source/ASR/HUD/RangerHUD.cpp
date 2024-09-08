@@ -7,6 +7,7 @@
 #include "Components/Border.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Components/Image.h"
+#include "Components/ProgressBar.h"
 
 
 void URangerHUD::SetCrosshairVisibility(ESlateVisibility InVisibility)
@@ -60,11 +61,25 @@ void URangerHUD::SetUltOverlay(bool IsEnable)
 	if (IsEnable)
 	{
 		UltOverlayImage->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		AmmoProgressBar->SetFillColorAndOpacity(FLinearColor::Blue);
+		AmmoProgressBar->SetPercent(1.f);
+		SetCrosshairColor(FLinearColor::Blue);
 		PlayAnimation(UltOverlayImageAnim, 0.0f, 0.f, EUMGSequencePlayMode::PingPong);
 	}
 	else
 	{
 		UltOverlayImage->SetVisibility(ESlateVisibility::Hidden);
+		AmmoProgressBar->SetFillColorAndOpacity(FLinearColor::Green);
+		AmmoProgressBar->SetPercent(1.f);
+		SetCrosshairColor(FLinearColor::Green);
 		StopAnimation(UltOverlayImageAnim);
+	}
+}
+
+void URangerHUD::SetAmmoProgressBarPercent(float AmmoPercent)
+{
+	if (AmmoProgressBar != nullptr)
+	{
+		AmmoProgressBar->SetPercent(AmmoPercent);
 	}
 }

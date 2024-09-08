@@ -8,10 +8,13 @@
 #include "ASR/HUD/CharacterOverlay.h"
 #include "ASR/Character/Gunner.h"
 #include "Components/TextBlock.h"
+#include "Components/ProgressBar.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
+#include "Engine/StreamableManager.h"
+#include "Engine/AssetManager.h"
 
 void AASRPlayerController::BeginPlay()
 {
@@ -34,8 +37,6 @@ void AASRPlayerController::BeginPlay()
 void AASRPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-
-
 	
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
@@ -62,12 +63,11 @@ void AASRPlayerController::SetKillScore(float KillScore)
 	}
 }
 
-void AASRPlayerController::SetRangerAmmo(int32 Ammo)
+void AASRPlayerController::SetRangerAmmo(float AmmoPercent)
 {
-	if (GunnerHUD != nullptr && GunnerHUD->CharacterOverlay != nullptr)
+	if (GunnerHUD != nullptr && GunnerHUD->AmmoProgressBar != nullptr)
 	{
-		FString AmmoString = FString::Printf(TEXT("%d"),Ammo);
-		GunnerHUD->CharacterOverlay->AmmoAmountText->SetText(FText::FromString(AmmoString));
+		GunnerHUD->AmmoProgressBar->SetPercent(AmmoPercent);
 	}
 }
 
@@ -92,14 +92,46 @@ void AASRPlayerController::SwapCharacter()
 		// Spawn the new character
 		if (!bSpawned)
 		{
-			NextCharacter = GetWorld()->SpawnActor<AASRCharacter>(NewCharacterClass, NewLocation, Rotation);
-			bSpawned = true;
-			Possess(NextCharacter);
+			// Sync
+			UClass* LoadedClass = NewCharacterClass.LoadSynchronous();
+			if (LoadedClass != nullptr)
+			{
+				NextCharacter = GetWorld()->SpawnActor<AASRCharacter>(LoadedClass, NewLocation, Rotation);
+				if (NextCharacter != nullptr)
+				{
 
-			// TODO - UI Switching
-			ESlateVisibility GunnerHUDTemp = Cast<AGunner>(NextCharacter) == nullptr ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
-			GunnerHUD->SetVisibility(GunnerHUDTemp);
-			Swap(NextCharacter, ControlCharacter);
+					bSpawned = true;
+					Possess(NextCharacter);
+					ESlateVisibility GunnerHUDTemp = Cast<AGunner>(NextCharacter) == nullptr ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
+					GunnerHUD->SetVisibility(GunnerHUDTemp);
+					Swap(NextCharacter, ControlCharacter);
+				}
+			}
+
+			// Async
+			//FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+			//StreamableManager.RequestAsyncLoad(NewCharacterClass.ToSoftObjectPath(), FStreamableDelegate::CreateLambda([this, NewLocation, Rotation]()
+			//	{
+			//		UClass* LoadedClass = NewCharacterClass.Get();
+			//		if (LoadedClass != nullptr)
+			//		{
+			//			NextCharacter = GetWorld()->SpawnActor<AASRCharacter>(LoadedClass, NewLocation, Rotation);
+
+			//			//NextCharacter = GetWorld()->SpawnActor<AASRCharacter>(NewCharacterClass.Get(), NewLocation, Rotation);
+
+			//			bSpawned = true;
+			//			Possess(NextCharacter);
+
+			//			// TODO - UI Switching
+			//			ESlateVisibility GunnerHUDTemp = Cast<AGunner>(NextCharacter) == nullptr ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
+			//			GunnerHUD->SetVisibility(GunnerHUDTemp);
+			//			Swap(NextCharacter, ControlCharacter);
+			//		}
+			//	}
+			//));
+
+
+
 		}
 		else
 		{
@@ -120,19 +152,54 @@ void AASRPlayerController::RestoreOriginalCharacter()
 		FVector NewLocation = Location + FVector(0.0f, 0.0f, 0.0f); // Example offset
 
 		// Spawn the original character
-		AASRCharacter* NewOriginalCharacter = GetWorld()->SpawnActor<AASRCharacter>(OriginalCharacterClass, NewLocation, Rotation);
-		if (NewOriginalCharacter)
+
+		// Hard Reference
+		//AASRCharacter* NewOriginalCharacter = GetWorld()->SpawnActor<AASRCharacter>(OriginalCharacterClass.Get(), NewLocation, Rotation);
+		
+		// Sync
+		UClass* LoadedClass = OriginalCharacterClass.LoadSynchronous();
+		if (LoadedClass != nullptr)
 		{
-			// Possess the original character
-			Possess(NewOriginalCharacter);
-
-			// Destroy the current character
-			ControlCharacter->Destroy();
-			ControlCharacter = NewOriginalCharacter;
-
-			// Clear the original character reference
-			OriginalCharacter = nullptr;
+			AASRCharacter* NewOriginalCharacter = GetWorld()->SpawnActor<AASRCharacter>(LoadedClass, NewLocation, Rotation);
+			if (NewOriginalCharacter != nullptr)
+			{
+				Possess(NewOriginalCharacter);
+				bSpawned = true;
+				ESlateVisibility GunnerHUDTemp = Cast<AGunner>(NextCharacter) == nullptr ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
+				GunnerHUD->SetVisibility(GunnerHUDTemp);
+				Swap(NextCharacter, ControlCharacter);
+			}
 		}
+
+
+		//ASYNC 
+		//AASRCharacter* NewOriginalCharacter = nullptr;
+		//FStreamableManager& StreamableManager = UAssetManager::GetStreamableManager();
+		//StreamableManager.RequestAsyncLoad(OriginalCharacterClass.ToSoftObjectPath(), FStreamableDelegate::CreateLambda([this, &NewOriginalCharacter, NewLocation, Rotation]()
+		//	{
+		//		UClass* LoadedClass = OriginalCharacterClass.Get();
+		//		if (LoadedClass != nullptr)
+		//		{
+		//			NewOriginalCharacter = GetWorld()->SpawnActor<AASRCharacter>(LoadedClass, NewLocation, Rotation);
+		//			if (NewOriginalCharacter)
+		//			{
+		//				// Possess the original character
+		//				Possess(NewOriginalCharacter);
+
+		//				// Destroy the current character
+		//				ControlCharacter->Destroy();
+		//				ControlCharacter = NewOriginalCharacter;
+
+		//				// Clear the original character reference
+		//				OriginalCharacter = nullptr;
+		//			}
+		//		}
+		//	}
+		//));
+
+		//AASRCharacter* NewOriginalCharacter = GetWorld()->SpawnActor<AASRCharacter>(OriginalCharacterClass.Get(), NewLocation, Rotation);
+
+
 	}
 }
 

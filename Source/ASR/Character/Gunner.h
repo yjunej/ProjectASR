@@ -91,7 +91,6 @@ public:
 
 	float FireSpeed = 0.1f;
 
-
 protected:
 	virtual void BeginPlay() override;
 
@@ -103,11 +102,13 @@ protected:
 	//
 
 	virtual void ResetState() override;
+	virtual void HandleDeath() override;
 
 	// Enhanced Input
 	void Input_FirstSkill(const FInputActionValue& Value);
 	void Input_SecondSkill(const FInputActionValue& Value);
 	void Input_Ult(const FInputActionValue& Value);
+	
 
 	// Gunner Special Input
 	void Input_Fire(const FInputActionValue& Value);
@@ -147,6 +148,10 @@ private:
 	bool CanFire();
 	UPROPERTY(EditAnywhere, Category = Weapon)
 	int32 Ammo;
+
+	UPROPERTY(EditAnywhere, Category = Weapon)
+	int32 MagazineCapacity = 40;
+
 	void PlayFireMontage(bool bAiming);
 	FTimerHandle FireTimer;
 	void StartFireTimer();

@@ -89,7 +89,14 @@ void ABaseAIController::SetBlackboardKeys()
 {
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
 	BBComponent->SetValueAsObject(AttackTargetKeyName, UGameplayStatics::GetPlayerCharacter(this, 0));
-	BBComponent->SetValueAsEnum(AIStateKeyName, uint8(EEnemyAIState::EAS_Passive));
+	BBComponent->SetValueAsEnum(AIStateKeyName, StaticCast<uint8>(EEnemyAIState::EAS_Passive));
+	
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetPawn());
+	if (Enemy != nullptr)
+	{
+		BBComponent->SetValueAsEnum(CharacterStateKeyName, StaticCast<uint8>(Enemy->GetCharacterState()));
+	}
+
 
 	// Legacy
 	//BBComponent->SetValueAsObject(FName("Target"), UGameplayStatics::GetPlayerCharacter(this, 0));

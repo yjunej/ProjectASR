@@ -135,7 +135,7 @@ FVector AGunner::GetHitPoint() const
 void AGunner::EndUlt()
 {
 	bIsUltMode = false;
-	Ammo = 30.f;
+	Ammo = MagazineCapacity;
 	FireSpeed *= 2;
 	float EndUltSpeed = bIsAiming ? ArmedMaxWalkSpeedAiming : ArmedMaxWalkSpeed;
 	GetCharacterMovement()->MaxWalkSpeed = EndUltSpeed;
@@ -206,9 +206,16 @@ void AGunner::ResetState()
 	GunnerAnimState = EGunnerAnimState::EGA_Normal;
 }
 
+void AGunner::HandleDeath()
+{
+	Super::HandleDeath();
+	DefaultSpringArmLength = 800.f;
+	FOV = 120;
+	bUseOnlyDefaultSlot = true;
+}
+
 void AGunner::Input_FirstSkill(const FInputActionValue& Value)
 {
-
 	if (CharacterState == EASRCharacterState::ECS_Attack)
 	{
 		bIsFirstSkillPending = true;
@@ -239,7 +246,6 @@ void AGunner::Input_Ult(const FInputActionValue& Value)
 		ResetNormalAttack();
 		ResetDodge();
 		SetCharacterState(EASRCharacterState::ECS_Attack);
-		bUseOnlyDefaultSlot = true;
 		PlayAnimMontage(UltMontage);
 		bIsUltMode = true;
 		bIsAiming = true;
@@ -270,7 +276,6 @@ void AGunner::Input_Fire(const FInputActionValue& Value)
 void AGunner::Input_StopFiring(const FInputActionValue& Value)
 {
 	Fire(false);
-	ResetState();
 }
 
 void AGunner::Input_Aim(const FInputActionValue& Value)
@@ -321,10 +326,6 @@ void AGunner::ResolveLightAttackPending()
 void AGunner::Dodge()
 {
 	Super::Dodge();
-	if (CanDodge())
-	{
-		bUseOnlyDefaultSlot = true;
-	}
 }
 
 float AGunner::GetFirstSkillWarpDistance() const
@@ -448,7 +449,6 @@ void AGunner::InterpFOV(float DeltaSeconds)
 void AGunner::ExecuteFirstSkill()
 {
 	SetCharacterState(EASRCharacterState::ECS_Attack);
-	bUseOnlyDefaultSlot = true;
 	PlayAnimMontage(FirstSkillMontage);
 		if (DroneClass != nullptr)
 		{
@@ -524,7 +524,11 @@ void AGunner::FireWithTimer()
 
 bool AGunner::CanFire()
 {
-	return bCanFire && Ammo > 0 && GunnerAnimState != EGunnerAnimState::EGA_Reloading;
+	// Gunner NOT USE ECS_Attack State
+	//if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
+	//	&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
+	//	&& CharacterState != EASRCharacterState::ECS_Flinching)
+	return bCanFire && Ammo > 0 && GunnerAnimState != EGunnerAnimState::EGA_Reloading && CanAttack();
 }
 
 void AGunner::PlayFireMontage(bool bAiming)
@@ -568,8 +572,8 @@ void AGunner::Reload()
 void AGunner::ReloadFinished()
 {
 	ResetState();
-	Ammo = 30.f;
-	GunnerPlayerController->SetRangerAmmo(Ammo);
+	Ammo = MagazineCapacity;
+	GunnerPlayerController->SetRangerAmmo((float)Ammo / (float)MagazineCapacity);
 	if (bStartFire)
 	{
 		FireWithTimer();
@@ -615,9 +619,9 @@ void AGunner::WeaponFire(const FVector& HitTargetPoint)
 	}
 	if (!bIsUltMode)
 	{
-		Ammo = FMath::Clamp(Ammo - 1, 0, 40);
+		Ammo = FMath::Clamp(Ammo - 1, 0, MagazineCapacity);
+		GunnerPlayerController->SetRangerAmmo(float(Ammo) / float(MagazineCapacity));
 	}
-	GunnerPlayerController->SetRangerAmmo(Ammo);
 
 	// Fire Projectile
 	const USkeletalMeshSocket* ProjectileSpawnSocket = WeaponMeshComponent->GetSocketByName(FName("MuzzleFlash"));
