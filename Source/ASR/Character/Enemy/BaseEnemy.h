@@ -81,6 +81,14 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Landed(const FHitResult& HitResult) override;
 
+	// Combat - Consider to apply Component Design
+	UFUNCTION(BlueprintCallable)
+	virtual bool NormalAttack();
+
+	virtual bool ExecuteNormalAttack();
+	virtual bool CanAttack();
+
+
 	// AI
 	UPROPERTY(EditAnywhere, Category = AI, meta = (AllowPrivateAccess = "true"))
 	class UBehaviorTree* BehaviorTree;
@@ -200,11 +208,7 @@ private:
 
 	void DisableCollision();
 
-	// Combat - Consider to apply Component Design
-	UFUNCTION(BlueprintCallable)
-	virtual bool NormalAttack();
-	virtual bool ExecuteNormalAttack();
-	virtual bool CanAttack();
+
 	
 	UFUNCTION(BlueprintCallable)
 	void SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
@@ -212,8 +216,15 @@ private:
 	TArray<AActor*> HitActors;
 	int32 NormalAttackIndex = 0;
 
+	UPROPERTY(EditDefaultsOnly, Category = Weapon)
+	TSubclassOf<class AMeleeWeapon> MeleeWeaponClass;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
-	USkeletalMeshComponent* WeaponMeshComponent;
+	AMeleeWeapon* MeleeWeapon;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
+	FName WeaponSocketName;
 
 	FTimerHandle HitStopTimerHandle;
 
@@ -225,7 +236,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = HitStop)
 	float HitStopTimeDilation;
-
 
 	//AI
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
@@ -240,6 +250,7 @@ public:
 	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
 	FORCEINLINE float GetAttackDistance() const { return AttackDistance; }
 	FORCEINLINE float GetDefendDistance() const { return DefendDistance; }
+	FORCEINLINE AMeleeWeapon* GetMeleeWeapon() const { return MeleeWeapon; }
 
 
 

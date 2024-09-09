@@ -21,6 +21,7 @@
 #include "ASR/Character/Slayer.h"
 #include "ASR/Character/Enemy/AI/PatrolRoute.h"
 #include "Perception/AISense_Damage.h"
+#include "ASR/Weapons/MeleeWeapon.h"
 
 
 
@@ -49,9 +50,6 @@ ABaseEnemy::ABaseEnemy()
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate.Yaw = 250.f;
-
-	WeaponMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
-	WeaponMeshComponent->SetupAttachment(GetMesh(), FName("RightHandKatanaSocket")); 
 
 	// [Blueprint]
 	// - Enable bUseAccelerationForPaths
@@ -95,6 +93,20 @@ void ABaseEnemy::BeginPlay()
 	{
 		InitializeTimeline();
 	}
+
+	if (MeleeWeaponClass != nullptr)
+	{
+		MeleeWeapon = GetWorld()->SpawnActor<AMeleeWeapon>(MeleeWeaponClass);
+
+		if (MeleeWeapon != nullptr)
+		{
+			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
+			MeleeWeapon->AttachToComponent(GetMesh(), AttachRules, WeaponSocketName);
+			MeleeWeapon->WeaponOwner = this;
+			MeleeWeapon->GetWeaponMesh()->SetVisibility(false);
+		}
+	}
+
 }
 
 
@@ -161,7 +173,6 @@ void ABaseEnemy::Executed()
 
 bool ABaseEnemy::NormalAttack()
 {
-	float AnimDuration = 0.f;
 	if (CanAttack())
 	{
 		return ExecuteNormalAttack();

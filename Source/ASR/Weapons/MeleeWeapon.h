@@ -11,6 +11,8 @@ class ASR_API AMeleeWeapon : public AActor
 {
 	GENERATED_BODY()
 	
+	// TODO - Change Name Or Create Base class! (Decide Not to Use Weapon mesh based Hit System)
+
 public:	
 	AMeleeWeapon();
 
@@ -47,6 +49,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	FVector TraceExtent = FVector(10.f);
+
+public:
+	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
 
 
 };

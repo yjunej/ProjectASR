@@ -21,6 +21,9 @@ public:
 	ABaseAIController();
 
 	EEnemyAIState GetCurrentAIState();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	AActor* AttackTarget;
 	
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
@@ -28,8 +31,7 @@ protected:
 	
 	void SetBlackboardKeys();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	AActor* AttackTarget;
+
 
 	UFUNCTION(BlueprintCallable)
 	void SwitchToPassiveState();
