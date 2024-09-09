@@ -28,6 +28,9 @@ protected:
 	
 	void SetBlackboardKeys();
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	AActor* AttackTarget;
+
 	UFUNCTION(BlueprintCallable)
 	void SwitchToPassiveState();
 
@@ -57,6 +60,12 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly)
 	FName CharacterStateKeyName = "CharacterState";
+
+	UPROPERTY(EditDefaultsOnly)
+	FName AttackDistanceKeyName = "AttackDistance";
+
+	UPROPERTY(EditDefaultsOnly)
+	FName DefendDistanceKeyName = "DefendDistance";
 
 	// Perception
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

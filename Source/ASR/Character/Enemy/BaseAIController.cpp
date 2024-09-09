@@ -95,6 +95,8 @@ void ABaseAIController::SetBlackboardKeys()
 	if (Enemy != nullptr)
 	{
 		BBComponent->SetValueAsEnum(CharacterStateKeyName, StaticCast<uint8>(Enemy->GetCharacterState()));
+		BBComponent->SetValueAsFloat(AttackDistanceKeyName, Enemy->GetAttackDistance());
+		BBComponent->SetValueAsFloat(DefendDistanceKeyName, Enemy->GetDefendDistance());
 	}
 
 
@@ -112,8 +114,9 @@ void ABaseAIController::SwitchToPassiveState()
 	BBComponent->SetValueAsEnum(AIStateKeyName, StaticCast<uint8>(EEnemyAIState::EAS_Passive));
 }
 
-void ABaseAIController::SwitchToAttackState(AActor* TargetActor )
+void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 {
+	AttackTarget = TargetActor;
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
 	BBComponent->SetValueAsObject(AttackTargetKeyName, TargetActor);
 	BBComponent->SetValueAsEnum(AIStateKeyName, StaticCast<uint8>(EEnemyAIState::EAS_Attack));
@@ -216,7 +219,6 @@ void ABaseAIController::HandleSensedSight(AActor* Actor)
 void ABaseAIController::HandleSensedHearing(FVector NoiseLocation)
 {
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
-
 	EEnemyAIState CurrentAIState = GetCurrentAIState();
 
 	switch (CurrentAIState)

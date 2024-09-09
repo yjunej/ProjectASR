@@ -61,7 +61,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 	if (HitInterface != nullptr)
 	{
 		FHitData HitData = { .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall };
-		HitInterface->GetHit(HitResult, this, HitData);
+		HitInterface->GetHit(HitResult, ProjectileOwner, HitData);
 		AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);
 		if (ASRCharacter != nullptr)
 		{

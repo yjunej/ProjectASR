@@ -97,6 +97,14 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void HandleDeath();
 
+	// AI EQS
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI)
+	float AttackDistance = 150.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI)
+	float DefendDistance = 450.f;
+
+
 private:
 	
 
@@ -226,10 +234,15 @@ private:
 
 
 public:
-	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; };
-	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; };
-
 	void SetCharacterState(EASRCharacterState InCharacterState);
+
+	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
+	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
+	FORCEINLINE float GetAttackDistance() const { return AttackDistance; }
+	FORCEINLINE float GetDefendDistance() const { return DefendDistance; }
+
+
+
 
 
 	

@@ -20,6 +20,7 @@
 #include "ASR/Character/ASRCharacter.h"
 #include "ASR/Character/Slayer.h"
 #include "ASR/Character/Enemy/AI/PatrolRoute.h"
+#include "Perception/AISense_Damage.h"
 
 
 
@@ -499,6 +500,14 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		ApplyHitStop(HitStopDuration, HitStopTimeDilation);
 		AASRCharacter* ASRCharacter = Cast<AASRCharacter>(Attacker);
 		ASRCharacter->ApplyHitStop(HitStopDuration, HitStopTimeDilation);
+		UAISense_Damage::ReportDamageEvent(
+			GetWorld(),
+			this,
+			ASRCharacter,
+			HitData.Damage,
+			GetActorLocation(),
+			FVector::ZeroVector
+		);
 	}
 
 
@@ -575,7 +584,7 @@ float ABaseEnemy::SetMovementSpeed_Implementation(EEnemyMovementSpeed EnemyMovem
 		NewSpeed = 0.f;
 		break;
 	case EEnemyMovementSpeed::EMS_Walk:
-		NewSpeed = 100.f;
+		NewSpeed = 150.f;
 		break;
 	case EEnemyMovementSpeed::EMS_Jog:
 		NewSpeed = 300.f;

@@ -3,6 +3,7 @@
 
 #include "ASRAnimInstance.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "ASRCharacter.h"
 
 void UASRAnimInstance::NativeInitializeAnimation()
@@ -22,6 +23,9 @@ void UASRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	if (MovementComponent != nullptr && Owner != nullptr)
 	{
 		FVector Velocity = MovementComponent->Velocity;
+		FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(Velocity);
+		MoveDirectionYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, Owner->GetBaseAimRotation()).Yaw;
+
 		Velocity.Z = 0.f;
 		Speed = Velocity.Size();
 
@@ -37,6 +41,8 @@ void UASRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		bIsAccelerating = !Acceleration2D.IsNearlyZero();
 		bIsFalling = MovementComponent->IsFalling();
+
+		
 	}
 
 }
