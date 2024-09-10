@@ -7,6 +7,21 @@
 #include "ASR/Character/Enemy/BaseAIController.h"
 #include "ASR/Weapons/MeleeWeapon.h"
 #include "ASR/Weapons/Projectile.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
+
+ARangedEnemy::ARangedEnemy()
+{
+	bIsWeaponHidden = false;
+	bIsCombatReady = true;
+	AttackDistance = 1500.f;
+	DefendDistance = 1500.f;
+}
+
+void ARangedEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+}
 
 bool ARangedEnemy::ExecuteNormalAttack()
 {
@@ -18,11 +33,40 @@ bool ARangedEnemy::ExecuteNormalAttack()
 		if (RangedWeapon != nullptr && WeaponAnimation != nullptr)
 		{
 			RangedWeapon->GetWeaponMesh()->PlayAnimation(WeaponAnimation, false);
-			bool bSpawnSuccess = SpawnProjectile();
-			return bSpawnSuccess;
+			return true;
 		}
 	}
 	return false;
+}
+
+float ARangedEnemy::SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed)
+{
+	float NewSpeed;
+
+	switch (EnemyMovementSpeed)
+	{
+	case EEnemyMovementSpeed::EMS_Idle:
+		NewSpeed = 0.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Walk:
+		NewSpeed = 180.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Jog:
+		NewSpeed = 300.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Run:
+		NewSpeed = 500.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Sprint:
+		NewSpeed = 600.f;
+		break;
+	case EEnemyMovementSpeed::EMS_MAX:
+	default:
+		NewSpeed = 0.f;
+		break;
+	}
+	GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+	return NewSpeed;
 }
 
 bool ARangedEnemy::SpawnProjectile()

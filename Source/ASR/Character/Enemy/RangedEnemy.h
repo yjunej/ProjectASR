@@ -14,8 +14,14 @@ class ASR_API ARangedEnemy : public ABaseEnemy
 {
 	GENERATED_BODY()
 	
+public:
+	ARangedEnemy();
+
 protected:
+	virtual void BeginPlay() override;
+
 	virtual bool ExecuteNormalAttack() override;
+	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
 
 	UFUNCTION(BlueprintCallable)
 	bool SpawnProjectile();

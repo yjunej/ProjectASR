@@ -13,6 +13,8 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnd);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGuardEnd);
+
 
 UENUM(BlueprintType)
 enum class EEnemyBehaviorState : uint8
@@ -42,10 +44,16 @@ public:
 
 	// HitInterface
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
+	virtual bool IsDead() const override;
+	virtual ECombatState GetCombatState() const override;
 
-	// EnemyAIInterface
-	virtual APatrolRoute* GetPatrolRoute_Implementation() const override;
-	virtual float SetMovementSpeed_Implementation(EEnemyMovementSpeed EnemyMovementSpeed) override;
+
+	// EnemyAIInterface - Blueprint Compatable
+	virtual APatrolRoute* GetPatrolRoute() const override;
+	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
+	virtual float GetCurrentHealth() const override;
+	virtual float GetMaxHealth() const override;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float Health = 100.f;
@@ -60,11 +68,16 @@ public:
 	UPROPERTY(BlueprintAssignable, Category= AI)
 	FOnAttackEnd OnAttackEnd;
 
+	UPROPERTY(BlueprintAssignable, Category = AI)
+	FOnGuardEnd OnGuardEnd;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	bool bIsCombatReady = false;
 
 
+	// Custom Notify For BT
 	void NotifyAttackEnd();
+	void NotifyGuardEnd();
 
 	FOnHealthChanged OnHealthChanged;
 
@@ -76,6 +89,8 @@ public:
 	void Executed();
 	
 
+	UPROPERTY(BlueprintAssignable, Category = Events)
+	FOnCombatStateChanged OnCombatStateChanged;
 
 protected:
 	virtual void BeginPlay() override;
@@ -86,15 +101,19 @@ protected:
 	virtual bool NormalAttack();
 
 	virtual bool ExecuteNormalAttack();
-	virtual bool CanAttack();
+	virtual bool CanAttack() const;
+	
+	UFUNCTION(BlueprintCallable)
+	virtual bool Guard();
+
+	virtual bool CanGuard() const;
+
+	bool IsAttackFromFront(const FHitResult& HitResult) const;
 
 
 	// AI
 	UPROPERTY(EditAnywhere, Category = AI, meta = (AllowPrivateAccess = "true"))
 	class UBehaviorTree* BehaviorTree;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
-	EASRCharacterState CharacterState;
 
 	UPROPERTY(EditDefaultsOnly, Category = Damage)
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
@@ -111,6 +130,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI)
 	float DefendDistance = 450.f;
+
+	bool bIsWeaponHidden = true;
 
 
 private:
@@ -161,9 +182,19 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* CombatEndMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GuardMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GuardRevengeMontage;
+
+
 	UFUNCTION()
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
+	// Character State
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
+	ECombatState CombatState;
 
 	// TimeLine
 	UPROPERTY(VisibleAnywhere, Category = Timeline)
@@ -244,9 +275,8 @@ private:
 
 
 public:
-	void SetCharacterState(EASRCharacterState InCharacterState);
+	void SetCombatState(ECombatState InCombatState);
 
-	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE UBehaviorTree* GetBehaviorTree() const { return BehaviorTree; }
 	FORCEINLINE float GetAttackDistance() const { return AttackDistance; }
 	FORCEINLINE float GetDefendDistance() const { return DefendDistance; }

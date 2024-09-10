@@ -174,7 +174,7 @@ bool UTargetingComponent::FindSubTarget()
 			if (HitResult.GetActor() != nullptr)
 			{
 				ABaseEnemy* Enemy = Cast<ABaseEnemy>(HitResult.GetActor());
-				if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
+				if (Enemy != nullptr && Enemy->GetCombatState() != ECombatState::ECS_Death)
 				{
 					if (SubTargetActor != HitResult.GetActor())
 					{
@@ -220,7 +220,7 @@ void UTargetingComponent::LockOnTarget(const FHitResult& HitResult)
 	if (HitResult.GetActor() != nullptr)
 	{
 		ABaseEnemy* Enemy = Cast<ABaseEnemy>(HitResult.GetActor());
-		if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
+		if (Enemy != nullptr && Enemy->GetCombatState() != ECombatState::ECS_Death)
 		{
 			TargetActor = Enemy;
 			Enemy->OnTargeting();
@@ -313,7 +313,7 @@ FTransform UTargetingComponent::GetLastSubTargetTransform()
 	ABaseEnemy* LastSubTargetEnemy = Cast<ABaseEnemy>(LastSubTargetActor);
 	if (LastSubTargetEnemy != nullptr)
 	{
-		if (LastSubTargetEnemy->GetCharacterState() == EASRCharacterState::ECS_Death)
+		if (LastSubTargetEnemy->GetCombatState() == ECombatState::ECS_Death)
 		{
 			LastSubTargetActor = nullptr;
 			return FTransform::Identity;
@@ -343,7 +343,7 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		if (TargetActor->GetDistanceTo(GetOwner()) < ClearTargetDistance)
 		{
 			ABaseEnemy* BaseEnemy = Cast<ABaseEnemy>(TargetActor);
-			if (BaseEnemy != nullptr && BaseEnemy->GetCharacterState() != EASRCharacterState::ECS_Death)
+			if (BaseEnemy != nullptr && BaseEnemy->GetCombatState() != ECombatState::ECS_Death)
 			{
 				// LockOn Target
 				FRotator LookRotator;

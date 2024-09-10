@@ -25,12 +25,17 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	AActor* AttackTarget;
 	
+	UFUNCTION()
+	void OnAICombatStateChanged(ECombatState NewState);
+
+	UFUNCTION()
+	void OnPlayerCombatStateChanged(ECombatState NewState);
+
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
 	virtual void BeginPlay() override;
 	
 	void SetBlackboardKeys();
-
 
 
 	UFUNCTION(BlueprintCallable)
@@ -61,13 +66,18 @@ protected:
 	FName AttentionPointKeyName = "AttentionPoint";
 
 	UPROPERTY(EditDefaultsOnly)
-	FName CharacterStateKeyName = "CharacterState";
+	FName CombatStateKeyName = "CombatState";
+
+	UPROPERTY(EditDefaultsOnly)
+	FName AttackTargetCombatStateKeyName = "AttackTargetCombatState";
 
 	UPROPERTY(EditDefaultsOnly)
 	FName AttackDistanceKeyName = "AttackDistance";
 
 	UPROPERTY(EditDefaultsOnly)
 	FName DefendDistanceKeyName = "DefendDistance";
+	//
+	
 
 	// Perception
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)

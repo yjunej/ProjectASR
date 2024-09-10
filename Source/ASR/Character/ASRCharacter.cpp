@@ -63,8 +63,7 @@ AASRCharacter::AASRCharacter()
 	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
 	TargetingComp->Owner = this;
 
-	CharacterState = EASRCharacterState::ECS_None;
-
+	SetCombatState(ECombatState::ECS_None);
 }
 
 void AASRCharacter::PlayRandomSection(UAnimMontage* Montage)
@@ -154,8 +153,8 @@ void AASRCharacter::Input_Move(const FInputActionValue& Value)
 	PrevInput = MoveVector;
 
 	// Guard Accept, Gunner Flinching Not use Root motion (Knockback by launch..)
-	if (CharacterState == EASRCharacterState::ECS_Guard || CharacterState == EASRCharacterState::ECS_Flinching ||
-		CharacterState == EASRCharacterState::ECS_KnockDown || CharacterState == EASRCharacterState::ECS_Death)
+	if (CombatState == ECombatState::ECS_Guard || CombatState == ECombatState::ECS_Flinching ||
+		CombatState == ECombatState::ECS_KnockDown || CombatState == ECombatState::ECS_Death)
 	{
 		return;
 	}
@@ -207,7 +206,7 @@ void AASRCharacter::Input_ToggleCrouch(const FInputActionValue& Value)
 void AASRCharacter::Input_Guard(const FInputActionValue& Value)
 {
 	bIsGuardPressed = true;
-	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Guard && CharacterState != EASRCharacterState::ECS_Dodge && CharacterState != EASRCharacterState::ECS_Flinching)
+	if (CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Guard && CombatState != ECombatState::ECS_Dodge && CombatState != ECombatState::ECS_Flinching)
 	{
 		Guard();
 	}
@@ -215,7 +214,7 @@ void AASRCharacter::Input_Guard(const FInputActionValue& Value)
 
 void AASRCharacter::Input_Dodge(const FInputActionValue& Value)
 {
-	if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge)
+	if (CombatState == ECombatState::ECS_Attack || CombatState == ECombatState::ECS_Dodge)
 	{
 		bIsDodgePending = true;
 	}
@@ -227,7 +226,7 @@ void AASRCharacter::Input_Dodge(const FInputActionValue& Value)
 
 void AASRCharacter::Input_NormalAttack(const FInputActionValue& Value)
 {
-	if (CharacterState == EASRCharacterState::ECS_Attack)
+	if (CombatState == ECombatState::ECS_Attack)
 	{
 		bIsNormalAttackPending = true;
 	}
@@ -259,7 +258,7 @@ void AASRCharacter::ExecuteNormalAttack(int32 AttackIndex)
 	{
 		if (NormalAttackMontages.IsValidIndex(AttackIndex) && NormalAttackMontages[AttackIndex] != nullptr)
 		{
-			SetCharacterState(EASRCharacterState::ECS_Attack);
+			SetCombatState(ECombatState::ECS_Attack);
 			PlayAnimMontage(NormalAttackMontages[AttackIndex]);
 
 			if (NormalAttackIndex + 1 >= NormalAttackMontages.Num())
@@ -279,9 +278,9 @@ void AASRCharacter::ResolveLightAttackPending()
 	if (bIsNormalAttackPending)
 	{
 		bIsNormalAttackPending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack)
+		if (CombatState == ECombatState::ECS_Attack)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 		NormalAttack();
 	}
@@ -292,9 +291,9 @@ void AASRCharacter::ResolveDodgeAndGuardPending()
 	if (bIsGuardPressed)
 	{
 		bIsDodgePending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge || CharacterState == EASRCharacterState::ECS_Guard)
+		if (CombatState == ECombatState::ECS_Attack || CombatState == ECombatState::ECS_Dodge || CombatState == ECombatState::ECS_Guard)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 
 		Guard();
@@ -302,9 +301,9 @@ void AASRCharacter::ResolveDodgeAndGuardPending()
 	else if (bIsDodgePending)
 	{
 		bIsDodgePending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack || CharacterState == EASRCharacterState::ECS_Dodge || CharacterState == EASRCharacterState::ECS_Guard)
+		if (CombatState == ECombatState::ECS_Attack || CombatState == ECombatState::ECS_Dodge || CombatState == ECombatState::ECS_Guard)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 		Dodge();
 	}
@@ -314,18 +313,18 @@ void AASRCharacter::ResolveDodgeAndGuardPending()
 void AASRCharacter::Input_Release_Guard(const FInputActionValue& Value)
 {
 	bIsGuardPressed = false;
-	if (CharacterState == EASRCharacterState::ECS_Guard)
+	if (CombatState == ECombatState::ECS_Guard)
 	{
-		CharacterState = EASRCharacterState::ECS_None;
+		SetCombatState(ECombatState::ECS_None);
 		PlayAnimMontage(GuardMontage, 1.f, FName("GuardEnd"));
 	}
 }
 
 bool AASRCharacter::CanAttack() const
 {
-	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
-		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
-		&& CharacterState != EASRCharacterState::ECS_Flinching && CharacterState != EASRCharacterState::ECS_KnockDown)
+	if (CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Dodge
+		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
+		&& CombatState != ECombatState::ECS_Flinching && CombatState != ECombatState::ECS_KnockDown)
 	{
 		return true;
 	}
@@ -336,7 +335,7 @@ void AASRCharacter::Dodge()
 {
 	if (CanDodge())
 	{
-		SetCharacterState(EASRCharacterState::ECS_Dodge);
+		SetCombatState(ECombatState::ECS_Dodge);
 
 		ResetNormalAttack();
 		ResetSkills();
@@ -358,8 +357,8 @@ void AASRCharacter::Dodge()
 
 bool AASRCharacter::CanDodge() const
 {
-	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
-		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && CharacterState != EASRCharacterState::ECS_Flinching)
+	if (CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Dodge
+		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && CombatState != ECombatState::ECS_Flinching)
 	{
 		return true;
 	}
@@ -373,7 +372,7 @@ void AASRCharacter::ResetDodge()
 
 void AASRCharacter::Execution()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
 	ResetSkills();
 	ResetDodge();
@@ -456,9 +455,9 @@ void AASRCharacter::SetExecutionCamera()
 
 void AASRCharacter::ResetState()
 {
-	if (CharacterState != EASRCharacterState::ECS_Death)
+	if (CombatState != ECombatState::ECS_Death)
 	{
-		CharacterState = EASRCharacterState::ECS_None;
+		SetCombatState(ECombatState::ECS_None);
 	}
 }
 
@@ -541,7 +540,7 @@ void AASRCharacter::OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupt
 
 void AASRCharacter::HandleDeath()
 {
-	CharacterState = EASRCharacterState::ECS_Death;
+	SetCombatState(ECombatState::ECS_Death);
 
 	// TODO
 	PlayAnimMontage(StandingDeathMontage);
@@ -552,17 +551,18 @@ void AASRCharacter::HandleDeath()
 	}
 }
 
-void AASRCharacter::SetCharacterState(EASRCharacterState InCharacterState)
+void AASRCharacter::SetCombatState(ECombatState InCombatState)
 {
-	if (InCharacterState != CharacterState)
+	if (InCombatState != CombatState)
 	{
-		CharacterState = InCharacterState;
+		CombatState = InCombatState;
+		OnCombatStateChanged.Broadcast(InCombatState);
 	}
 }
 
 void AASRCharacter::Jump()
 {
-	if (CharacterState == EASRCharacterState::ECS_None)
+	if (CombatState == ECombatState::ECS_None)
 	{
 		if (bIsCrouched)
 		{
@@ -583,7 +583,7 @@ void AASRCharacter::Guard()
 {
 	if (CanGuard())
 	{
-		SetCharacterState(EASRCharacterState::ECS_Guard);
+		SetCombatState(ECombatState::ECS_Guard);
 
 		ResetNormalAttack();
 		ResetSkills();
@@ -602,8 +602,8 @@ void AASRCharacter::Guard()
 
 bool AASRCharacter::CanGuard() const
 {
-	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Guard
-		&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling())
+	if (CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Guard
+		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling())
 	{
 		return true;
 	}
@@ -614,7 +614,7 @@ bool AASRCharacter::CanGuard() const
 void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {	
 	// Dead
-	if (CharacterState == EASRCharacterState::ECS_Death || bIsInvulnerable)
+	if (CombatState == ECombatState::ECS_Death || bIsInvulnerable)
 	{
 		return;
 	}
@@ -626,7 +626,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	}
 
 	// Guard
-	if (CharacterState == EASRCharacterState::ECS_Guard && IsAttackFromFront(HitResult))
+	if (CombatState == ECombatState::ECS_Guard && IsAttackFromFront(HitResult))
 	{
 		FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
 		LaunchCharacter(KnockbackForce, true, true);
@@ -666,8 +666,14 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 				FVector(1.f)
 			);
 		}
+		else if (HitData.HitParticleEffect != nullptr)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(), HitData.HitParticleEffect, HitResult.ImpactPoint
+			);
+		}
 
-		CharacterState = Mapping->CharacterState;
+		SetCombatState(Mapping->CombatState);
 		PlayRandomSection(Mapping->HitReactionMontage);
 	}
 	else
@@ -675,6 +681,16 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
 	}
 	
+}
+
+bool AASRCharacter::IsDead() const
+{
+	return CombatState == ECombatState::ECS_Death;
+}
+
+ECombatState AASRCharacter::GetCombatState() const
+{
+	return CombatState;
 }
 
 void AASRCharacter::ApplyHitStop(float Duration, float TimeDilation)

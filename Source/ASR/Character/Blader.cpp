@@ -64,7 +64,7 @@ void ABlader::Tick(float DeltaTime)
 				if (HitActor != nullptr && !UltTargets.Contains(HitActor))
 				{
 					ABaseEnemy* Enemy = Cast<ABaseEnemy>(HitActor);
-					if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
+					if (Enemy != nullptr && Enemy->GetCombatState() != ECombatState::ECS_Death)
 					{
 						UltTargets.AddUnique(HitActor);
 					}
@@ -214,7 +214,7 @@ void ABlader::Input_HeavyAttack(const FInputActionValue& Value)
 		ResetUlt();
 	}
 	bIsNormalAttackPending = false;
-	if (CharacterState == EASRCharacterState::ECS_Attack)
+	if (GetCombatState() == ECombatState::ECS_Attack)
 	{
 		bIsHeavyAttackPending = true;
 	}
@@ -243,7 +243,7 @@ void ABlader::Input_FirstSkill(const FInputActionValue& Value)
 	}
 	bIsNormalAttackPending = false;
 	bIsHeavyAttackPending = false;
-	if (CharacterState == EASRCharacterState::ECS_Attack)
+	if (GetCombatState() == ECombatState::ECS_Attack)
 	{
 		bIsFirstSkillPending = true;
 	}
@@ -280,7 +280,7 @@ void ABlader::Input_Release_Ult(const FInputActionValue& Value)
 		GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
 			FName("Ult"), Target->GetActorLocation(), Target->GetActorRotation()
 		);
-		CharacterState = EASRCharacterState::ECS_Attack;
+		SetCombatState(ECombatState::ECS_Attack);
 		PlayUltAttackMontage();
 	}
 	else
@@ -327,7 +327,7 @@ void ABlader::HeavyAttack()
 
 void ABlader::DashAttack()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
 	ResetSkills();
 	ResetDodge();
@@ -336,7 +336,7 @@ void ABlader::DashAttack()
 
 void ABlader::DashHeavyAttack()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
 	ResetSkills();
 	ResetDodge();
@@ -378,7 +378,7 @@ void ABlader::ExecuteNormalAttackInAir(int32 AttackIndex)
 		if (NormalAttackInAirMontages.IsValidIndex(AttackIndex) && NormalAttackInAirMontages[AttackIndex] != nullptr)
 		{
 			GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
-			SetCharacterState(EASRCharacterState::ECS_Attack);
+			SetCombatState(ECombatState::ECS_Attack);
 			PlayAnimMontage(NormalAttackInAirMontages[AttackIndex]);
 
 			if (NormalAttackIndex + 1 >= NormalAttackInAirMontages.Num())
@@ -404,9 +404,7 @@ void ABlader::ExecuteHeavyAttack(int32 AttackIndex)
 	{
 		if (HeavyAttackMontages.IsValidIndex(AttackIndex) && HeavyAttackMontages[AttackIndex] != nullptr)
 		{
-			SetCharacterState(EASRCharacterState::ECS_Attack);
-
-
+			SetCombatState(ECombatState::ECS_Attack);
 			PlayAnimMontage(HeavyAttackMontages[AttackIndex]);
 
 			if (HeavyAttackIndex + 1 >= HeavyAttackMontages.Num())
@@ -440,7 +438,7 @@ void ABlader::ExecuteAerialAttack()
 
 	if (AerialAttackMontage != nullptr)
 	{
-		SetCharacterState(EASRCharacterState::ECS_Attack);
+		SetCombatState(ECombatState::ECS_Attack);
 		UE_LOG(LogTemp, Warning, TEXT("PLAYANIM!"));
 
 		PlayAnimMontage(AerialAttackMontage);
@@ -494,9 +492,9 @@ void ABlader::ResolveLightAttackPending()
 	{
 		bIsFirstSkillPending = false; 
 		bIsNormalAttackPending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack)
+		if (GetCombatState() == ECombatState::ECS_Attack)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 		FirstSkill();
 	}
@@ -511,9 +509,9 @@ void ABlader::ResolveHeavyAttackPending()
 	{
 		bIsHeavyAttackPending = false;
 
-		if (CharacterState == EASRCharacterState::ECS_Attack)
+		if (GetCombatState() == ECombatState::ECS_Attack)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 
 		HeavyAttack();

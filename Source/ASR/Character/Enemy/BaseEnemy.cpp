@@ -22,6 +22,7 @@
 #include "ASR/Character/Enemy/AI/PatrolRoute.h"
 #include "Perception/AISense_Damage.h"
 #include "ASR/Weapons/MeleeWeapon.h"
+#include "BehaviorTree/BehaviorTree.h"
 
 
 
@@ -103,7 +104,7 @@ void ABaseEnemy::BeginPlay()
 			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
 			MeleeWeapon->AttachToComponent(GetMesh(), AttachRules, WeaponSocketName);
 			MeleeWeapon->WeaponOwner = this;
-			MeleeWeapon->GetWeaponMesh()->SetVisibility(false);
+			MeleeWeapon->GetWeaponMesh()->SetVisibility(!bIsWeaponHidden);
 		}
 	}
 
@@ -113,6 +114,11 @@ void ABaseEnemy::BeginPlay()
 void ABaseEnemy::NotifyAttackEnd()
 {
 	OnAttackEnd.Broadcast();
+}
+
+void ABaseEnemy::NotifyGuardEnd()
+{
+	OnGuardEnd.Broadcast();
 }
 
 void ABaseEnemy::SetHealth(float NewHealth)
@@ -157,8 +163,9 @@ void ABaseEnemy::Executed()
 			RotateToAttacker(Pawn, false);
 			
 			HandleHitTransform(Pawn, EASRDamageType::EDT_Default, 1000.f);
-			SetCharacterState(EASRCharacterState::ECS_Death);
+			SetCombatState(ECombatState::ECS_Death);
 			SetHealth(0.f);
+			HandleDeath();
 			if (Cast<ASlayer>(Pawn) != nullptr)
 			{
 				PlayAnimMontage(SmashExecutionMontage);
@@ -184,7 +191,7 @@ bool ABaseEnemy::ExecuteNormalAttack()
 {
 	if (NormalAttackMontages.Num() > 0)
 	{
-		CharacterState = EASRCharacterState::ECS_Attack;
+		SetCombatState(ECombatState::ECS_Attack);
 		if (NormalAttackMontages.Num() <= NormalAttackIndex)
 		{
 			NormalAttackIndex = 0;
@@ -210,23 +217,43 @@ bool ABaseEnemy::ExecuteNormalAttack()
 	return false;
 }
 
-bool ABaseEnemy::CanAttack()
+bool ABaseEnemy::Guard()
 {
-	if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
-		&& CharacterState != EASRCharacterState::ECS_Death && CharacterState != EASRCharacterState::ECS_Flinching &&
-		CharacterState != EASRCharacterState::ECS_KnockDown && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
+	if (CanGuard())
+	{
+		SetCombatState(ECombatState::ECS_Guard);
+		PlayAnimMontage(GuardMontage);
+		return true;
+	}
+	return false;
+}
+
+bool ABaseEnemy::CanGuard() const
+{
+	if (GetCombatState() != ECombatState::ECS_Attack && GetCombatState() != ECombatState::ECS_Guard
+		&& GetCombatState() != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling())
 	{
 		return true;
 	}
 	return false;
 }
 
+bool ABaseEnemy::CanAttack() const
+{
+	if (GetCombatState() != ECombatState::ECS_Attack && GetCombatState() != ECombatState::ECS_Dodge
+		&& GetCombatState() != ECombatState::ECS_Death && GetCombatState() != ECombatState::ECS_Flinching &&
+		GetCombatState() != ECombatState::ECS_KnockDown && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
+	{
+		return true;
+	}
+	return false;
+}
+
+
 void ABaseEnemy::Landed(const FHitResult& HitResult)
 {
 	// Falling -> Hit Ground
 	Super::Landed(HitResult);
-	ResetState();
-
 	if (Health <= 0.f)
 	{
 		HandleDeath();
@@ -240,11 +267,12 @@ void ABaseEnemy::Landed(const FHitResult& HitResult)
 
 void ABaseEnemy::ResetState()
 {
-	if (CharacterState == EASRCharacterState::ECS_Death)
+	if (GetCombatState() == ECombatState::ECS_Death)
 	{
 		return;
 	}
-	CharacterState = EASRCharacterState::ECS_None;
+	SetCombatState(ECombatState::ECS_None);
+
 	
 	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Flying)
 	{
@@ -258,10 +286,34 @@ void ABaseEnemy::ResetState()
 void ABaseEnemy::HandleDeath()
 {
 	// Not Playing Death Montage for already Died enemy
-	if (CharacterState != EASRCharacterState::ECS_Death)
+	ECombatState PrevCharacterState = GetCombatState();
+
+	// Set State
+	SetCombatState(ECombatState::ECS_Death);
+	InfoWidgetComponent->SetVisibility(false);
+	
+	// Stop AI Logic
+	AAIController* AIController = Cast<AAIController>(GetController());
+	if (AIController != nullptr)
 	{
-		CharacterState = EASRCharacterState::ECS_Death;
-		if (GetCharacterMovement()->IsFalling())
+		UBrainComponent* BrainComponent = AIController->GetBrainComponent();
+		if (BrainComponent != nullptr)
+		{
+			AIController->ClearFocus(EAIFocusPriority::Gameplay);
+			BrainComponent->StopLogic("Die");
+		}
+	}
+		
+	// Play Animation, Not to Play Dead Animation more than once (Execution Case)
+	if (PrevCharacterState != ECombatState::ECS_Death)
+	{
+		if (FallingDeathMontage == nullptr || StandingDeathMontage == nullptr)
+		{
+			GetMesh()->SetSimulatePhysics(true);
+			GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+			return;
+		}
+		else if (GetCharacterMovement()->IsFalling())
 		{
 			PlayAnimMontage(FallingDeathMontage);
 		}
@@ -269,8 +321,6 @@ void ABaseEnemy::HandleDeath()
 		{
 			PlayAnimMontage(StandingDeathMontage);
 		}
-		CharacterState = EASRCharacterState::ECS_Death;
-
 	}
 	DisableCollision();
 }
@@ -281,6 +331,10 @@ void ABaseEnemy::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 	if (NormalAttackMontages.Contains(Montage))
 	{
 		NotifyAttackEnd();
+	}
+	else if (Montage == GuardMontage || Montage == GuardRevengeMontage)
+	{
+		NotifyGuardEnd();
 	}
 }
 
@@ -314,7 +368,7 @@ void ABaseEnemy::HandleTimelineFinished()
 	if (bIsLevitating)
 	{
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
-		ResetState();
+		//ResetState();
 		bIsLevitating = false;
 	}
 	if (bIsAirSmash)
@@ -487,25 +541,49 @@ void ABaseEnemy::InitializeTimeline()
 	TimelineComponent->SetTimelineFinishedFunc(TimelineFinishedCallback);
 }
 
-void ABaseEnemy::SetCharacterState(EASRCharacterState InCharacterState)
+void ABaseEnemy::SetCombatState(ECombatState InCombatState)
 {
+	if (InCombatState != GetCombatState() && GetCombatState() != ECombatState::ECS_Death)
 	{
-		if (InCharacterState != CharacterState && CharacterState != EASRCharacterState::ECS_Death)
-		{
-			CharacterState = InCharacterState;
-		}
+		CombatState = InCombatState;
+		OnCombatStateChanged.Broadcast(InCombatState);
 	}
+}
+
+bool ABaseEnemy::IsAttackFromFront(const FHitResult& HitResult) const
+{
+	FVector AttackDirection = (HitResult.TraceStart - HitResult.TraceEnd).GetSafeNormal();
+	FVector CharacterForward = GetActorForwardVector();
+	FVector NormalizedAttackDirection = AttackDirection.GetSafeNormal();
+
+	float DotProduct = FVector::DotProduct(CharacterForward, NormalizedAttackDirection);
+
+	// forward 120 degrees
+	return DotProduct > 0.5f;
 }
 
 void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {
 	// [TODO] Block Handling Before Take Damage
 	
-	if (CharacterState == EASRCharacterState::ECS_Death)
+	if (GetCombatState() == ECombatState::ECS_Death)
 	{ 
 		return;
 	}
 	
+	if (Cast<APawn>(Attacker) == nullptr)
+	{
+		return;
+	}
+
+	if (GetCombatState() == ECombatState::ECS_Guard && IsAttackFromFront(HitResult))
+	{
+		//FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
+		//LaunchCharacter(KnockbackForce, true, true);
+		PlayAnimMontage(GuardRevengeMontage);	
+		return;
+	}
+
 	if (Cast<AASRCharacter>(Attacker) != nullptr)
 	{
 		ApplyHitStop(HitStopDuration, HitStopTimeDilation);
@@ -541,6 +619,12 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 			FVector(1.f)
 		);
 	}
+	else if (HitData.HitParticleEffect != nullptr)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(), HitData.HitParticleEffect, HitResult.ImpactPoint
+		);
+	}
 
 	// Death
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
@@ -554,11 +638,13 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	Mapping = DamageTypeMappings.Find(HitData.DamageType);
 	if (Mapping != nullptr)
 	{
-
-		CharacterState = Mapping->CharacterState;			
+		SetCombatState(Mapping->CombatState);
+		if (Mapping->CombatState == ECombatState::ECS_Flinching || Mapping->CombatState == ECombatState::ECS_KnockDown)
+		{
+			GetCharacterMovement()->StopMovementImmediately();
+		}
 		RotateToAttacker(Attacker, false);
 		HandleHitTransform(Attacker, HitData.DamageType, HitData.Damage);
-
 
 		if (GetCharacterMovement()->IsFalling() || GetCharacterMovement()->IsFlying())
 		{
@@ -580,12 +666,22 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	}
 }
 
-APatrolRoute* ABaseEnemy::GetPatrolRoute_Implementation() const
+bool ABaseEnemy::IsDead() const
+{
+	return GetCombatState() == ECombatState::ECS_Death;
+}
+
+ECombatState ABaseEnemy::GetCombatState() const
+{
+	return CombatState;
+}
+
+APatrolRoute* ABaseEnemy::GetPatrolRoute() const
 {
 	return PatrolRoute;
 }
 
-float ABaseEnemy::SetMovementSpeed_Implementation(EEnemyMovementSpeed EnemyMovementSpeed)
+float ABaseEnemy::SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed)
 {
 	float NewSpeed;
 
@@ -613,6 +709,16 @@ float ABaseEnemy::SetMovementSpeed_Implementation(EEnemyMovementSpeed EnemyMovem
 	}
 	GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
 	return NewSpeed;
+}
+
+float ABaseEnemy::GetCurrentHealth() const
+{
+	return Health;
+}
+
+float ABaseEnemy::GetMaxHealth() const
+{
+	return MaxHealth;
 }
 
 void ABaseEnemy::Tick(float DeltaTime)

@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
 #include "ASR/Enums/ASRDamageType.h"
+#include "ASR/Enums/CombatState.h"
 #include "HitInterface.generated.h"
 
 USTRUCT(BlueprintType)
@@ -23,10 +24,14 @@ struct FHitData
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UNiagaraSystem* HitEffect = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	class UParticleSystem* HitParticleEffect = nullptr;
+
 };
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, BlueprintType, meta = (CannotImplementInterfaceInBlueprint))
 class UHitInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -43,4 +48,11 @@ class ASR_API IHitInterface
 public:
 	//
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual ECombatState GetCombatState() const = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool IsDead() const = 0;
+
 };

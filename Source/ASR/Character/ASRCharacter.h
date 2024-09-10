@@ -5,28 +5,17 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "ASR/Interfaces/HitInterface.h"
+#include "ASR/Enums/CombatState.h"
 #include "ASRCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHealthChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCombatStateChanged, ECombatState, NewState);
 
 
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
 
-UENUM(BlueprintType)
-enum class EASRCharacterState : uint8
-{
-	ECS_None		UMETA(DisplayName = "Default State"),
-	ECS_Attack		UMETA(DisplayName = "Attack"),
-	ECS_Dodge		UMETA(DisplayName = "Dodge"),
-	ECS_Guard		UMETA(DisplayName = "Guard"),
-	ECS_Flinching	UMETA(DisplayName = "Flinching"),
-	ECS_KnockDown	UMETA(DisplayName = "Knockout"),
-	ECS_Death		UMETA(DisplayName = "Death"),
-
-	ECS_MAX			UMETA(Hidden)
-};
 
 USTRUCT(BlueprintType)
 struct FDamageTypeMapping
@@ -34,7 +23,7 @@ struct FDamageTypeMapping
 	GENERATED_BODY()
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
-	EASRCharacterState CharacterState;
+	ECombatState CombatState;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
 	UAnimMontage* HitReactionMontage;
@@ -55,7 +44,11 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 
+	// HitInterface
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
+	virtual bool IsDead() const override;
+	virtual ECombatState GetCombatState() const override;
+
 
 	FOnHealthChanged OnHealthChanged;
 
@@ -68,6 +61,9 @@ public:
 
 	void ApplyHitStop(float Duration, float TimeDilation);
 	void ResetTimeDilation();
+
+	FOnCombatStateChanged OnCombatStateChanged;
+
 
 protected:
 	virtual void BeginPlay() override;
@@ -117,8 +113,7 @@ protected:
 	virtual void ResolveDodgeAndGuardPending();
 
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State)
-	EASRCharacterState CharacterState;
+
 
 	TArray<AActor*> HitActors;
 	FVector2D PrevInput;
@@ -213,7 +208,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> NormalAttackMontages;
 
-
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
+	ECombatState CombatState;
 
 private:
 	// Camera Setting
@@ -271,13 +267,12 @@ private:
 
 public:
 	// Getter & Setter
-	void SetCharacterState(EASRCharacterState InCharacterState);
+	void SetCombatState(ECombatState InCombatState);
 
 	// FORCEINLINE 
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	FORCEINLINE UCameraComponent* GetExecutionCamera() const { return ExecutionCamera; }
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	FORCEINLINE EASRCharacterState GetCharacterState() const { return CharacterState; }
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComp; }
 	FORCEINLINE UChildActorComponent* GetExecutionCameraManager() const { return ExecutionCameraManager; }

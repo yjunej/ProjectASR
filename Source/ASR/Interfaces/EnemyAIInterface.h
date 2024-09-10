@@ -8,7 +8,7 @@
 #include "EnemyAIInterface.generated.h"
 
 // This class does not need to be modified.
-UINTERFACE(MinimalAPI)
+UINTERFACE(MinimalAPI, BlueprintType, meta = (CannotImplementInterfaceInBlueprint))
 class UEnemyAIInterface : public UInterface
 {
 	GENERATED_BODY()
@@ -21,14 +21,17 @@ class ASR_API IEnemyAIInterface
 {
 	GENERATED_BODY()
 
-	// Expose C++ Interface To Blueprint
 public:
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category=AI)
-	class APatrolRoute* GetPatrolRoute() const;
-	virtual APatrolRoute* GetPatrolRoute_Implementation() const;
+	UFUNCTION(BlueprintCallable)
+	virtual class APatrolRoute* GetPatrolRoute() const = 0;
 
-	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = AI)
-	float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed);
-	virtual float SetMovementSpeed_Implementation(EEnemyMovementSpeed EnemyMovementSpeed);
+	UFUNCTION(BlueprintCallable)
+	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual float GetCurrentHealth() const = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual float GetMaxHealth() const = 0;
 
 };

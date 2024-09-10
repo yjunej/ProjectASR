@@ -120,7 +120,7 @@ void AGunner::SecondSkill()
 
 void AGunner::DashAttack()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
 	ResetSkills();
 	ResetDodge();
@@ -187,9 +187,9 @@ void AGunner::ResolveHeavyAttackPending()
 	{
 		bIsSecondSkillPending = false;
 		bIsNormalAttackPending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack)
+		if (GetCombatState() == ECombatState::ECS_Attack)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 		SecondSkill();
 	}
@@ -216,7 +216,7 @@ void AGunner::HandleDeath()
 
 void AGunner::Input_FirstSkill(const FInputActionValue& Value)
 {
-	if (CharacterState == EASRCharacterState::ECS_Attack)
+	if (GetCombatState() == ECombatState::ECS_Attack)
 	{
 		bIsFirstSkillPending = true;
 	}
@@ -229,7 +229,7 @@ void AGunner::Input_FirstSkill(const FInputActionValue& Value)
 void AGunner::Input_SecondSkill(const FInputActionValue& Value)
 {
 	bIsNormalAttackPending = false;
-	if (CharacterState == EASRCharacterState::ECS_Attack)
+	if (GetCombatState() == ECombatState::ECS_Attack)
 	{
 		bIsSecondSkillPending = true;
 	}
@@ -245,7 +245,7 @@ void AGunner::Input_Ult(const FInputActionValue& Value)
 	{
 		ResetNormalAttack();
 		ResetDodge();
-		SetCharacterState(EASRCharacterState::ECS_Attack);
+		SetCombatState(ECombatState::ECS_Attack);
 		PlayAnimMontage(UltMontage);
 		bIsUltMode = true;
 		bIsAiming = true;
@@ -313,9 +313,9 @@ void AGunner::ResolveLightAttackPending()
 	{
 		bIsFirstSkillPending = false;
 		bIsNormalAttackPending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack)
+		if (GetCombatState() == ECombatState::ECS_Attack)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 		FirstSkill();
 	}
@@ -448,7 +448,7 @@ void AGunner::InterpFOV(float DeltaSeconds)
 
 void AGunner::ExecuteFirstSkill()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	PlayAnimMontage(FirstSkillMontage);
 		if (DroneClass != nullptr)
 		{
@@ -484,14 +484,14 @@ void AGunner::ExecuteFirstSkill()
 
 void AGunner::ExecuteSecondSkill()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	PlayAnimMontage(SecondSkillMontage);
 }
 
 void AGunner::Fire(bool bFire)
 {
 	bStartFire = bFire;
-	if (CharacterState == EASRCharacterState::ECS_None || CharacterState == EASRCharacterState::ECS_Attack)
+	if (GetCombatState() == ECombatState::ECS_None || GetCombatState() == ECombatState::ECS_Attack)
 	{
 		if (bStartFire)
 		{
@@ -525,9 +525,9 @@ void AGunner::FireWithTimer()
 bool AGunner::CanFire()
 {
 	// Gunner NOT USE ECS_Attack State
-	//if (CharacterState != EASRCharacterState::ECS_Attack && CharacterState != EASRCharacterState::ECS_Dodge
-	//	&& CharacterState != EASRCharacterState::ECS_Death && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
-	//	&& CharacterState != EASRCharacterState::ECS_Flinching)
+	//if (GetCombatState() != ECombatState::ECS_Attack && GetCombatState() != ECombatState::ECS_Dodge
+	//	&& GetCombatState() != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
+	//	&& GetCombatState() != ECombatState::ECS_Flinching)
 	return bCanFire && Ammo > 0 && GunnerAnimState != EGunnerAnimState::EGA_Reloading && CanAttack();
 }
 

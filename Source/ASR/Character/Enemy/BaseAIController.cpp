@@ -12,8 +12,6 @@
 #include "Perception/AISenseConfig_Hearing.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "Perception/AIPerceptionSystem.h"
-
-
 #include "Kismet/GameplayStatics.h"
 
 
@@ -65,6 +63,24 @@ EEnemyAIState ABaseAIController::GetCurrentAIState()
 	return StaticCast<EEnemyAIState>(BBComponent->GetValueAsEnum(AIStateKeyName));
 }
 
+void ABaseAIController::OnAICombatStateChanged(ECombatState NewState)
+{
+	UBlackboardComponent* BBComponent = GetBlackboardComponent();
+	if (BBComponent != nullptr)
+	{
+		BBComponent->SetValueAsEnum(CombatStateKeyName, StaticCast<uint8>(NewState));
+	}
+}
+
+void ABaseAIController::OnPlayerCombatStateChanged(ECombatState NewState)
+{
+	UBlackboardComponent* BBComponent = GetBlackboardComponent();
+	if (BBComponent != nullptr)
+	{
+		BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(NewState));
+	}
+}
+
 void ABaseAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
@@ -82,7 +98,11 @@ void ABaseAIController::OnPossess(APawn* InPawn)
 void ABaseAIController::BeginPlay()
 {
 	Super::BeginPlay();
-
+	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetPawn());
+	if (Enemy != nullptr)
+	{
+		Enemy->OnCombatStateChanged.AddDynamic(this, &ABaseAIController::OnAICombatStateChanged);
+	}
 }
 
 void ABaseAIController::SetBlackboardKeys()
@@ -94,18 +114,10 @@ void ABaseAIController::SetBlackboardKeys()
 	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetPawn());
 	if (Enemy != nullptr)
 	{
-		BBComponent->SetValueAsEnum(CharacterStateKeyName, StaticCast<uint8>(Enemy->GetCharacterState()));
+		BBComponent->SetValueAsEnum(CombatStateKeyName, StaticCast<uint8>(Enemy->GetCombatState()));
 		BBComponent->SetValueAsFloat(AttackDistanceKeyName, Enemy->GetAttackDistance());
 		BBComponent->SetValueAsFloat(DefendDistanceKeyName, Enemy->GetDefendDistance());
 	}
-
-
-	// Legacy
-	//BBComponent->SetValueAsObject(FName("Target"), UGameplayStatics::GetPlayerCharacter(this, 0));
-	//BBComponent->SetValueAsFloat(FName("StrafeDistance"), StrafeDistance);
-	//BBComponent->SetValueAsBool(FName("bSaveAttack"), true);
-	//float DelaySecond = 2.f;
-	//GetWorldTimerManager().SetTimer(TimerHandle, this, &ABaseAIController::ExecuteNormalAttack, DelaySecond, true);
 }
 
 void ABaseAIController::SwitchToPassiveState()
@@ -116,10 +128,35 @@ void ABaseAIController::SwitchToPassiveState()
 
 void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 {
+	if (AttackTarget != TargetActor)
+	{
+		if (AttackTarget != nullptr)
+		{
+			AASRCharacter* PrevAttackTarget = Cast<AASRCharacter>(AttackTarget);
+			if (PrevAttackTarget != nullptr)
+			{
+				PrevAttackTarget->OnCombatStateChanged.RemoveDynamic(this, &ABaseAIController::OnPlayerCombatStateChanged);
+			}
+		}
+		// Changed and Valid New Target
+		if (TargetActor != nullptr && TargetActor != AttackTarget)
+		{
+			AASRCharacter* NewTargetCharacter = Cast<AASRCharacter>(TargetActor);
+			if (NewTargetCharacter != nullptr)
+			{
+
+				NewTargetCharacter->OnCombatStateChanged.AddDynamic(this, &ABaseAIController::OnPlayerCombatStateChanged);
+			}
+
+		}
+	}
 	AttackTarget = TargetActor;
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
 	BBComponent->SetValueAsObject(AttackTargetKeyName, TargetActor);
 	BBComponent->SetValueAsEnum(AIStateKeyName, StaticCast<uint8>(EEnemyAIState::EAS_Attack));
+	IHitInterface* HitInteface = Cast<IHitInterface>(AttackTarget);
+	BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(HitInteface->GetCombatState()));
+	
 }
 
 void ABaseAIController::SwitchToInvestigateState(FVector InvestigateLocaton)
@@ -134,7 +171,7 @@ void ABaseAIController::ExecuteNormalAttack()
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
 
 	ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetPawn());
-	if (Enemy != nullptr && Enemy->GetCharacterState() != EASRCharacterState::ECS_Death)
+	if (Enemy != nullptr && Enemy->GetCombatState() != ECombatState::ECS_Death)
 	{
 		BBComponent->SetValueAsEnum(FName("State"), StaticCast<uint8>(EEnemyBehaviorState::EBS_Attack));
 	}
@@ -209,8 +246,9 @@ void ABaseAIController::HandleSensedSight(AActor* Actor)
 		break;
 	}
 	
-	ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
-	if (bConvertToAttack && PlayerCharacter != nullptr && PlayerCharacter == Actor)
+	//ACharacter* PlayerCharacter = UGameplayStatics::GetPlayerCharacter(this, 0);
+	//if (bConvertToAttack && PlayerCharacter != nullptr && PlayerCharacter == Actor)
+	if (bConvertToAttack)
 	{
 		SwitchToAttackState(Actor);
 	}

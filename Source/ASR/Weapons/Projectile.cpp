@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include "Sound/SoundCue.h"
 #include "ASR/Interfaces/HitInterface.h"
 #include "ASR/Character/ASRCharacter.h"
@@ -55,18 +56,51 @@ void AProjectile::BeginPlay()
 
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& HitResult)
 { 
-	UE_LOG(LogTemp, Warning, TEXT("Projectile OnHit!"));
 
 	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
 	if (HitInterface != nullptr)
 	{
+		// [TODO] - Hit Data Handle Particle!
+		//FHitData HitData = { .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall, .HitEffect = HitEnemyParticle, .HitSound = HitEnemySound };
 		FHitData HitData = { .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall };
-		HitInterface->GetHit(HitResult, ProjectileOwner, HitData);
-		AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);
-		if (ASRCharacter != nullptr)
+
+		if (Cast<APawn>(OtherActor) != nullptr)
 		{
-			ASRCharacter->OnAttackEnemy();
-			UGameplayStatics::PlaySoundAtLocation(this, HitEnemySound, ASRCharacter->GetActorLocation(), 2.f);
+			UE_LOG(LogTemp, Warning, TEXT("PROJECTILE HIT Pawn: %s"), *OtherActor->GetName());
+			HitData.HitEffect = HitEnemyEffect;
+			HitData.HitParticleEffect = HitEnemyParticle;
+			HitData.HitSound = HitEnemySound;
+			HitInterface->GetHit(HitResult, ProjectileOwner, HitData);
+
+			AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);
+			if (ASRCharacter != nullptr)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, HitEnemySound, ASRCharacter->GetActorLocation(), 2.f);
+				ASRCharacter->OnAttackEnemy();
+			}
+		}
+	}
+	else
+	{
+		if (HitObjectSound != nullptr)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, HitObjectSound, GetActorLocation(), 2.f);
+		}
+		if (HitObjectEffect != nullptr)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				HitObjectEffect,
+				HitResult.ImpactPoint,
+				GetActorRotation(),
+				FVector(1.f)
+			);
+		}
+		else if (HitObjectParticle != nullptr)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(), HitObjectParticle, GetActorTransform()
+			);
 		}
 	}
 
@@ -84,15 +118,5 @@ void AProjectile::Tick(float DeltaTime)
 void AProjectile::Destroyed()
 {
 	Super::Destroyed();
-	if (HitObjectParticle != nullptr)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(), HitObjectParticle, GetActorTransform()
-		);
-	}
-	if (HitObjectSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitObjectSound, GetActorLocation());
-	}
 }
 

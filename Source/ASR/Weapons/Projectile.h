@@ -39,6 +39,9 @@ private:
 	class UParticleSystemComponent* TrailComponent;
 
 	UPROPERTY(EditAnywhere)
+	class UNiagaraSystem* HitObjectEffect;
+
+	UPROPERTY(EditAnywhere)
 	UParticleSystem* HitObjectParticle;
 
 	UPROPERTY(EditAnywhere)
@@ -46,6 +49,9 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float ProjectileDamage;
+
+	UPROPERTY(EditAnywhere)
+	UNiagaraSystem* HitEnemyEffect;
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* HitEnemyParticle;

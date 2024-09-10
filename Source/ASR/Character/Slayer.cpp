@@ -71,7 +71,7 @@ void ASlayer::SecondSkill()
 
 void ASlayer::DashAttack()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
 	ResetSkills();
 	ResetDodge();
@@ -121,9 +121,9 @@ void ASlayer::ResolveHeavyAttackPending()
 	{
 		bIsSecondSkillPending = false;
 		bIsNormalAttackPending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack)
+		if (GetCombatState() == ECombatState::ECS_Attack)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 		SecondSkill();
 	}
@@ -140,7 +140,7 @@ void ASlayer::ResetState()
 void ASlayer::Input_FirstSkill(const FInputActionValue& Value)
 {
 	bIsNormalAttackPending = false;
-	if (CharacterState == EASRCharacterState::ECS_Attack)
+	if (GetCombatState() == ECombatState::ECS_Attack)
 	{
 		bIsFirstSkillPending = true;
 	}
@@ -153,7 +153,7 @@ void ASlayer::Input_FirstSkill(const FInputActionValue& Value)
 void ASlayer::Input_SecondSkill(const FInputActionValue& Value)
 {
 	bIsNormalAttackPending = false;
-	if (CharacterState == EASRCharacterState::ECS_Attack)
+	if (GetCombatState() == ECombatState::ECS_Attack)
 	{
 		bIsSecondSkillPending = true;
 	}
@@ -167,7 +167,7 @@ void ASlayer::Input_Ult(const FInputActionValue& Value)
 {
 	if (CanAttack())
 	{
-		SetCharacterState(EASRCharacterState::ECS_Attack);
+		SetCombatState(ECombatState::ECS_Attack);
 		PlayAnimMontage(UltMontage);
 	}
 }
@@ -178,9 +178,9 @@ void ASlayer::ResolveLightAttackPending()
 	{
 		bIsFirstSkillPending = false;
 		bIsNormalAttackPending = false;
-		if (CharacterState == EASRCharacterState::ECS_Attack)
+		if (GetCombatState() == ECombatState::ECS_Attack)
 		{
-			CharacterState = EASRCharacterState::ECS_None;
+			SetCombatState(ECombatState::ECS_None);
 		}
 		FirstSkill();
 	}
@@ -195,13 +195,13 @@ float ASlayer::GetFirstSkillWarpDistance() const
 
 void ASlayer::ExecuteFirstSkill()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	PlayAnimMontage(FirstSkillMontage);
 }
 
 void ASlayer::ExecuteSecondSkill()
 {
-	SetCharacterState(EASRCharacterState::ECS_Attack);
+	SetCombatState(ECombatState::ECS_Attack);
 	PlayAnimMontage(SecondSkillMontage);
 }
 
