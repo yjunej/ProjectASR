@@ -97,6 +97,14 @@ protected:
 	UFUNCTION()
 	void PerceptionUpdated(const TArray<AActor*>& UpdatedActors);
 
+	TArray<AActor*> SightedActors;
+
+	UFUNCTION(BlueprintCallable)
+	bool CheckForgottenSightedActor();
+	void HandleForgottenActor(AActor* ForgottenActor);
+	void HandleLostSight(AActor* LostSightedActor);
+
+
 	//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPerceptionUpdatedDelegate, const TArray<AActor*>&, UpdatedActors);
 
 };

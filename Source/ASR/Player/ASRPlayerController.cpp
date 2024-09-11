@@ -103,7 +103,11 @@ void AASRPlayerController::SwapCharacter()
 					bSpawned = true;
 					Possess(NextCharacter);
 					ESlateVisibility GunnerHUDTemp = Cast<AGunner>(NextCharacter) == nullptr ? ESlateVisibility::Hidden : ESlateVisibility::SelfHitTestInvisible;
-					GunnerHUD->SetVisibility(GunnerHUDTemp);
+					if (GunnerHUD != nullptr)
+					{
+						GunnerHUD->SetVisibility(GunnerHUDTemp);
+					}
+
 					Swap(NextCharacter, ControlCharacter);
 				}
 			}

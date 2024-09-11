@@ -111,9 +111,9 @@ void ABaseEnemy::BeginPlay()
 }
 
 
-void ABaseEnemy::NotifyAttackEnd()
+void ABaseEnemy::NotifyAttackEnd(AActor* AttackTarget)
 {
-	OnAttackEnd.Broadcast();
+	OnAttackEnd.Broadcast(AttackTarget);
 }
 
 void ABaseEnemy::NotifyGuardEnd()
@@ -178,16 +178,17 @@ void ABaseEnemy::Executed()
 	} 
 }
 
-bool ABaseEnemy::NormalAttack()
+bool ABaseEnemy::NormalAttack(AActor* AttackTarget)
 {
 	if (CanAttack())
 	{
-		return ExecuteNormalAttack();
+		CachedAttackTarget = AttackTarget;
+		return ExecuteNormalAttack(AttackTarget);
 	}
 	return false;
 }
 
-bool ABaseEnemy::ExecuteNormalAttack()
+bool ABaseEnemy::ExecuteNormalAttack(AActor* AttackTarget)
 {
 	if (NormalAttackMontages.Num() > 0)
 	{
@@ -219,7 +220,7 @@ bool ABaseEnemy::ExecuteNormalAttack()
 
 bool ABaseEnemy::Guard()
 {
-	if (CanGuard())
+	if (CanGuard() && FMath::RandRange(0.f, 1.f) <= ReactStateGuardRate)
 	{
 		SetCombatState(ECombatState::ECS_Guard);
 		PlayAnimMontage(GuardMontage);
@@ -240,6 +241,7 @@ bool ABaseEnemy::CanGuard() const
 
 bool ABaseEnemy::CanAttack() const
 {
+
 	if (GetCombatState() != ECombatState::ECS_Attack && GetCombatState() != ECombatState::ECS_Dodge
 		&& GetCombatState() != ECombatState::ECS_Death && GetCombatState() != ECombatState::ECS_Flinching &&
 		GetCombatState() != ECombatState::ECS_KnockDown && !GetCharacterMovement()->IsFalling() && !bIsLevitating && !GetCharacterMovement()->IsFlying())
@@ -296,10 +298,10 @@ void ABaseEnemy::HandleDeath()
 	AAIController* AIController = Cast<AAIController>(GetController());
 	if (AIController != nullptr)
 	{
+		AIController->ClearFocus(EAIFocusPriority::Gameplay);
 		UBrainComponent* BrainComponent = AIController->GetBrainComponent();
 		if (BrainComponent != nullptr)
 		{
-			AIController->ClearFocus(EAIFocusPriority::Gameplay);
 			BrainComponent->StopLogic("Die");
 		}
 	}
@@ -323,6 +325,17 @@ void ABaseEnemy::HandleDeath()
 		}
 	}
 	DisableCollision();
+	
+	for (const TPair<AActor*, int32>& Pair : ReservedAttackTokensMap)
+	{
+		AActor* AttackTarget = Pair.Key;
+		int32 Tokens = Pair.Value;
+		ICombatInterface* CombatInterface = Cast<ICombatInterface>(AttackTarget);
+		if (CombatInterface != nullptr)
+		{
+			CombatInterface->ReturnAttackTokens(Tokens);
+		}
+	}
 }
 
 
@@ -330,7 +343,7 @@ void ABaseEnemy::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
 	if (NormalAttackMontages.Contains(Montage))
 	{
-		NotifyAttackEnd();
+		NotifyAttackEnd(CachedAttackTarget);
 	}
 	else if (Montage == GuardMontage || Montage == GuardRevengeMontage)
 	{
@@ -559,6 +572,21 @@ void ABaseEnemy::SetHitReactionState(EHitReactionState NewState)
 	}
 }
 
+bool ABaseEnemy::ReserveAttackTokens(int32 Amount)
+{
+	if (AttackTokensCount >= Amount)
+	{
+		AttackTokensCount -= Amount;
+		return true;
+	}
+	return false;
+}
+
+void ABaseEnemy::ReturnAttackTokens(int32 Amount)
+{
+	AttackTokensCount += Amount;
+}
+
 bool ABaseEnemy::IsAttackFromFront(const FHitResult& HitResult) const
 {
 	FVector AttackDirection = (HitResult.TraceStart - HitResult.TraceEnd).GetSafeNormal();
@@ -596,6 +624,17 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		PlayAnimMontage(GuardRevengeMontage);	
 		return;
 	}
+
+	// TODO - Improvement
+	if (FMath::RandRange(0.f, 1.f) < AutoGuardRate &&
+		!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
+	{
+		SetCombatState(ECombatState::ECS_Guard);
+		SetHitReactionState(EHitReactionState::EHR_SuperArmor);
+		PlayAnimMontage(GuardRevengeMontage);
+		return;
+	}
+
 
 	if (Cast<AASRCharacter>(Attacker) != nullptr)
 	{
@@ -742,6 +781,54 @@ float ABaseEnemy::GetMaxHealth() const
 	return MaxHealth;
 }
 
+bool ABaseEnemy::AttackBegin(AActor* AttackTarget, int32 RequiredTokens)
+{
+	// Check if the required number of tokens is available
+	ICombatInterface* CombatInterface = Cast<ICombatInterface>(AttackTarget);
+	if (CombatInterface != nullptr)
+	{
+		bool bSuccess = CombatInterface->ReserveAttackTokens(RequiredTokens);
+		if (bSuccess)
+		{
+			StoreAttackTokens(AttackTarget, RequiredTokens);
+			CachedLastUsedTokensCount = RequiredTokens;
+			return true;
+		}
+	}
+	return false;
+}
+
+void ABaseEnemy::Attack(AActor* AttackTarget)
+{
+	// Attack State True
+	
+	//
+}
+
+void ABaseEnemy::AttackEnd(AActor* AttackTarget)
+{
+	ICombatInterface* CombatInterface = Cast<ICombatInterface>(AttackTarget);
+	if (CombatInterface != nullptr)
+	{
+		CombatInterface->ReturnAttackTokens(CachedLastUsedTokensCount);
+	}
+	StoreAttackTokens(AttackTarget, -CachedLastUsedTokensCount);
+	// Attack State Off
+}
+
+void ABaseEnemy::StoreAttackTokens(AActor* AttackTarget, int32 Amount)
+{
+	if (ReservedAttackTokensMap.Contains(AttackTarget))
+	{
+		int32& ExistingAmount = ReservedAttackTokensMap[AttackTarget];
+		ExistingAmount += Amount;
+	}
+	else
+	{
+		ReservedAttackTokensMap.Add({ AttackTarget, Amount });
+	}
+}
+
 void ABaseEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
@@ -777,11 +864,11 @@ void ABaseEnemy::SphereTrace(float TraceDistance, float TraceRadius, const FHitD
 			// Check Duplicated Hit
 			if (HitActor != nullptr && !HitActors.Contains(HitActor))
 			{
-				IHitInterface* HitInterface = Cast<IHitInterface>(HitActor);
-				if (HitInterface != nullptr)
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(HitActor);
+				if (CombatInterface != nullptr)
 				{
 					//UGameplayStatics::PlaySoundAtLocation(this, HitSoundCue, HitActor->GetActorLocation());
-					HitInterface->GetHit(HitResult, this, HitData);
+					CombatInterface->GetHit(HitResult, this, HitData);
 					HitActors.AddUnique(HitActor);
 				}
 			}

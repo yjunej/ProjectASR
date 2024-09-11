@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "ASR/Interfaces/HitInterface.h"
+#include "ASR/Interfaces/CombatInterface.h"
 #include "ASR/Enums/CombatState.h"
 #include "ASRCharacter.generated.h"
 
@@ -32,7 +32,7 @@ struct FDamageTypeMapping
 
 
 UCLASS()
-class ASR_API AASRCharacter : public ACharacter, public IHitInterface
+class ASR_API AASRCharacter : public ACharacter, public ICombatInterface
 {
 	GENERATED_BODY()
 
@@ -44,12 +44,15 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 
-	// HitInterface
+	// TODO - Create Combat Component.. 
+	// CombatInterface
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 	virtual bool IsDead() const override;
 	virtual ECombatState GetCombatState() const override;
 	virtual EHitReactionState GetHitReactionState() const override;
 	virtual void SetHitReactionState(EHitReactionState NewState) override;
+	virtual bool ReserveAttackTokens(int32 Amount) override;
+	virtual void ReturnAttackTokens(int32 Amount) override;
 
 
 
@@ -142,6 +145,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float DashAttackWarpDistance = 500.f;
 
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	int32 AttackTokensCount;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetState();

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "ASR/Interfaces/HitInterface.h"
+#include "ASR/Interfaces/CombatInterface.h"
 #include "ASR/Interfaces/EnemyAIInterface.h"
 #include "ASR/Enums/ASRDamageType.h"
 #include "ASR/Character/ASRCharacter.h" // Refactoring After Complete Basic System
@@ -12,7 +12,7 @@
 #include "BaseEnemy.generated.h"
 
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnd);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackEnd, AActor*, AttackTarget);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGuardEnd);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHitReactionStateChanged, EHitReactionState, NewState);
 
@@ -34,7 +34,7 @@ enum class EEnemyBehaviorState : uint8
 
 
 UCLASS()
-class ASR_API ABaseEnemy : public ACharacter, public IHitInterface, public IEnemyAIInterface
+class ASR_API ABaseEnemy : public ACharacter, public ICombatInterface, public IEnemyAIInterface
 {
 	GENERATED_BODY()
 
@@ -44,20 +44,26 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	// HitInterface
+	// CombatInterface
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 	virtual bool IsDead() const override;
 	virtual ECombatState GetCombatState() const override;
 	virtual EHitReactionState GetHitReactionState() const override;
 	virtual void SetHitReactionState(EHitReactionState NewState) override;
+	virtual bool ReserveAttackTokens(int32 Amount) override;
+	virtual void ReturnAttackTokens(int32 Amount) override;
 
 
-	// EnemyAIInterface - Blueprint Compatable
+	// EnemyAIInterface - Blueprint Compatible
 	virtual APatrolRoute* GetPatrolRoute() const override;
 	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
 	virtual float GetCurrentHealth() const override;
 	virtual float GetMaxHealth() const override;
-
+	virtual bool AttackBegin(AActor* AttackTarget, int32 RequiredTokens) override;
+	virtual void Attack(AActor* AttackTarget) override;
+	virtual void AttackEnd(AActor* AttackTarget) override;
+	virtual void StoreAttackTokens(AActor* AttackTarget, int32 Amount) override;
+	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float Health = 100.f;
@@ -80,7 +86,7 @@ public:
 
 
 	// Custom Notify For BT
-	void NotifyAttackEnd();
+	void NotifyAttackEnd(AActor* AttackTarget);
 	void NotifyGuardEnd();
 
 	FOnHealthChanged OnHealthChanged;
@@ -105,9 +111,9 @@ protected:
 
 	// Combat - Consider to apply Component Design
 	UFUNCTION(BlueprintCallable)
-	virtual bool NormalAttack();
+	virtual bool NormalAttack(AActor* AttackTarget);
 
-	virtual bool ExecuteNormalAttack();
+	virtual bool ExecuteNormalAttack(AActor* AttackTarget);
 	virtual bool CanAttack() const;
 	
 	UFUNCTION(BlueprintCallable)
@@ -139,8 +145,6 @@ protected:
 	float DefendDistance = 450.f;
 
 	bool bIsWeaponHidden = true;
-
-
 
 private:
 	
@@ -260,7 +264,7 @@ private:
 	TArray<AActor*> HitActors;
 	int32 NormalAttackIndex = 0;
 
-	UPROPERTY(EditDefaultsOnly, Category = Weapon)
+	UPROPERTY(EditAnywhere, Category = Weapon)
 	TSubclassOf<class AMeleeWeapon> MeleeWeaponClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
@@ -285,6 +289,18 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
 	class APatrolRoute* PatrolRoute;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	int32 AttackTokensCount;
+
+	AActor* CachedAttackTarget;
+	float CachedLastUsedTokensCount;
+	TMap<AActor*, int32> ReservedAttackTokensMap;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float AutoGuardRate = 0.1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float ReactStateGuardRate = 0.5;
 
 
 public:
@@ -294,8 +310,7 @@ public:
 	FORCEINLINE float GetAttackDistance() const { return AttackDistance; }
 	FORCEINLINE float GetDefendDistance() const { return DefendDistance; }
 	FORCEINLINE AMeleeWeapon* GetMeleeWeapon() const { return MeleeWeapon; }
-
-
+	FORCEINLINE void SetAutoGuardRate(float Rate) { AutoGuardRate = Rate; }
 
 
 

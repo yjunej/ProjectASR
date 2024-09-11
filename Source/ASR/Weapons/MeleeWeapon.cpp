@@ -5,7 +5,7 @@
 
 #include "Components/BoxComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "ASR/Interfaces/HitInterface.h"
+#include "ASR/Interfaces/CombatInterface.h"
 
 
 AMeleeWeapon::AMeleeWeapon()
@@ -53,12 +53,12 @@ void AMeleeWeapon::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, A
 	{
 		//UGameplayStatics::ApplyDamage(BoxHit.GetActor(), Damage, GetInstigator()->GetController(), this, UDamageType::StaticClass());
 		//ExecuteGetHit(BoxHit);
-		IHitInterface* HitInterface = Cast<IHitInterface>(WeaponBoxHitResult.GetActor());
-		if (HitInterface != nullptr)
+		ICombatInterface* CombatInterface = Cast<ICombatInterface>(WeaponBoxHitResult.GetActor());
+		if (CombatInterface != nullptr)
 		{
 			// Deprecated
 			FHitData HitData = { .Damage = 100.f, .DamageType = EASRDamageType::EDT_FrontSmall };
-			HitInterface->GetHit(WeaponBoxHitResult, WeaponOwner, HitData);
+			CombatInterface->GetHit(WeaponBoxHitResult, WeaponOwner, HitData);
 		}
 
 	}

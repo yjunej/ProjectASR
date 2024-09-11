@@ -560,9 +560,9 @@ void ABlader::ApplyUltDamage()
 {
 	for (AActor* Target : UltTargets)
 	{
-		IHitInterface* HitInterface = Cast<IHitInterface>(Target);
+		ICombatInterface* CombatInterface = Cast<ICombatInterface>(Target);
 		FHitResult HitResult;
 		FHitData HitData = { .Damage = 5000.f, .DamageType = EASRDamageType::EDT_KnockDownFrontSpear };
-		HitInterface->GetHit(HitResult, this, HitData);
+		CombatInterface->GetHit(HitResult, this, HitData);
 	}
 }

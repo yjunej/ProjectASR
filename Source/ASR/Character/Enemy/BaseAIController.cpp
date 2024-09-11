@@ -128,6 +128,7 @@ void ABaseAIController::SwitchToPassiveState()
 
 void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 {
+
 	if (AttackTarget != TargetActor)
 	{
 		if (AttackTarget != nullptr)
@@ -151,14 +152,26 @@ void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 		}
 	}
 	AttackTarget = TargetActor;
+	if (TargetActor == nullptr)
+	{
+		SwitchToPassiveState();
+		return;
+	}
+
+	ICombatInterface* CombatInterface = Cast<ICombatInterface>(AttackTarget);
+	if (CombatInterface != nullptr && CombatInterface->IsDead())
+	{
+		SwitchToPassiveState();
+		return;
+	}
+
+	// Update Keys
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
 	BBComponent->SetValueAsObject(AttackTargetKeyName, TargetActor);
 	BBComponent->SetValueAsEnum(AIStateKeyName, StaticCast<uint8>(EEnemyAIState::EAS_Attack));
-
-	IHitInterface* HitInterface = Cast<IHitInterface>(AttackTarget);
-	if (HitInterface != nullptr)
+	if (CombatInterface != nullptr)
 	{
-		BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(HitInterface->GetCombatState()));
+		BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(CombatInterface->GetCombatState()));
 	}
 	
 }
@@ -227,6 +240,8 @@ FAIStimulus ABaseAIController::CanSenseActor(AActor* Actor, EAIPerceptionSense A
 
 void ABaseAIController::HandleSensedSight(AActor* Actor)
 {
+	SightedActors.AddUnique(Actor);
+
 	EEnemyAIState CurrentAIState = GetCurrentAIState();
 	bool bConvertToAttack = false;
 
@@ -317,11 +332,19 @@ void ABaseAIController::PerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 	{
 		FAIStimulus AIStimulus;
 		AIStimulus = CanSenseActor(UpdatedActor, EAIPerceptionSense::EPS_Sight);
+		
+		// Sight
 		if (AIStimulus.WasSuccessfullySensed())
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Sight Sensed!"));
 			HandleSensedSight(UpdatedActor);
 		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Lost Sight!"));
+			HandleLostSight(UpdatedActor);
+		}
+
 		AIStimulus = CanSenseActor(UpdatedActor, EAIPerceptionSense::EPS_Hearing);
 		if (AIStimulus.WasSuccessfullySensed())
 		{
@@ -335,4 +358,36 @@ void ABaseAIController::PerceptionUpdated(const TArray<AActor*>& UpdatedActors)
 			HandleSensedDamage(UpdatedActor);
 		}
 	}
+}
+
+bool ABaseAIController::CheckForgottenSightedActor()
+{
+	TArray<AActor*> KnownSightPerceivedActors;
+	AIPerception->GetKnownPerceivedActors(UAISense_Sight::StaticClass(), KnownSightPerceivedActors);
+	if (KnownSightPerceivedActors.Num() != SightedActors.Num())
+	{
+		for (AActor* Actor : SightedActors)
+		{
+			if (!KnownSightPerceivedActors.Contains(Actor))
+			{
+				HandleForgottenActor(Actor);
+			}
+		}
+	}
+	
+
+	return false;
+}
+
+void ABaseAIController::HandleForgottenActor(AActor* ForgottenActor)
+{
+	SightedActors.Remove(ForgottenActor);
+	if (AttackTarget == ForgottenActor)
+	{
+		SwitchToPassiveState();
+	}
+}
+
+void ABaseAIController::HandleLostSight(AActor* LostSightedActor)
+{
 }

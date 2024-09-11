@@ -487,10 +487,10 @@ void AASRCharacter::SphereTrace(float TraceDistance, float TraceRadius, const FH
 			// Check Duplicated Hit
 			if (HitActor != nullptr && !HitActors.Contains(HitActor))
 			{
-				IHitInterface* HitInterface = Cast<IHitInterface>(HitActor);
-				if (HitInterface != nullptr)
+				ICombatInterface* CombatInterface = Cast<ICombatInterface>(HitActor);
+				if (CombatInterface != nullptr)
 				{
-					HitInterface->GetHit(HitResult, this, HitData);
+					CombatInterface->GetHit(HitResult, this, HitData);
 					HitActors.AddUnique(HitActor);
 				}
 			}
@@ -702,6 +702,21 @@ EHitReactionState AASRCharacter::GetHitReactionState() const
 void AASRCharacter::SetHitReactionState(EHitReactionState NewState)
 {
 	HitReactionState = NewState;
+}
+
+bool AASRCharacter::ReserveAttackTokens(int32 Amount)
+{
+	if (AttackTokensCount >= Amount)
+	{
+		AttackTokensCount -= Amount;
+		return true;
+	}
+	return false;
+}
+
+void AASRCharacter::ReturnAttackTokens(int32 Amount)
+{
+	AttackTokensCount += Amount;
 }
 
 void AASRCharacter::ApplyHitStop(float Duration, float TimeDilation)

@@ -16,6 +16,7 @@ ARangedEnemy::ARangedEnemy()
 	bIsCombatReady = true;
 	AttackDistance = 1500.f;
 	DefendDistance = 1500.f;
+	SetAutoGuardRate(0.f); // Disable
 }
 
 void ARangedEnemy::BeginPlay()
@@ -23,10 +24,10 @@ void ARangedEnemy::BeginPlay()
 	Super::BeginPlay();
 }
 
-bool ARangedEnemy::ExecuteNormalAttack()
+bool ARangedEnemy::ExecuteNormalAttack(AActor* AttackTarget)
 {
 	bool bSuccess;
-	bSuccess = Super::ExecuteNormalAttack();
+	bSuccess = Super::ExecuteNormalAttack(AttackTarget);
 	if (bSuccess)
 	{
 		AMeleeWeapon* RangedWeapon = GetMeleeWeapon();

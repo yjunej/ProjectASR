@@ -34,4 +34,17 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual float GetMaxHealth() const = 0;
 
+	// TODO - AI Select Skills by State. Not By Input. Refactor combat system 
+	UFUNCTION(BlueprintCallable)
+	virtual bool AttackBegin(AActor* AttackTarget, int32 RequiredTokens) = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void Attack(AActor* AttackTarget) = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void AttackEnd(AActor* AttackTarget) = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void StoreAttackTokens(AActor* AttackTarget, int32 Amount) = 0;
+
 };

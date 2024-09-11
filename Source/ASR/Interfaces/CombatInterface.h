@@ -6,7 +6,7 @@
 #include "UObject/Interface.h"
 #include "ASR/Enums/ASRDamageType.h"
 #include "ASR/Enums/CombatState.h"
-#include "HitInterface.generated.h"
+#include "CombatInterface.generated.h"
 
 USTRUCT(BlueprintType)
 struct FHitData
@@ -32,7 +32,7 @@ struct FHitData
 
 // This class does not need to be modified.
 UINTERFACE(MinimalAPI, BlueprintType, meta = (CannotImplementInterfaceInBlueprint))
-class UHitInterface : public UInterface
+class UCombatInterface : public UInterface
 {
 	GENERATED_BODY()
 };
@@ -40,28 +40,33 @@ class UHitInterface : public UInterface
 /**
  * 
  */
-class ASR_API IHitInterface
+class ASR_API ICombatInterface
 {
 	GENERATED_BODY()
 
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
-	//
+	// Damage System
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) = 0;
 
+	// State Management
 	UFUNCTION(BlueprintCallable)
 	virtual ECombatState GetCombatState() const = 0;
-
 
 	UFUNCTION(BlueprintCallable)
 	virtual EHitReactionState GetHitReactionState() const = 0;
 
-
 	UFUNCTION(BlueprintCallable)
 	virtual void SetHitReactionState(EHitReactionState NewState) = 0;
 
-
 	UFUNCTION(BlueprintCallable)
 	virtual bool IsDead() const = 0;
+
+	// Attack Token System
+	UFUNCTION(BlueprintCallable)
+	virtual bool ReserveAttackTokens(int32 Amount) = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void ReturnAttackTokens(int32 Amount) = 0;
 
 };

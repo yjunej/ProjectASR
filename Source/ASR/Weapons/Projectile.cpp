@@ -10,7 +10,7 @@
 #include "Particles/ParticleSystemComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Sound/SoundCue.h"
-#include "ASR/Interfaces/HitInterface.h"
+#include "ASR/Interfaces/CombatInterface.h"
 #include "ASR/Character/ASRCharacter.h"
 #include "ASR/ASR.h"
 
@@ -57,8 +57,8 @@ void AProjectile::BeginPlay()
 void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& HitResult)
 { 
 
-	IHitInterface* HitInterface = Cast<IHitInterface>(OtherActor);
-	if (HitInterface != nullptr)
+	ICombatInterface* CombatInterface = Cast<ICombatInterface>(OtherActor);
+	if (CombatInterface != nullptr)
 	{
 		// [TODO] - Hit Data Handle Particle!
 		//FHitData HitData = { .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall, .HitEffect = HitEnemyParticle, .HitSound = HitEnemySound };
@@ -70,7 +70,7 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 			HitData.HitEffect = HitEnemyEffect;
 			HitData.HitParticleEffect = HitEnemyParticle;
 			HitData.HitSound = HitEnemySound;
-			HitInterface->GetHit(HitResult, ProjectileOwner, HitData);
+			CombatInterface->GetHit(HitResult, ProjectileOwner, HitData);
 
 			AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);
 			if (ASRCharacter != nullptr)
