@@ -550,6 +550,15 @@ void ABaseEnemy::SetCombatState(ECombatState InCombatState)
 	}
 }
 
+void ABaseEnemy::SetHitReactionState(EHitReactionState NewState)
+{
+	if (NewState != GetHitReactionState())
+	{
+		HitReactionState = NewState;
+		OnHitReactionStateChanged.Broadcast(NewState);
+	}
+}
+
 bool ABaseEnemy::IsAttackFromFront(const FHitResult& HitResult) const
 {
 	FVector AttackDirection = (HitResult.TraceStart - HitResult.TraceEnd).GetSafeNormal();
@@ -576,8 +585,12 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		return;
 	}
 
-	if (GetCombatState() == ECombatState::ECS_Guard && IsAttackFromFront(HitResult))
+	//if (GetCombatState() == ECombatState::ECS_Guard && IsAttackFromFront(HitResult))
+	if (GetCombatState() == ECombatState::ECS_Guard && 
+		HitReactionState == EHitReactionState::EHR_Parry && 
+		IsAttackFromFront(HitResult))
 	{
+		SetHitReactionState(EHitReactionState::EHR_SuperArmor);
 		//FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
 		//LaunchCharacter(KnockbackForce, true, true);
 		PlayAnimMontage(GuardRevengeMontage);	
@@ -601,7 +614,6 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 
 
 	SetHealth(Health - HitData.Damage);
-
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
 	// Effects
@@ -638,6 +650,10 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	Mapping = DamageTypeMappings.Find(HitData.DamageType);
 	if (Mapping != nullptr)
 	{
+		if (Mapping->CombatState != ECombatState::ECS_Death && GetHitReactionState() == EHitReactionState::EHR_SuperArmor)
+		{
+			return;
+		}
 		SetCombatState(Mapping->CombatState);
 		if (Mapping->CombatState == ECombatState::ECS_Flinching || Mapping->CombatState == ECombatState::ECS_KnockDown)
 		{
@@ -674,6 +690,11 @@ bool ABaseEnemy::IsDead() const
 ECombatState ABaseEnemy::GetCombatState() const
 {
 	return CombatState;
+}
+
+EHitReactionState ABaseEnemy::GetHitReactionState() const
+{
+	return HitReactionState;
 }
 
 APatrolRoute* ABaseEnemy::GetPatrolRoute() const

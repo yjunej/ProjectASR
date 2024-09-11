@@ -639,6 +639,29 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	SetHealth(Health - HitData.Damage);
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
+
+	// Effects
+	if (HitData.HitSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound, GetActorLocation());
+	}
+	if (HitData.HitEffect != nullptr)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			HitData.HitEffect,
+			HitResult.ImpactPoint,
+			GetActorRotation(),
+			FVector(1.f)
+		);
+	}
+	else if (HitData.HitParticleEffect != nullptr)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(), HitData.HitParticleEffect, HitResult.ImpactPoint
+		);
+	}
+
 	// Handle Death
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
 	{
@@ -651,28 +674,6 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	Mapping = DamageTypeMappings.Find(HitData.DamageType);
 	if (Mapping != nullptr)
 	{
-		// Effects
-		if (HitData.HitSound != nullptr)
-		{
-			UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound, GetActorLocation());
-		}
-		if (HitData.HitEffect != nullptr)
-		{
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-				GetWorld(),
-				HitData.HitEffect,
-				HitResult.ImpactPoint,
-				GetActorRotation(),
-				FVector(1.f)
-			);
-		}
-		else if (HitData.HitParticleEffect != nullptr)
-		{
-			UGameplayStatics::SpawnEmitterAtLocation(
-				GetWorld(), HitData.HitParticleEffect, HitResult.ImpactPoint
-			);
-		}
-
 		SetCombatState(Mapping->CombatState);
 		PlayRandomSection(Mapping->HitReactionMontage);
 	}
@@ -691,6 +692,16 @@ bool AASRCharacter::IsDead() const
 ECombatState AASRCharacter::GetCombatState() const
 {
 	return CombatState;
+}
+
+EHitReactionState AASRCharacter::GetHitReactionState() const
+{
+	return HitReactionState;
+}
+
+void AASRCharacter::SetHitReactionState(EHitReactionState NewState)
+{
+	HitReactionState = NewState;
 }
 
 void AASRCharacter::ApplyHitStop(float Duration, float TimeDilation)

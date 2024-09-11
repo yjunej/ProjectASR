@@ -14,6 +14,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAttackEnd);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGuardEnd);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHitReactionStateChanged, EHitReactionState, NewState);
+
 
 
 UENUM(BlueprintType)
@@ -46,6 +48,8 @@ public:
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 	virtual bool IsDead() const override;
 	virtual ECombatState GetCombatState() const override;
+	virtual EHitReactionState GetHitReactionState() const override;
+	virtual void SetHitReactionState(EHitReactionState NewState) override;
 
 
 	// EnemyAIInterface - Blueprint Compatable
@@ -92,6 +96,9 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = Events)
 	FOnCombatStateChanged OnCombatStateChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = Events)
+	FOnHitReactionStateChanged OnHitReactionStateChanged;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Landed(const FHitResult& HitResult) override;
@@ -132,6 +139,7 @@ protected:
 	float DefendDistance = 450.f;
 
 	bool bIsWeaponHidden = true;
+
 
 
 private:
@@ -195,6 +203,11 @@ private:
 	// Character State
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
+	EHitReactionState HitReactionState;
+
+
 
 	// TimeLine
 	UPROPERTY(VisibleAnywhere, Category = Timeline)

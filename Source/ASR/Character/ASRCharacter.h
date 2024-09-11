@@ -48,6 +48,9 @@ public:
 	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 	virtual bool IsDead() const override;
 	virtual ECombatState GetCombatState() const override;
+	virtual EHitReactionState GetHitReactionState() const override;
+	virtual void SetHitReactionState(EHitReactionState NewState) override;
+
 
 
 	FOnHealthChanged OnHealthChanged;
@@ -210,6 +213,9 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
+	EHitReactionState HitReactionState;
 
 private:
 	// Camera Setting

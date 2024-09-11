@@ -154,8 +154,12 @@ void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 	UBlackboardComponent* BBComponent = GetBlackboardComponent();
 	BBComponent->SetValueAsObject(AttackTargetKeyName, TargetActor);
 	BBComponent->SetValueAsEnum(AIStateKeyName, StaticCast<uint8>(EEnemyAIState::EAS_Attack));
-	IHitInterface* HitInteface = Cast<IHitInterface>(AttackTarget);
-	BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(HitInteface->GetCombatState()));
+
+	IHitInterface* HitInterface = Cast<IHitInterface>(AttackTarget);
+	if (HitInterface != nullptr)
+	{
+		BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(HitInterface->GetCombatState()));
+	}
 	
 }
 

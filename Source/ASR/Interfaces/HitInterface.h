@@ -52,6 +52,15 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual ECombatState GetCombatState() const = 0;
 
+
+	UFUNCTION(BlueprintCallable)
+	virtual EHitReactionState GetHitReactionState() const = 0;
+
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetHitReactionState(EHitReactionState NewState) = 0;
+
+
 	UFUNCTION(BlueprintCallable)
 	virtual bool IsDead() const = 0;
 
