@@ -42,8 +42,17 @@ AASRCharacter::AASRCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->bEnableCameraLag = true;
 	CameraBoom->CameraLagSpeed = 16.f;
-	CameraBoom->TargetArmLength = 400.f;
 	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
+
+	// Katana Blade Zero 
+	CameraBoom->TargetArmLength = 350.f;
+	CameraBoom->SocketOffset = FVector(0.f, 100.f, 40.f);
+
+	// Sekiro
+	// CameraBoom->TargetArmLength = 400.f;
+	// CameraBoom->SocketOffset = FVector(0.f, 0.f, 40.f);
+
+
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->SetupAttachment(GetMesh());
 
@@ -66,12 +75,12 @@ AASRCharacter::AASRCharacter()
 	SetCombatState(ECombatState::ECS_None);
 }
 
-void AASRCharacter::PlayRandomSection(UAnimMontage* Montage)
+void AASRCharacter::PlayRandomSection(TSoftObjectPtr<UAnimMontage> const& Montage)
 {
 	if (Montage != nullptr)
 	{
 		int32 NumSections = Montage->GetNumSections();
-		PlayAnimMontage(Montage, 1.f, Montage->GetSectionName(FMath::RandRange(0, NumSections - 1)));
+		PlayAnimMontage(Montage.Get(), 1.f, Montage->GetSectionName(FMath::RandRange(0, NumSections - 1)));
 	}
 
 }
@@ -643,13 +652,13 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	// Effects
 	if (HitData.HitSound != nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound, GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound.Get(), GetActorLocation());
 	}
 	if (HitData.HitEffect != nullptr)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 			GetWorld(),
-			HitData.HitEffect,
+			HitData.HitEffect.Get(),
 			HitResult.ImpactPoint,
 			GetActorRotation(),
 			FVector(1.f)
@@ -658,7 +667,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	else if (HitData.HitParticleEffect != nullptr)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(), HitData.HitParticleEffect, HitResult.ImpactPoint
+			GetWorld(), HitData.HitParticleEffect.Get(), HitResult.ImpactPoint
 		);
 	}
 
@@ -675,7 +684,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	if (Mapping != nullptr)
 	{
 		SetCombatState(Mapping->CombatState);
-		PlayRandomSection(Mapping->HitReactionMontage);
+		PlayRandomSection(Mapping->HitReactionMontage.Get());
 	}
 	else
 	{

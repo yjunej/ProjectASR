@@ -18,15 +18,20 @@ struct FInputActionValue;
 
 
 USTRUCT(BlueprintType)
-struct FDamageTypeMapping
+struct FDamageTypeMapping : public FTableRowBase
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
+
+public:
+	FDamageTypeMapping()
+	: CombatState(ECombatState::ECS_None)
+	{}
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
 	ECombatState CombatState;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
-	UAnimMontage* HitReactionMontage;
+	TSoftObjectPtr<UAnimMontage> HitReactionMontage;
 
 };
 
@@ -58,7 +63,7 @@ public:
 
 	FOnHealthChanged OnHealthChanged;
 
-	void PlayRandomSection(UAnimMontage* Montage);
+	void PlayRandomSection(TSoftObjectPtr<UAnimMontage> const& Montage);
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
 	virtual float GetFirstSkillWarpDistance() const;
 

@@ -53,13 +53,13 @@ void AMeleeWeapon::OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, A
 	{
 		//UGameplayStatics::ApplyDamage(BoxHit.GetActor(), Damage, GetInstigator()->GetController(), this, UDamageType::StaticClass());
 		//ExecuteGetHit(BoxHit);
-		ICombatInterface* CombatInterface = Cast<ICombatInterface>(WeaponBoxHitResult.GetActor());
-		if (CombatInterface != nullptr)
-		{
-			// Deprecated
-			FHitData HitData = { .Damage = 100.f, .DamageType = EASRDamageType::EDT_FrontSmall };
-			CombatInterface->GetHit(WeaponBoxHitResult, WeaponOwner, HitData);
-		}
+		//ICombatInterface* CombatInterface = Cast<ICombatInterface>(WeaponBoxHitResult.GetActor());
+		//if (CombatInterface != nullptr)
+		//{
+		//	// Deprecated
+		//	FHitData HitData = { .Damage = 100.f, .DamageType = EASRDamageType::EDT_FrontSmall };
+		//	CombatInterface->GetHit(WeaponBoxHitResult, WeaponOwner, HitData);
+		//}
 
 	}
 }

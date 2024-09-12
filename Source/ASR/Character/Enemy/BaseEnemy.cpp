@@ -658,13 +658,13 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	// Effects
 	if (HitData.HitSound != nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound, GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound.Get(), GetActorLocation());
 	}
 	if (HitData.HitEffect != nullptr)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 			GetWorld(),
-			HitData.HitEffect,
+			HitData.HitEffect.Get(),
 			HitResult.ImpactPoint,
 			GetActorRotation(),
 			FVector(1.f)
@@ -673,7 +673,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	else if (HitData.HitParticleEffect != nullptr)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(), HitData.HitParticleEffect, HitResult.ImpactPoint
+			GetWorld(), HitData.HitParticleEffect.Get(), HitResult.ImpactPoint
 		);
 	}
 
@@ -707,7 +707,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		}
 		if (Mapping->HitReactionMontage != nullptr)
 		{
-			PlayAnimMontage(Mapping->HitReactionMontage);
+			PlayAnimMontage(Mapping->HitReactionMontage.Get());
 		}
 		else
 		{

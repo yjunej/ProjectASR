@@ -562,7 +562,10 @@ void ABlader::ApplyUltDamage()
 	{
 		ICombatInterface* CombatInterface = Cast<ICombatInterface>(Target);
 		FHitResult HitResult;
-		FHitData HitData = { .Damage = 5000.f, .DamageType = EASRDamageType::EDT_KnockDownFrontSpear };
+		FHitData HitData;
+		
+		HitData.Damage = 5000.f;
+		HitData.DamageType = EASRDamageType::EDT_KnockDownFrontSpear;
 		CombatInterface->GetHit(HitResult, this, HitData);
 	}
 }

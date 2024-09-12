@@ -62,7 +62,10 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 	{
 		// [TODO] - Hit Data Handle Particle!
 		//FHitData HitData = { .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall, .HitEffect = HitEnemyParticle, .HitSound = HitEnemySound };
-		FHitData HitData = { .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall };
+		FHitData HitData;
+		HitData.Damage = ProjectileDamage;
+		HitData.DamageType = EASRDamageType::EDT_FrontSmall;
+		//{ .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall };
 
 		if (Cast<APawn>(OtherActor) != nullptr)
 		{

@@ -9,24 +9,30 @@
 #include "CombatInterface.generated.h"
 
 USTRUCT(BlueprintType)
-struct FHitData
+struct FHitData : public FTableRowBase
 {
-	GENERATED_BODY()
+	GENERATED_USTRUCT_BODY()
+
+public:
+	FHitData()
+	: Damage(0.f)
+	, DamageType(EASRDamageType::EDT_Default)
+	{}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	float Damage = 0.f;
+	float Damage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	EASRDamageType DamageType = EASRDamageType::EDT_Default;
+	EASRDamageType DamageType;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	USoundBase* HitSound = nullptr;
+	TSoftObjectPtr<USoundBase> HitSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UNiagaraSystem* HitEffect = nullptr;
+	TSoftObjectPtr<class UNiagaraSystem> HitEffect;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	class UParticleSystem* HitParticleEffect = nullptr;
+	TSoftObjectPtr<UParticleSystem> HitParticleEffect;
 
 };
 
