@@ -58,6 +58,8 @@ public:
 	virtual void SetHitReactionState(EHitReactionState NewState) override;
 	virtual bool ReserveAttackTokens(int32 Amount) override;
 	virtual void ReturnAttackTokens(int32 Amount) override;
+	virtual UDataTable* GetAttackDataTable() const override; 
+	virtual void SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace) override;
 
 
 
@@ -158,9 +160,6 @@ protected:
 	virtual void ResetState();
 
 	UFUNCTION(BlueprintCallable)
-	virtual void SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
-
-	UFUNCTION(BlueprintCallable)
 	virtual void ResetCamera();
 
 	UFUNCTION(BlueprintCallable)
@@ -255,7 +254,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Damage")
 	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
 	
-
 	UPROPERTY(EditDefaultsOnly, Category = HUD, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> MainHUDWidgetClass;
 
@@ -275,10 +273,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ExecutionMontage;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
+	UDataTable* AttackDataTable;
+
 	UFUNCTION()
 	void OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 
 	class UASRMainHUD* MainHUDWidget;
+
 
 
 
@@ -301,5 +303,4 @@ public:
 	FORCEINLINE float GetDashAttackWarpDistance() const { return DashAttackWarpDistance; }
 	FORCEINLINE float GetNormalAttackWarpDistance() const { return NormalAttackWarpDistance; }
 
-	
 };

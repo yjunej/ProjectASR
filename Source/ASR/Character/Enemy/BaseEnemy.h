@@ -52,6 +52,8 @@ public:
 	virtual void SetHitReactionState(EHitReactionState NewState) override;
 	virtual bool ReserveAttackTokens(int32 Amount) override;
 	virtual void ReturnAttackTokens(int32 Amount) override;
+	virtual UDataTable* GetAttackDataTable() const override;
+	virtual void SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace) override;
 
 
 	// EnemyAIInterface - Blueprint Compatible
@@ -211,7 +213,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
 	EHitReactionState HitReactionState;
 
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
+	UDataTable* AttackDataTable;
 
 	// TimeLine
 	UPROPERTY(VisibleAnywhere, Category = Timeline)
@@ -255,11 +258,6 @@ private:
 	void AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType);
 
 	void DisableCollision();
-
-
-	
-	UFUNCTION(BlueprintCallable)
-	void SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace);
 
 	TArray<AActor*> HitActors;
 	int32 NormalAttackIndex = 0;

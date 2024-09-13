@@ -68,11 +68,20 @@ public:
 	UFUNCTION(BlueprintCallable)
 	virtual bool IsDead() const = 0;
 
+	UFUNCTION(BlueprintCallable)
+	virtual UDataTable* GetAttackDataTable() const = 0;
+
+	// Attack Trace
+	UFUNCTION(BlueprintCallable)
+	virtual void SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace) = 0;
+
+
 	// Attack Token System
 	UFUNCTION(BlueprintCallable)
 	virtual bool ReserveAttackTokens(int32 Amount) = 0;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ReturnAttackTokens(int32 Amount) = 0;
+
 
 };

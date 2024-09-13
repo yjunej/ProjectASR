@@ -728,6 +728,11 @@ void AASRCharacter::ReturnAttackTokens(int32 Amount)
 	AttackTokensCount += Amount;
 }
 
+UDataTable* AASRCharacter::GetAttackDataTable() const
+{
+	return AttackDataTable;
+}
+
 void AASRCharacter::ApplyHitStop(float Duration, float TimeDilation)
 {
 	CustomTimeDilation = 0.f;

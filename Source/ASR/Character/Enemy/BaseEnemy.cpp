@@ -587,6 +587,11 @@ void ABaseEnemy::ReturnAttackTokens(int32 Amount)
 	AttackTokensCount += Amount;
 }
 
+UDataTable* ABaseEnemy::GetAttackDataTable() const
+{
+	return AttackDataTable;
+}
+
 bool ABaseEnemy::IsAttackFromFront(const FHitResult& HitResult) const
 {
 	FVector AttackDirection = (HitResult.TraceStart - HitResult.TraceEnd).GetSafeNormal();
