@@ -480,7 +480,7 @@ void ABaseEnemy::HandleHitTransform(AActor* Attacker, EASRDamageType DamageType,
 	}
 }
 
-void ABaseEnemy::AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType)
+void ABaseEnemy::AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* DamageMapping, EASRDamageType DamageType)
 {
 	UE_LOG(LogTemp, Warning, TEXT("AerialAttack!!"));
 
@@ -506,23 +506,23 @@ void ABaseEnemy::AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapp
 	case EASRDamageType::EDT_KnockDownFrontSmashDouble:
 	case EASRDamageType::EDT_KnockDownFrontBig:
 	case EASRDamageType::EDT_AerialHit:
-		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialHit);
+		DamageMapping = FindDamageDTRow(EASRDamageType::EDT_AerialHit);
 		break;
 	case EASRDamageType::EDT_AerialStart:
-		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialStart);
+		DamageMapping = FindDamageDTRow(EASRDamageType::EDT_AerialStart);
 		break;
 
 	case EASRDamageType::EDT_AerialKnockDown:
-		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_AerialKnockDown);
+		DamageMapping = FindDamageDTRow(EASRDamageType::EDT_AerialKnockDown);
 		UE_LOG(LogTemp, Warning, TEXT("AerialKnockDownAnim!!"));
 
 		break;
 	case EASRDamageType::EDT_MAX:
 		UE_LOG(LogTemp, Warning, TEXT("EDT_MAX No Mapping!"));
-		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_Default);
+		DamageMapping = FindDamageDTRow(EASRDamageType::EDT_Default);
 		break;
 	default:
-		Mapping = DamageTypeMappings.Find(EASRDamageType::EDT_Default);
+		DamageMapping = FindDamageDTRow(EASRDamageType::EDT_Default);
 		UE_LOG(LogTemp, Warning, TEXT("EDT_MAX No Mapping!"));
 		break;
 	}
@@ -608,6 +608,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 {
 	// [TODO] Block Handling Before Take Damage
 	
+
 	if (GetCombatState() == ECombatState::ECS_Death)
 	{ 
 		return;
@@ -617,6 +618,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	{
 		return;
 	}
+
 
 	//if (GetCombatState() == ECombatState::ECS_Guard && IsAttackFromFront(HitResult))
 	if (GetCombatState() == ECombatState::ECS_Guard && 
@@ -641,6 +643,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	}
 
 
+
 	if (Cast<AASRCharacter>(Attacker) != nullptr)
 	{
 		ApplyHitStop(HitStopDuration, HitStopTimeDilation);
@@ -663,13 +666,14 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	// Effects
 	if (HitData.HitSound != nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound.Get(), GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(this,
+			HitData.HitSound, GetActorLocation());
 	}
 	if (HitData.HitEffect != nullptr)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 			GetWorld(),
-			HitData.HitEffect.Get(),
+			HitData.HitEffect,
 			HitResult.ImpactPoint,
 			GetActorRotation(),
 			FVector(1.f)
@@ -678,7 +682,9 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	else if (HitData.HitParticleEffect != nullptr)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(), HitData.HitParticleEffect.Get(), HitResult.ImpactPoint
+			GetWorld(),
+			HitData.HitParticleEffect,
+			HitResult.ImpactPoint
 		);
 	}
 
@@ -690,16 +696,17 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	}
 
 	// Animation
-	FDamageTypeMapping* Mapping;
-	Mapping = DamageTypeMappings.Find(HitData.DamageType);
-	if (Mapping != nullptr)
+	FDamageTypeMapping* DamageMapping;
+	UE_LOG(LogTemp, Warning, TEXT("Find DT Row Check"));
+	DamageMapping = FindDamageDTRow(HitData.DamageType);
+	if (DamageMapping != nullptr)
 	{
-		if (Mapping->CombatState != ECombatState::ECS_Death && GetHitReactionState() == EHitReactionState::EHR_SuperArmor)
+		if (DamageMapping->CombatState != ECombatState::ECS_Death && GetHitReactionState() == EHitReactionState::EHR_SuperArmor)
 		{
 			return;
 		}
-		SetCombatState(Mapping->CombatState);
-		if (Mapping->CombatState == ECombatState::ECS_Flinching || Mapping->CombatState == ECombatState::ECS_KnockDown)
+		SetCombatState(DamageMapping->CombatState);
+		if (DamageMapping->CombatState == ECombatState::ECS_Flinching || DamageMapping->CombatState == ECombatState::ECS_KnockDown)
 		{
 			GetCharacterMovement()->StopMovementImmediately();
 		}
@@ -708,15 +715,17 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 
 		if (GetCharacterMovement()->IsFalling() || GetCharacterMovement()->IsFlying())
 		{
-			AerialHitAnimMapping(Attacker, Mapping, HitData.DamageType);
+			AerialHitAnimMapping(Attacker, DamageMapping, HitData.DamageType);
 		}
-		if (Mapping->HitReactionMontage != nullptr)
+
+		UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
+		if (LoadedMontage != nullptr)
 		{
-			PlayAnimMontage(Mapping->HitReactionMontage.Get());
+			PlayAnimMontage(LoadedMontage);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("NULL HitReact Montage!"));
+			UE_LOG(LogTemp, Warning, TEXT("Failed to Load Animation Montage"));
 		}
 
 	}
@@ -891,4 +900,30 @@ void ABaseEnemy::ApplyHitStop(float Duration, float TimeDilation)
 void ABaseEnemy::ResetTimeDilation()
 {
 	CustomTimeDilation = 1.0f;
+}
+
+FDamageTypeMapping* ABaseEnemy::FindDamageDTRow(EASRDamageType DamageType) const
+{
+	FDamageInfoData* DamageInfoData = nullptr;
+	FText RowText;
+	UEnum::GetDisplayValueAsText(DamageType, RowText);
+
+	UE_LOG(LogTemp, Warning, TEXT("Find DT Row TEXT: %s"), *RowText.ToString());
+
+
+	if (DamageDataTable != nullptr)
+	{
+		DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(*RowText.ToString(), FString::Printf(TEXT("Failed to Find: [%s] %s"), *GetName(), *RowText.ToString()));
+		if (DamageInfoData == nullptr)
+		{
+			DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(FName("Default"), FString::Printf(TEXT("Failed to Find Default: [%s] %s"), *GetName(), *RowText.ToString()));
+		}
+		return &DamageInfoData->DamageReaction;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL DT!"));
+
+	}
+	return nullptr;
 }

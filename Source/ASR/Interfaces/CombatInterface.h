@@ -25,15 +25,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	EASRDamageType DamageType;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSoftObjectPtr<USoundBase> HitSound;
+	// TODO - Use Soft Refernce After check profile
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSoftObjectPtr<class UNiagaraSystem> HitEffect;
+	USoundBase* HitSound;
+	//TSoftObjectPtr<USoundBase> HitSound;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSoftObjectPtr<UParticleSystem> HitParticleEffect;
+	class UNiagaraSystem* HitEffect;
+	//TSoftObjectPtr<class UNiagaraSystem> HitEffect;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UParticleSystem* HitParticleEffect;
+	//TSoftObjectPtr<UParticleSystem> HitParticleEffect;
 };
 
 // This class does not need to be modified.

@@ -75,12 +75,12 @@ AASRCharacter::AASRCharacter()
 	SetCombatState(ECombatState::ECS_None);
 }
 
-void AASRCharacter::PlayRandomSection(TSoftObjectPtr<UAnimMontage> const& Montage)
+void AASRCharacter::PlayRandomSection(UAnimMontage* Montage)
 {
 	if (Montage != nullptr)
 	{
 		int32 NumSections = Montage->GetNumSections();
-		PlayAnimMontage(Montage.Get(), 1.f, Montage->GetSectionName(FMath::RandRange(0, NumSections - 1)));
+		PlayAnimMontage(Montage, 1.f, Montage->GetSectionName(FMath::RandRange(0, NumSections - 1)));
 	}
 
 }
@@ -547,6 +547,34 @@ void AASRCharacter::OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupt
 	bIsExecuting = false;
 }
 
+FDamageTypeMapping* AASRCharacter::FindDamageDTRow(EASRDamageType DamageType) const
+{
+	FDamageInfoData* DamageInfoData = nullptr;
+	FText RowText;
+	UEnum::GetDisplayValueAsText(DamageType, RowText);
+
+	UE_LOG(LogTemp, Warning, TEXT("Find DT Row TEXT: %s"), *RowText.ToString());
+
+
+	if (DamageDataTable != nullptr)
+	{
+		DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(*RowText.ToString(), FString::Printf(TEXT("Failed to Find: [%s] %s"), *GetName(), *RowText.ToString()));
+		if (DamageInfoData == nullptr)
+		{
+			DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(FName("Default"), FString::Printf(TEXT("Failed to Find Default: [%s] %s"), *GetName(), *RowText.ToString()));
+		}
+
+
+		return &DamageInfoData->DamageReaction;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL DT!"));
+
+	}
+	return nullptr;
+}
+
 void AASRCharacter::HandleDeath()
 {
 	SetCombatState(ECombatState::ECS_Death);
@@ -652,13 +680,14 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	// Effects
 	if (HitData.HitSound != nullptr)
 	{
-		UGameplayStatics::PlaySoundAtLocation(this, HitData.HitSound.Get(), GetActorLocation());
+		UGameplayStatics::PlaySoundAtLocation(this, 
+			HitData.HitSound, GetActorLocation());
 	}
 	if (HitData.HitEffect != nullptr)
 	{
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 			GetWorld(),
-			HitData.HitEffect.Get(),
+			HitData.HitEffect,
 			HitResult.ImpactPoint,
 			GetActorRotation(),
 			FVector(1.f)
@@ -667,7 +696,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	else if (HitData.HitParticleEffect != nullptr)
 	{
 		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(), HitData.HitParticleEffect.Get(), HitResult.ImpactPoint
+			GetWorld(), HitData.HitParticleEffect, HitResult.ImpactPoint
 		);
 	}
 
@@ -679,12 +708,20 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	}
 
 	// Select Hit React Animation
-	FDamageTypeMapping* Mapping;
-	Mapping = DamageTypeMappings.Find(HitData.DamageType);
-	if (Mapping != nullptr)
+	FDamageTypeMapping* DamageMapping = nullptr;
+	DamageMapping = FindDamageDTRow(HitData.DamageType);
+	if (DamageMapping != nullptr)
 	{
-		SetCombatState(Mapping->CombatState);
-		PlayRandomSection(Mapping->HitReactionMontage.Get());
+		SetCombatState(DamageMapping->CombatState);
+		UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
+		if (LoadedMontage != nullptr)
+		{
+			PlayRandomSection(LoadedMontage);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to Load Animation Montage"));
+		}
 	}
 	else
 	{

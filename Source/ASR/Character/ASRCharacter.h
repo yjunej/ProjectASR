@@ -18,7 +18,7 @@ struct FInputActionValue;
 
 
 USTRUCT(BlueprintType)
-struct FDamageTypeMapping : public FTableRowBase
+struct FDamageTypeMapping
 {
 	GENERATED_USTRUCT_BODY()
 
@@ -31,8 +31,26 @@ public:
 	ECombatState CombatState;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
-	TSoftObjectPtr<UAnimMontage> HitReactionMontage;
+	UAnimMontage* HitReactionMontage;
 
+};
+
+
+USTRUCT(BlueprintType)
+struct FDamageInfoData : public FTableRowBase
+{
+	GENERATED_USTRUCT_BODY()
+
+public:
+	FDamageInfoData()
+		: DamageType(EASRDamageType::EDT_Default)
+	{}
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
+	EASRDamageType DamageType;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Damage)
+	FDamageTypeMapping DamageReaction;
 };
 
 
@@ -65,7 +83,7 @@ public:
 
 	FOnHealthChanged OnHealthChanged;
 
-	void PlayRandomSection(TSoftObjectPtr<UAnimMontage> const& Montage);
+	void PlayRandomSection(UAnimMontage* Montage);
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
 	virtual float GetFirstSkillWarpDistance() const;
 
@@ -77,6 +95,17 @@ public:
 
 	FOnCombatStateChanged OnCombatStateChanged;
 
+	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
+	template <typename AssetType>
+	AssetType* EnsureAssetLoaded(TSoftObjectPtr<AssetType> const& AssetPtr)
+	{
+		if (AssetPtr.IsValid())
+		{
+			return AssetPtr.Get();
+		}
+
+		return AssetPtr.LoadSynchronous();
+	}
 
 protected:
 	virtual void BeginPlay() override;
@@ -251,9 +280,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = MotionWarping, meta = (AllowPrivateAccess = "true"))
 	class UTargetingComponent* TargetingComp;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Damage")
-	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
-	
 	UPROPERTY(EditDefaultsOnly, Category = HUD, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> MainHUDWidgetClass;
 
@@ -276,12 +302,15 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
 	UDataTable* AttackDataTable;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
+	UDataTable* DamageDataTable;
+
 	UFUNCTION()
 	void OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 
 	class UASRMainHUD* MainHUDWidget;
 
-
+	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
 
 
 public:
@@ -295,6 +324,7 @@ public:
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComp; }
 	FORCEINLINE UChildActorComponent* GetExecutionCameraManager() const { return ExecutionCameraManager; }
+	FORCEINLINE UDataTable* GetDamageDataTable() const { return DamageDataTable; }
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE float GetExecutionDistance() const { return ExecutionDistance; }

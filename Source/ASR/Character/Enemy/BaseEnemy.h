@@ -107,6 +107,19 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = Events)
 	FOnHitReactionStateChanged OnHitReactionStateChanged;
 
+
+	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
+	template <typename AssetType>
+	AssetType* EnsureAssetLoaded(TSoftObjectPtr<AssetType> const& AssetPtr)
+	{
+		AssetType* Asset;
+		if (AssetPtr.IsValid())
+		{
+			return AssetPtr.Get();
+		}
+		return AssetPtr.LoadSynchronous();
+	}
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void Landed(const FHitResult& HitResult) override;
@@ -129,9 +142,6 @@ protected:
 	// AI
 	UPROPERTY(EditAnywhere, Category = AI, meta = (AllowPrivateAccess = "true"))
 	class UBehaviorTree* BehaviorTree;
-
-	UPROPERTY(EditDefaultsOnly, Category = Damage)
-	TMap<EASRDamageType, FDamageTypeMapping> DamageTypeMappings;
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResetState();
@@ -213,8 +223,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
 	EHitReactionState HitReactionState;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
-	UDataTable* AttackDataTable;
 
 	// TimeLine
 	UPROPERTY(VisibleAnywhere, Category = Timeline)
@@ -282,6 +290,16 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = HitStop)
 	float HitStopTimeDilation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
+	UDataTable* AttackDataTable;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
+	UDataTable* DamageDataTable;
+
+	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
+
+
 
 	//AI
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
