@@ -892,7 +892,7 @@ void ABaseEnemy::SphereTrace(float TraceDistance, float TraceRadius, const FHitD
 
 void ABaseEnemy::ApplyHitStop(float Duration, float TimeDilation)
 {
-	CustomTimeDilation = 0.f;
+	CustomTimeDilation = TimeDilation;
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABaseEnemy::ResetTimeDilation, Duration, false);
 }
