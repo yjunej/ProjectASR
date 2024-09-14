@@ -566,6 +566,9 @@ void ABlader::ApplyUltDamage()
 		
 		HitData.Damage = 5000.f;
 		HitData.DamageType = EASRDamageType::EDT_KnockDownFrontSpear;
+		HitData.HitEffect = nullptr;
+		HitData.HitSound = nullptr;
+		HitData.HitParticleEffect = nullptr;
 		CombatInterface->GetHit(HitResult, this, HitData);
 	}
 }

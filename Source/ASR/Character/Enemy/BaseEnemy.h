@@ -285,10 +285,10 @@ private:
 	void ApplyHitStop(float Duration, float TimeDilation);
 	void ResetTimeDilation();
 
-	UPROPERTY(EditDefaultsOnly, Category=HitStop)
+	UPROPERTY(EditAnywhere, Category=HitStop)
 	float HitStopDuration;
 
-	UPROPERTY(EditDefaultsOnly, Category = HitStop)
+	UPROPERTY(EditAnywhere, Category = HitStop)
 	float HitStopTimeDilation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
