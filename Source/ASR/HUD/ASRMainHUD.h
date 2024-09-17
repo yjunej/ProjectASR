@@ -35,5 +35,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* StabilityBar;
 
-
+	UPROPERTY(meta = (BindWidget))
+	class UVerticalBox* BossInfoVBox;
 };

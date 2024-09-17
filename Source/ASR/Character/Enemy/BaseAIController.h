@@ -42,14 +42,10 @@ protected:
 	void SwitchToPassiveState();
 
 	UFUNCTION(BlueprintCallable)
-	void SwitchToAttackState(AActor* TargetActor);
+	virtual void SwitchToAttackState(AActor* TargetActor);
 
 	UFUNCTION(BlueprintCallable)
 	void SwitchToInvestigateState(FVector InvestigateLocaton);
-	
-	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float AcceptanceRadius = 100.f;
-
 
 	UFUNCTION(BlueprintCallable)
 	void ExecuteNormalAttack();
@@ -111,6 +107,5 @@ protected:
 public:
 	FORCEINLINE FName GetAttackTargetKeyName() const { return AttackTargetKeyName; }
 	FORCEINLINE FName GetAttentionPointKeyName() const { return AttentionPointKeyName; }
-	FORCEINLINE float GetAcceptanceRadius() const { return AcceptanceRadius; }	
 
 };

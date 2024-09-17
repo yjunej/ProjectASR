@@ -62,8 +62,6 @@ public:
 	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
 	virtual float GetCurrentHealth() const override;
 	virtual float GetMaxHealth() const override;
-	virtual void SetMoveToAttentionPoint(bool bEnable) override;
-	virtual bool GetMoveToAttentionPoint() const override;
 	virtual bool AttackBegin(AActor* AttackTarget, int32 RequiredTokens) override;
 	virtual void Attack(AActor* AttackTarget) override;
 	virtual void AttackEnd(AActor* AttackTarget) override;
@@ -127,6 +125,8 @@ protected:
 	virtual void BeginPlay() override;
 	virtual void Landed(const FHitResult& HitResult) override;
 
+	class UEnemyInfoWidget* InfoWidget;
+
 	// Combat - Consider to apply Component Design
 	UFUNCTION(BlueprintCallable)
 	virtual bool NormalAttack(AActor* AttackTarget);
@@ -171,8 +171,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> InfoWidgetClass;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
-	class UEnemyInfoWidget* InfoWidget;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Widget, meta = (AllowPrivateAccess = "true"))
 	class UWidgetComponent* LockOnWidgetComponent;
@@ -324,12 +322,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float ReactStateGuardRate = 0.5;
 
-	UPROPERTY(EditAnywhere, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	float SpeedInterpSpeed = 6.f;
-
-
-
-
 
 public:
 	void SetCombatState(ECombatState InCombatState);
@@ -339,5 +331,5 @@ public:
 	FORCEINLINE float GetDefendDistance() const { return DefendDistance; }
 	FORCEINLINE AMeleeWeapon* GetMeleeWeapon() const { return MeleeWeapon; }
 	FORCEINLINE void SetAutoGuardRate(float Rate) { AutoGuardRate = Rate; }
-
+	FORCEINLINE UWidgetComponent* GetInfoWidgetComponent() const { return InfoWidgetComponent; }
 };

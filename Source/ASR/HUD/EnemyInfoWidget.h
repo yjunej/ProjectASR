@@ -18,7 +18,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	UFUNCTION()
+	UFUNCTION(BlueprintCallable)
 	void UpdateHealthBar();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)

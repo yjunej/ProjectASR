@@ -32,13 +32,6 @@ public:
 	virtual float GetMovementSpeed() const = 0;
 
 	UFUNCTION(BlueprintCallable)
-	virtual void SetMoveToAttentionPoint(bool bEnable) = 0;
-
-	UFUNCTION(BlueprintCallable)
-	virtual bool GetMoveToAttentionPoint() const = 0;
-
-
-	UFUNCTION(BlueprintCallable)
 	virtual float GetCurrentHealth() const = 0;
 
 	UFUNCTION(BlueprintCallable)

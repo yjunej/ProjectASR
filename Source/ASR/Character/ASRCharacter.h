@@ -93,6 +93,8 @@ public:
 	void ApplyHitStop(float Duration, float TimeDilation);
 	void ResetTimeDilation();
 
+	class UASRMainHUD* MainHUDWidget;
+
 	FOnCombatStateChanged OnCombatStateChanged;
 
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
@@ -308,7 +310,6 @@ private:
 	UFUNCTION()
 	void OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 
-	class UASRMainHUD* MainHUDWidget;
 
 	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
 
