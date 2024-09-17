@@ -58,9 +58,12 @@ public:
 
 	// EnemyAIInterface - Blueprint Compatible
 	virtual APatrolRoute* GetPatrolRoute() const override;
+	virtual float GetMovementSpeed() const override;
 	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
 	virtual float GetCurrentHealth() const override;
 	virtual float GetMaxHealth() const override;
+	virtual void SetMoveToAttentionPoint(bool bEnable) override;
+	virtual bool GetMoveToAttentionPoint() const override;
 	virtual bool AttackBegin(AActor* AttackTarget, int32 RequiredTokens) override;
 	virtual void Attack(AActor* AttackTarget) override;
 	virtual void AttackEnd(AActor* AttackTarget) override;
@@ -156,7 +159,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI)
 	float DefendDistance = 450.f;
 
-	bool bIsWeaponHidden = true;
+	bool bIsWeaponHidden = false;
 
 private:
 	
@@ -278,7 +281,10 @@ private:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
-	FName WeaponSocketName;
+	FName WeaponArmedSocketName;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Weapon, meta = (AllowPrivateAccess = "true"))
+	FName WeaponUnarmedSocketName;
 
 	FTimerHandle HitStopTimerHandle;
 
@@ -318,6 +324,12 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float ReactStateGuardRate = 0.5;
 
+	UPROPERTY(EditAnywhere, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float SpeedInterpSpeed = 6.f;
+
+
+
+
 
 public:
 	void SetCombatState(ECombatState InCombatState);
@@ -327,10 +339,5 @@ public:
 	FORCEINLINE float GetDefendDistance() const { return DefendDistance; }
 	FORCEINLINE AMeleeWeapon* GetMeleeWeapon() const { return MeleeWeapon; }
 	FORCEINLINE void SetAutoGuardRate(float Rate) { AutoGuardRate = Rate; }
-
-
-
-	
-
 
 };

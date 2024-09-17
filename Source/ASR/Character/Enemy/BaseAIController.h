@@ -48,7 +48,8 @@ protected:
 	void SwitchToInvestigateState(FVector InvestigateLocaton);
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
-	float StrafeDistance = 800.f;
+	float AcceptanceRadius = 100.f;
+
 
 	UFUNCTION(BlueprintCallable)
 	void ExecuteNormalAttack();
@@ -106,5 +107,10 @@ protected:
 
 
 	//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPerceptionUpdatedDelegate, const TArray<AActor*>&, UpdatedActors);
+
+public:
+	FORCEINLINE FName GetAttackTargetKeyName() const { return AttackTargetKeyName; }
+	FORCEINLINE FName GetAttentionPointKeyName() const { return AttentionPointKeyName; }
+	FORCEINLINE float GetAcceptanceRadius() const { return AcceptanceRadius; }	
 
 };

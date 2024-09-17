@@ -51,7 +51,6 @@ ABaseEnemy::ABaseEnemy()
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate.Yaw = 250.f;
-
 	// [Blueprint]
 	// - Enable bUseAccelerationForPaths
 	// - Setting BehaviorTree
@@ -102,7 +101,7 @@ void ABaseEnemy::BeginPlay()
 		if (MeleeWeapon != nullptr)
 		{
 			FAttachmentTransformRules AttachRules(EAttachmentRule::SnapToTarget, true);
-			MeleeWeapon->AttachToComponent(GetMesh(), AttachRules, WeaponSocketName);
+			MeleeWeapon->AttachToComponent(GetMesh(), AttachRules, WeaponUnarmedSocketName);
 			MeleeWeapon->WeaponOwner = this;
 			MeleeWeapon->GetWeaponMesh()->SetVisibility(!bIsWeaponHidden);
 		}
@@ -755,6 +754,11 @@ APatrolRoute* ABaseEnemy::GetPatrolRoute() const
 	return PatrolRoute;
 }
 
+float ABaseEnemy::GetMovementSpeed() const
+{
+	return GetCharacterMovement()->MaxWalkSpeed;
+}
+
 float ABaseEnemy::SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed)
 {
 	float NewSpeed;
@@ -794,6 +798,7 @@ float ABaseEnemy::GetMaxHealth() const
 {
 	return MaxHealth;
 }
+
 
 bool ABaseEnemy::AttackBegin(AActor* AttackTarget, int32 RequiredTokens)
 {
