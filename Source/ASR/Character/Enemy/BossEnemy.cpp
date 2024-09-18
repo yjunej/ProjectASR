@@ -18,6 +18,16 @@ void ABossEnemy::BeginPlay()
 	}
 }
 
+bool ABossEnemy::BossAIAttack(AActor* AttackTarget, EAIAttack BossAttackType)
+{
+	// No Token System
+	if (CanAttack())
+	{
+		return ExecuteAIAttack(AttackTarget, BossAttackType);
+	}
+	return false;
+}
+
 UEnemyInfoWidget* ABossEnemy::GetBossInfoWidget() const
 {
 	return BossInfoWidget;

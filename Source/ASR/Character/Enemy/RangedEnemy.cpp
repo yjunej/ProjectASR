@@ -24,10 +24,10 @@ void ARangedEnemy::BeginPlay()
 	Super::BeginPlay();
 }
 
-bool ARangedEnemy::ExecuteNormalAttack(AActor* AttackTarget)
+bool ARangedEnemy::ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType)
 {
 	bool bSuccess;
-	bSuccess = Super::ExecuteNormalAttack(AttackTarget);
+	bSuccess = Super::ExecuteAIAttack(AttackTarget, AIAttackType);
 	if (bSuccess)
 	{
 		AMeleeWeapon* RangedWeapon = GetMeleeWeapon();

@@ -6,9 +6,7 @@
 #include "BaseEnemy.h"
 #include "BossEnemy.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class ASR_API ABossEnemy : public ABaseEnemy
 {
@@ -24,6 +22,11 @@ private:
 
 	UPROPERTY()
 	UEnemyInfoWidget* BossInfoWidget;
+
+	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
+	bool BossAIAttack(AActor* AttackTarget, EAIAttack BossAttackType);
+
+
 
 public:
 	UEnemyInfoWidget* GetBossInfoWidget() const;

@@ -50,7 +50,9 @@ ABaseEnemy::ABaseEnemy()
 	AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 	GetCharacterMovement()->bUseControllerDesiredRotation = true;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
-	GetCharacterMovement()->RotationRate.Yaw = 250.f;
+	GetCharacterMovement()->RotationRate.Yaw = 800.f;
+	bUseControllerRotationYaw = false;
+
 	// [Blueprint]
 	// - Enable bUseAccelerationForPaths
 	// - Setting BehaviorTree
@@ -69,8 +71,7 @@ void ABaseEnemy::BeginPlay()
 		InfoWidget = Cast<UEnemyInfoWidget>(InfoWidgetComponent->GetUserWidgetObject());
 		if (InfoWidget != nullptr)
 		{
-			InfoWidget->Owner = this;
-			InfoWidget->UpdateHealthBar();
+			InfoWidget->SetOwner(this);
 		}
 	}
 
@@ -113,11 +114,6 @@ void ABaseEnemy::BeginPlay()
 void ABaseEnemy::NotifyAttackEnd(AActor* AttackTarget)
 {
 	OnAttackEnd.Broadcast(AttackTarget);
-}
-
-void ABaseEnemy::NotifyGuardEnd()
-{
-	OnGuardEnd.Broadcast();
 }
 
 void ABaseEnemy::SetHealth(float NewHealth)
@@ -177,50 +173,12 @@ void ABaseEnemy::Executed()
 	} 
 }
 
-bool ABaseEnemy::NormalAttack(AActor* AttackTarget)
+
+bool ABaseEnemy::Guard(float GuardProb)
 {
-	if (CanAttack())
+	if (CanGuard() && FMath::RandRange(0.f, 1.f) <= GuardProb)
 	{
-		CachedAttackTarget = AttackTarget;
-		return ExecuteNormalAttack(AttackTarget);
-	}
-	return false;
-}
-
-bool ABaseEnemy::ExecuteNormalAttack(AActor* AttackTarget)
-{
-	if (NormalAttackMontages.Num() > 0)
-	{
-		SetCombatState(ECombatState::ECS_Attack);
-		if (NormalAttackMontages.Num() <= NormalAttackIndex)
-		{
-			NormalAttackIndex = 0;
-		}
-
-		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-		if (AnimInstance != nullptr)
-		{
-			AnimInstance->Montage_Play(
-				NormalAttackMontages[NormalAttackIndex], 1.0f, EMontagePlayReturnType::Duration,
-				0.0f, true
-			);
-			FOnMontageEnded LMontageEnded;
-			LMontageEnded.BindUObject(this, &ABaseEnemy::OnMontageEnded);
-			AnimInstance->Montage_SetEndDelegate(LMontageEnded, NormalAttackMontages[NormalAttackIndex]);
-
-			NormalAttackIndex++;
-			return true;
-		}
-
-
-	}
-	return false;
-}
-
-bool ABaseEnemy::Guard()
-{
-	if (CanGuard() && FMath::RandRange(0.f, 1.f) <= ReactStateGuardRate)
-	{
+		GetCharacterMovement()->StopMovementImmediately();
 		SetCombatState(ECombatState::ECS_Guard);
 		PlayAnimMontage(GuardMontage);
 		return true;
@@ -235,6 +193,47 @@ bool ABaseEnemy::CanGuard() const
 	{
 		return true;
 	}
+	return false;
+}
+
+bool ABaseEnemy::ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType)
+{
+	TArray<UAnimMontage*> AttackMontages;
+	FAIAttackMontages* FoundMontages = AttackMontageMap.Find(AIAttackType);
+	if (FoundMontages != nullptr && FoundMontages->AIAttackMontages.Num() > 0)
+	{
+		AttackMontages = FoundMontages->AIAttackMontages;
+	}
+	else 
+	{
+		FoundMontages = AttackMontageMap.Find(EAIAttack::EAA_Default);
+		if (FoundMontages == nullptr || FoundMontages->AIAttackMontages.Num() <= 0)
+		{
+			return false;
+		}
+		AttackMontages = FoundMontages->AIAttackMontages;
+	}
+
+	if (AttackMontages.Num() > 0)
+	{
+		int32 MontageIndex = 0;
+		MontageIndex = FMath::RandRange(0, AttackMontages.Num() - 1);
+		SetCombatState(ECombatState::ECS_Attack);
+
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance != nullptr)
+		{
+			AnimInstance->Montage_Play(
+				AttackMontages[MontageIndex], 1.0f, EMontagePlayReturnType::Duration,
+				0.0f, true
+			);
+			FOnMontageEnded LMontageEnded;
+			LMontageEnded.BindUObject(this, &ABaseEnemy::OnMontageEnded);
+			AnimInstance->Montage_SetEndDelegate(LMontageEnded, AttackMontages[MontageIndex]);
+			return true;
+		}
+	}
+
 	return false;
 }
 
@@ -340,14 +339,7 @@ void ABaseEnemy::HandleDeath()
 
 void ABaseEnemy::OnMontageEnded(UAnimMontage* Montage, bool bInterrupted)
 {
-	if (NormalAttackMontages.Contains(Montage))
-	{
-		NotifyAttackEnd(CachedAttackTarget);
-	}
-	else if (Montage == GuardMontage || Montage == GuardRevengeMontage)
-	{
-		NotifyGuardEnd();
-	}
+	NotifyAttackEnd(CachedAttackTarget);	
 }
 
 void ABaseEnemy::HandleTimelineUpdate(float Value)
@@ -631,10 +623,11 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		return;
 	}
 
-	// TODO - Improvement
+	// TODO - Parry by AnimNotify
 	if (FMath::RandRange(0.f, 1.f) < AutoGuardRate &&
 		!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
 	{
+		//Guard(1.f);
 		SetCombatState(ECombatState::ECS_Guard);
 		SetHitReactionState(EHitReactionState::EHR_SuperArmor);
 		PlayAnimMontage(GuardRevengeMontage);
@@ -705,10 +698,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 			return;
 		}
 		SetCombatState(DamageMapping->CombatState);
-		if (DamageMapping->CombatState == ECombatState::ECS_Flinching || DamageMapping->CombatState == ECombatState::ECS_KnockDown)
-		{
-			GetCharacterMovement()->StopMovementImmediately();
-		}
+		GetCharacterMovement()->StopMovementImmediately();
 		RotateToAttacker(Attacker, false);
 		HandleHitTransform(Attacker, HitData.DamageType, HitData.Damage);
 
@@ -799,8 +789,7 @@ float ABaseEnemy::GetMaxHealth() const
 	return MaxHealth;
 }
 
-
-bool ABaseEnemy::AttackBegin(AActor* AttackTarget, int32 RequiredTokens)
+bool ABaseEnemy::AIReserveAttackTokens(AActor* AttackTarget, int32 RequiredTokens)
 {
 	// Check if the required number of tokens is available
 	ICombatInterface* CombatInterface = Cast<ICombatInterface>(AttackTarget);
@@ -817,14 +806,7 @@ bool ABaseEnemy::AttackBegin(AActor* AttackTarget, int32 RequiredTokens)
 	return false;
 }
 
-void ABaseEnemy::Attack(AActor* AttackTarget)
-{
-	// Attack State True
-	
-	//
-}
-
-void ABaseEnemy::AttackEnd(AActor* AttackTarget)
+void ABaseEnemy::AIReturnAttackTokens(AActor* AttackTarget)
 {
 	ICombatInterface* CombatInterface = Cast<ICombatInterface>(AttackTarget);
 	if (CombatInterface != nullptr)
@@ -846,6 +828,17 @@ void ABaseEnemy::StoreAttackTokens(AActor* AttackTarget, int32 Amount)
 	{
 		ReservedAttackTokensMap.Add({ AttackTarget, Amount });
 	}
+}
+
+bool ABaseEnemy::AIAttack(AActor* AttackTarget, EAIAttack AIAttackType)
+{
+	if (CanAttack())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("CAN ATTACK!"));
+		CachedAttackTarget = AttackTarget;
+		return ExecuteAIAttack(AttackTarget, AIAttackType);
+	}
+	return false;
 }
 
 void ABaseEnemy::Tick(float DeltaTime)

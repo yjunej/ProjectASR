@@ -16,22 +16,16 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttackEnd, AActor*, AttackTarget)
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnGuardEnd);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHitReactionStateChanged, EHitReactionState, NewState);
 
-
-
-UENUM(BlueprintType)
-enum class EEnemyBehaviorState : uint8
+// To Enable TArray in TMap
+USTRUCT(BlueprintType)
+struct FAIAttackMontages
 {
-	EBS_None						UMETA(DisplayName="None"),
-	EBS_Chase						UMETA(DisplayName="Chase"),
-	EBS_Strafe						UMETA(DisplayName="Strafe"),
-	EBS_Attack						UMETA(DisplayName="Attack"),
-	EBS_Disabled					UMETA(DisplayName="Disabled"),
-	EBS_Dead						UMETA(DisplayName="Dead"),
+	GENERATED_USTRUCT_BODY()
 
-	EBS_MAX							UMETA(Hidden)
+public:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Animation)
+	TArray<UAnimMontage*> AIAttackMontages;
 };
-
-
 
 UCLASS()
 class ASR_API ABaseEnemy : public ACharacter, public ICombatInterface, public IEnemyAIInterface
@@ -62,10 +56,10 @@ public:
 	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
 	virtual float GetCurrentHealth() const override;
 	virtual float GetMaxHealth() const override;
-	virtual bool AttackBegin(AActor* AttackTarget, int32 RequiredTokens) override;
-	virtual void Attack(AActor* AttackTarget) override;
-	virtual void AttackEnd(AActor* AttackTarget) override;
+	virtual bool AIReserveAttackTokens(AActor* AttackTarget, int32 RequiredTokens) override;
+	virtual void AIReturnAttackTokens(AActor* AttackTarget) override;
 	virtual void StoreAttackTokens(AActor* AttackTarget, int32 Amount) override;
+	virtual bool AIAttack(AActor* AttackTarget, EAIAttack AIAttackType) override;
 	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
@@ -80,9 +74,7 @@ public:
 	//
 	UPROPERTY(BlueprintAssignable, Category= AI)
 	FOnAttackEnd OnAttackEnd;
-
-	UPROPERTY(BlueprintAssignable, Category = AI)
-	FOnGuardEnd OnGuardEnd;
+	
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = AI)
 	bool bIsCombatReady = false;
@@ -90,7 +82,6 @@ public:
 
 	// Custom Notify For BT
 	void NotifyAttackEnd(AActor* AttackTarget);
-	void NotifyGuardEnd();
 
 	FOnHealthChanged OnHealthChanged;
 
@@ -107,6 +98,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = Events)
 	FOnHitReactionStateChanged OnHitReactionStateChanged;
+
+	UFUNCTION()
+	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
@@ -128,19 +122,51 @@ protected:
 	class UEnemyInfoWidget* InfoWidget;
 
 	// Combat - Consider to apply Component Design
-	UFUNCTION(BlueprintCallable)
-	virtual bool NormalAttack(AActor* AttackTarget);
 
-	virtual bool ExecuteNormalAttack(AActor* AttackTarget);
 	virtual bool CanAttack() const;
 	
 	UFUNCTION(BlueprintCallable)
-	virtual bool Guard();
+	virtual bool Guard(float GuardProb);
 
 	virtual bool CanGuard() const;
 
+
+	virtual bool ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType);
+
+
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
 
+
+	// Animation
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* StandUpMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* StandingDeathMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* FallingDeathMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ExecutionMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* SmashExecutionMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* CombatReadyMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* CombatEndMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GuardMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GuardRevengeMontage;
+
+	UPROPERTY(EditAnywhere, Category = Animation)
+	TMap<EAIAttack, FAIAttackMontages> AttackMontageMap;
 
 	// AI
 	UPROPERTY(EditAnywhere, Category = AI, meta = (AllowPrivateAccess = "true"))
@@ -160,6 +186,7 @@ protected:
 	float DefendDistance = 450.f;
 
 	bool bIsWeaponHidden = false;
+
 
 private:
 	
@@ -182,41 +209,7 @@ private:
 	class UEnemyLockOnWidget* LockOnWidget;
 
 
-	// Animation
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* StandUpMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* StandingDeathMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* FallingDeathMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* ExecutionMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* SmashExecutionMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	TArray<UAnimMontage*> NormalAttackMontages;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* CombatReadyMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* CombatEndMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* GuardMontage;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* GuardRevengeMontage;
-
-
-	UFUNCTION()
-	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
-
+	
 	// Character State
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = State, meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState;
@@ -332,4 +325,5 @@ public:
 	FORCEINLINE AMeleeWeapon* GetMeleeWeapon() const { return MeleeWeapon; }
 	FORCEINLINE void SetAutoGuardRate(float Rate) { AutoGuardRate = Rate; }
 	FORCEINLINE UWidgetComponent* GetInfoWidgetComponent() const { return InfoWidgetComponent; }
+	FORCEINLINE void SetCachedAttackTarget(AActor* NewAttackTarget) { CachedAttackTarget = NewAttackTarget; }
 };

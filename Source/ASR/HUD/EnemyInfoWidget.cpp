@@ -9,22 +9,14 @@
 void UEnemyInfoWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	if (Owner != nullptr)
-	{
-		Owner->OnHealthChanged.AddDynamic(this, &UEnemyInfoWidget::UpdateHealthBar);
-	}
 }
 
 void UEnemyInfoWidget::UpdateHealthBar()
 {
-	UE_LOG(LogTemp, Warning, TEXT("UpdateHealthBar!"));
 	if (Owner != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UpdateHealthBar2!"));
-
 		if (Owner->MaxHealth > 0)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("UpdateHealthBar3!: %f"), EnemyHealthBar->GetPercent());
 			EnemyHealthBar->SetPercent(Owner->Health / Owner->MaxHealth);
 		}
 

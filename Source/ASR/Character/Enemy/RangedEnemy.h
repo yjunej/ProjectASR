@@ -20,7 +20,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 
-	virtual bool ExecuteNormalAttack(AActor* AttackTarget) override;
+	virtual bool ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType) override;
 	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
 
 	UFUNCTION(BlueprintCallable)

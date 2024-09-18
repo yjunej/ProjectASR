@@ -21,6 +21,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	float AcceptanceRadius = 100.f;
 
+	UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
+	bool bIsRootMotionActive = true;
+
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bIsAttackTargetExists;
@@ -30,6 +33,8 @@ private:
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float DesiredDirection;
+
+
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	bool IsAttackTargetExists() const;
