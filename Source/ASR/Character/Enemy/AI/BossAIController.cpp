@@ -5,6 +5,7 @@
 #include "ASR/Character/Enemy/BossEnemy.h"
 #include "ASR/Character/ASRCharacter.h"
 #include "Components/VerticalBox.h"
+#include "ASR/HUD/EnemyInfoWidget.h"
 #include "ASR/HUD/ASRMainHUD.h"
 
 void ABossAIController::SwitchToAttackState(AActor* TargetActor)
@@ -22,7 +23,8 @@ void ABossAIController::SwitchToAttackState(AActor* TargetActor)
 			if (BossEnemy != nullptr)
 			{
 				// TODO
-				ASRCharacter->MainHUDWidget->BossInfoVBox;
+				ASRCharacter->MainHUDWidget->BossInfoVBox->AddChildToVerticalBox(Cast<UUserWidget>(BossEnemy->GetBossInfoWidget()));
+
 			}
 		}
 	}

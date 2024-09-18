@@ -11,7 +11,11 @@ void ABossEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	GetInfoWidgetComponent()->SetWidgetClass(nullptr);	
-	BossInfoWidget = Cast<UEnemyInfoWidget>(CreateWidget(this, BossInfoWidgetClass));
+	BossInfoWidget = Cast<UEnemyInfoWidget>(CreateWidget(GetWorld(), BossInfoWidgetClass));
+	if (BossInfoWidget != nullptr)
+	{
+		BossInfoWidget->SetOwner(this);
+	}
 }
 
 UEnemyInfoWidget* ABossEnemy::GetBossInfoWidget() const

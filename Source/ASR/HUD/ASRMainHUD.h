@@ -35,6 +35,6 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* StabilityBar;
 
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UVerticalBox* BossInfoVBox;
 };

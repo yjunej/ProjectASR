@@ -30,7 +30,9 @@ public:
 
 
 	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* HealthBar;
+	class UProgressBar* EnemyHealthBar;
+
+	void SetOwner(ABaseEnemy* NewOwner);
 
 	
 };
