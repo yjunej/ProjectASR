@@ -41,9 +41,12 @@ void UEnemyInfoWidget::SetOwner(ABaseEnemy* NewOwner)
 		if (Owner != nullptr)
 		{
 			Owner->OnHealthChanged.RemoveDynamic(this, &UEnemyInfoWidget::UpdateHealthBar);
+			Owner->OnStaminaChanged.RemoveDynamic(this, &UEnemyInfoWidget::UpdateStaminaBar);
 		}
 		Owner = NewOwner;
 		Owner->OnHealthChanged.AddDynamic(this, &UEnemyInfoWidget::UpdateHealthBar);
+		Owner->OnStaminaChanged.AddDynamic(this, &UEnemyInfoWidget::UpdateStaminaBar);
+
 		UpdateHealthBar();
 		UpdateStaminaBar();
 	}

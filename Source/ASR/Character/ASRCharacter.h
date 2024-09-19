@@ -110,6 +110,25 @@ public:
 	float YawRotationRate = 900.f;
 
 
+	// Cam Control Test
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Timeline)
+	float InitialArmLength;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Timeline)
+	float TargetArmLength;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Timeline)
+	class UTimelineComponent* ArmLengthTimeline;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Timeline)
+	UCurveFloat* ArmLengthCurve;
+
+	UFUNCTION()
+	void UpdateArmLength(float Value);
+
+	UFUNCTION(BlueprintCallable)
+	void StartArmLengthChange();
+	//
+
+
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
 	template <typename AssetType>
 	AssetType* EnsureAssetLoaded(TSoftObjectPtr<AssetType> const& AssetPtr)
@@ -236,6 +255,8 @@ protected:
 	int32 NormalAttackIndex;
 
 
+
+
 private:
 	// Enhanced Input
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -338,6 +359,9 @@ private:
 	FTimerHandle StaminaRegenTimerHandle;
 	float StaminaRegenInterval = 0.1f;
 	void RegenStamina();
+
+
+	APlayerCameraManager* PlayerCameraManager;
 	
 
 public:

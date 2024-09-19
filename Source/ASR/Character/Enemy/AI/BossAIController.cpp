@@ -23,7 +23,10 @@ void ABossAIController::SwitchToAttackState(AActor* TargetActor)
 			if (BossEnemy != nullptr)
 			{
 				// TODO
-				ASRCharacter->MainHUDWidget->BossInfoVBox->AddChildToVerticalBox(Cast<UUserWidget>(BossEnemy->GetBossInfoWidget()));
+				if (ASRCharacter->MainHUDWidget != nullptr)
+				{
+					ASRCharacter->MainHUDWidget->BossInfoVBox->AddChildToVerticalBox(Cast<UUserWidget>(BossEnemy->GetBossInfoWidget()));
+				}
 
 			}
 		}

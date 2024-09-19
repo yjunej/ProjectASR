@@ -18,6 +18,7 @@
 #include "ASR/Character/Enemy/BaseEnemy.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "NiagaraFunctionLibrary.h"
+#include "Components/TimelineComponent.h"
 
 
 
@@ -71,7 +72,10 @@ AASRCharacter::AASRCharacter()
 	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
 	TargetingComp->Owner = this;
 
+	ArmLengthTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ArmLengthTimeline"));
+
 	SetCombatState(ECombatState::ECS_None);
+
 }
 
 void AASRCharacter::PlayRandomSection(UAnimMontage* Montage)
@@ -94,6 +98,26 @@ bool AASRCharacter::IsAttackFromFront(const FHitResult& HitResult) const
 
 	// forward 120 degrees
 	return DotProduct > 0.5f; 
+}
+
+void AASRCharacter::UpdateArmLength(float Value)
+{
+	if (CameraBoom != nullptr)
+	{
+		CameraBoom->TargetArmLength = InitialArmLength + Value;
+	}
+}
+
+void AASRCharacter::StartArmLengthChange()
+{
+	if (ArmLengthCurve)
+	{
+		FOnTimelineFloat TimelineCallback;
+		TimelineCallback.BindUFunction(this, FName("UpdateArmLength"));
+		ArmLengthTimeline->AddInterpFloat(ArmLengthCurve, TimelineCallback);
+		ArmLengthTimeline->SetLooping(false);
+		ArmLengthTimeline->PlayFromStart();
+	}
 }
 
 void AASRCharacter::BeginPlay()
@@ -119,6 +143,10 @@ void AASRCharacter::BeginPlay()
 	SetStamina(MaxStamina);
 
 	GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &AASRCharacter::RegenStamina, StaminaRegenInterval, true);
+	if (CameraBoom != nullptr)
+	{
+		InitialArmLength = CameraBoom->TargetArmLength;
+	}
 }
 
 void AASRCharacter::Tick(float DeltaTime)

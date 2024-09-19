@@ -197,7 +197,7 @@ bool ABaseEnemy::Guard(float GuardProb)
 bool ABaseEnemy::CanGuard() const
 {
 	if (GetCombatState() != ECombatState::ECS_Attack && GetCombatState() != ECombatState::ECS_Guard
-		&& GetCombatState() != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling())
+		&& GetCombatState() != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && Stamina > 0)
 	{
 		return true;
 	}
@@ -630,13 +630,18 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		return;
 	}
 
-	// TODO - Parry by AnimNotify
+	// AutoGuard
+	// TODO(optional) - Integrate Parry type & Guard type enemy
 	if (FMath::RandRange(0.f, 1.f) < AutoGuardRate &&
 		!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
-		&& bIsCombatReady && IsAttackFromFront(HitResult))
+		&& bIsCombatReady && IsAttackFromFront(HitResult) && Stamina > 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("AUTO GUARD"));
-		//Guard(1.f);
+		// Guard(1.f) - Try Guard (Enemy Predicts Player's attack);
+
+		SetStamina(Stamina - 100.f);
+
+		// SetCombatState(ECombatState::ECS_Guard);
 		SetCombatState(ECombatState::ECS_Attack);
 		SetHitReactionState(EHitReactionState::EHR_SuperArmor);
 		PlayAnimMontage(GuardRevengeMontage);
@@ -676,7 +681,8 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 			GetWorld(),
 			HitData.HitEffect,
 			HitResult.ImpactPoint,
-			GetActorRotation(),
+			//GetActorRotation(),
+			FRotator::ZeroRotator,
 			FVector(1.f)
 		);
 	}
