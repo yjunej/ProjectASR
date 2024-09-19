@@ -34,10 +34,9 @@ AASRCharacter::AASRCharacter()
 	GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
 
 	// Action Game Movement
-	GetCharacterMovement()->MaxWalkSpeed = 700.f;
+	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
 	GetCharacterMovement()->JumpZVelocity = 700.f;
-	GetCharacterMovement()->RotationRate.Yaw = 900.f;
-	GetCharacterMovement()->MaxWalkSpeed = 1300.f;
+	GetCharacterMovement()->RotationRate.Yaw = YawRotationRate;
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->bEnableCameraLag = true;
@@ -117,6 +116,9 @@ void AASRCharacter::BeginPlay()
 	}
 
 	SetHealth(MaxHealth);
+	SetStamina(MaxStamina);
+
+	GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &AASRCharacter::RegenStamina, StaminaRegenInterval, true);
 }
 
 void AASRCharacter::Tick(float DeltaTime)
@@ -351,23 +353,49 @@ void AASRCharacter::Dodge()
 
 		// Rotate Before Dodge
 		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
+		FName SectionName("Forward");
+		float StaminaAmount = 150.f;
+
 		if (LastInputVector.Size() != 0.f)
 		{
-			SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
+			if (!bIsStrafe)
+			{
+				SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
+			}
+			else
+			{
+				FRotator RotFromX =	UKismetMathLibrary::MakeRotFromX(LastInputVector);
+				float DeltaYaw = UKismetMathLibrary::NormalizedDeltaRotator(RotFromX, GetActorRotation()).Yaw;
+				if (-45.f <= DeltaYaw && DeltaYaw < 45.f)
+				{
+					SectionName = "Forward";
+				}
+				else if (-135.f <= DeltaYaw && DeltaYaw < -45.f)
+				{
+					SectionName = "Left";
+					StaminaAmount = 120.f;
+				}
+				else if (45 <= DeltaYaw && DeltaYaw < 135.f)
+				{
+					SectionName = "Right";
+					StaminaAmount = 120.f;
+				}
+				else
+				{
+					SectionName = "Backward";
+				}
+			}
 		}
+		SetStamina(Stamina - StaminaAmount);
+		PlayAnimMontage(DodgeMontage, 1.f, SectionName);
 
-
-		GetMotionWarpingComponent()->AddOrUpdateWarpTargetFromLocationAndRotation(
-			FName("Dodge"), GetActorLocation() + GetActorForwardVector() * 150,
-			GetActorRotation());
-		PlayAnimMontage(DodgeMontage);
 	}
 }
 
 bool AASRCharacter::CanDodge() const
 {
 	if (CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Dodge
-		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && CombatState != ECombatState::ECS_Flinching)
+		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && CombatState != ECombatState::ECS_Flinching && Stamina > 0)
 	{
 		return true;
 	}
@@ -453,6 +481,22 @@ void AASRCharacter::SetHealth(float NewHealth)
 	{
 		Health = NewHealth;
 		OnHealthChanged.Broadcast();
+	}
+}
+
+void AASRCharacter::SetStamina(float NewStamina)
+{
+	NewStamina = FMath::Clamp(NewStamina, 0.f, MaxStamina);
+	if (Stamina != NewStamina)
+	{
+		// Use Stamina
+		if (NewStamina < Stamina)
+		{
+			GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
+			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &AASRCharacter::RegenStamina, StaminaRegenInterval, true, 1.5f);
+		}
+		Stamina = NewStamina;
+		OnStaminaChanged.Broadcast();
 	}
 }
 
@@ -588,6 +632,11 @@ void AASRCharacter::HandleDeath()
 	}
 }
 
+void AASRCharacter::RegenStamina()
+{
+	SetStamina(Stamina + StaminaRegenRate * StaminaRegenInterval);
+}
+
 void AASRCharacter::SetCombatState(ECombatState InCombatState)
 {
 	if (InCombatState != CombatState)
@@ -595,6 +644,14 @@ void AASRCharacter::SetCombatState(ECombatState InCombatState)
 		CombatState = InCombatState;
 		OnCombatStateChanged.Broadcast(InCombatState);
 	}
+}
+
+void AASRCharacter::SetStrafe(bool bEnableStrafe)
+{
+	bIsStrafe = bEnableStrafe;
+	GetCharacterMovement()->bOrientRotationToMovement = !bEnableStrafe;
+	bUseControllerRotationYaw = bEnableStrafe;
+	GetCharacterMovement()->MaxWalkSpeed = bEnableStrafe ? MaxStrafeSpeed : MaxWalkSpeed;
 }
 
 void AASRCharacter::Jump()
@@ -651,11 +708,21 @@ bool AASRCharacter::CanGuard() const
 void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {	
 	// Dead
-	if (CombatState == ECombatState::ECS_Death || bIsInvulnerable)
+	if (CombatState == ECombatState::ECS_Death)
 	{
 		return;
 	}
 
+	if (bIsInvulnerable)
+	{
+		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.7f);
+		FTimerHandle GlobalTimeDilationTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(GlobalTimeDilationTimerHandle, FTimerDelegate::CreateLambda([this]()
+			{
+				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
+			}), 0.1f, false);
+		return;
+	}
 
 	if (Cast<ABaseEnemy>(Attacker) == nullptr)
 	{
@@ -668,7 +735,6 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 		FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
 		LaunchCharacter(KnockbackForce, true, true);
 		PlayAnimMontage(GuardAcceptMontage);
-		// TODO: Add Stability System
 		return;
 	}
 

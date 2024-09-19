@@ -190,7 +190,7 @@ void ABlader::NormalAttack()
 {
 	if (CanAttack())
 	{
-		if (GetVelocity().Size() >= 1000.f && NormalAttackIndex ==0)
+		if (GetVelocity().Size() >= MaxWalkSpeed * 0.9 && NormalAttackIndex ==0)
 		{
 			DashAttack();
 		}
@@ -311,7 +311,7 @@ void ABlader::HeavyAttack()
 	{
 		// TODO: NOT RESET L/H Counter for custom combo
 
-		if (GetVelocity().Size() >= 1000.f && HeavyAttackIndex == 0)
+		if (GetVelocity().Size() > MaxWalkSpeed * 0.9 && HeavyAttackIndex == 0)
 		{
 			DashHeavyAttack();
 		}

@@ -23,6 +23,17 @@ void UEnemyInfoWidget::UpdateHealthBar()
 	}
 }
 
+void UEnemyInfoWidget::UpdateStaminaBar()
+{
+	if (Owner != nullptr)
+	{
+		if (Owner->MaxStamina > 0)
+		{
+			EnemyStaminaBar->SetPercent(Owner->Stamina / Owner->MaxStamina);
+		}
+	}
+}
+
 void UEnemyInfoWidget::SetOwner(ABaseEnemy* NewOwner)
 {
 	if (Owner != NewOwner && NewOwner != nullptr)
@@ -34,5 +45,6 @@ void UEnemyInfoWidget::SetOwner(ABaseEnemy* NewOwner)
 		Owner = NewOwner;
 		Owner->OnHealthChanged.AddDynamic(this, &UEnemyInfoWidget::UpdateHealthBar);
 		UpdateHealthBar();
+		UpdateStaminaBar();
 	}
 }

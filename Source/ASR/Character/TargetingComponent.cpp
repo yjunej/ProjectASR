@@ -16,6 +16,10 @@ UTargetingComponent::UTargetingComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 	bIsTargeting = false;
+	if (Owner != nullptr)
+	{
+		Owner->SetStrafe(false);
+	}
 	CameraOffset = FVector(0.f, 0.f, 35.f);
 }
 
@@ -225,6 +229,10 @@ void UTargetingComponent::LockOnTarget(const FHitResult& HitResult)
 			TargetActor = Enemy;
 			Enemy->OnTargeting();
 			bIsTargeting = true;
+			if (Owner != nullptr)
+			{
+				Owner->SetStrafe(true);
+			}
 			return;
 		}
 		else
@@ -241,6 +249,11 @@ void UTargetingComponent::LockOnTarget(const FHitResult& HitResult)
 void UTargetingComponent::ClearTarget()
 {
 	bIsTargeting = false;
+	if (Owner != nullptr)
+	{
+		Owner->SetStrafe(false);
+	}
+
 	ABaseEnemy* TargetedEnemy = Cast<ABaseEnemy>(TargetActor);
 	if (TargetedEnemy != nullptr)
 	{
@@ -381,12 +394,12 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		}
 	}
 
-	else
+	/*else
 	{
 		ClearTarget();
 		ClearSubTarget();
 		return;
-	}
+	}*/
 
 	if (SubTargetActor != nullptr)
 	{

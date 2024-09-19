@@ -23,8 +23,8 @@ public:
 	void UpdateHealthBar();
 
 	UFUNCTION()
-	void UpdateStabilityBar();
-
+	void UpdateStaminaBar();
+	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class AASRCharacter* Owner;
@@ -33,7 +33,7 @@ public:
 	class UProgressBar* HealthBar;
 
 	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* StabilityBar;
+	class UProgressBar* StaminaBar;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UVerticalBox* BossInfoVBox;

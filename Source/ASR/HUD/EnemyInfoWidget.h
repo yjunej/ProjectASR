@@ -21,6 +21,9 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void UpdateHealthBar();
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateStaminaBar();
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class ABaseEnemy* Owner;
 
@@ -31,6 +34,9 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* EnemyHealthBar;
+
+	UPROPERTY(meta = (BindWidget))
+	UProgressBar* EnemyStaminaBar;
 
 	void SetOwner(ABaseEnemy* NewOwner);
 

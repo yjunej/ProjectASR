@@ -30,7 +30,7 @@ void UASRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Speed = Velocity.Size();
 
 		bIsCrouched = Owner->bIsCrouched;
-
+		bIsStrafe = !MovementComponent->bOrientRotationToMovement;
 		
 		FVector Acceleration = MovementComponent->GetCurrentAcceleration();
 		Acceleration2D = FVector2D(Acceleration.X, Acceleration.Y);

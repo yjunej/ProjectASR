@@ -63,10 +63,17 @@ public:
 	//
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
-	float Health = 100.f;
+	float Health = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float MaxHealth = 1000.f;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float Stamina = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float MaxStamina = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float ExecutionThresholdHealth = 200.f;
@@ -84,8 +91,12 @@ public:
 	void NotifyAttackEnd(AActor* AttackTarget);
 
 	FOnHealthChanged OnHealthChanged;
+	FOnStaminaChanged OnStaminaChanged;
+
 
 	void SetHealth(float NewHealth);
+	void SetStamina(float NewStamina);
+
 	void OnTargeting();
 	void OnUnTargeting();
 	

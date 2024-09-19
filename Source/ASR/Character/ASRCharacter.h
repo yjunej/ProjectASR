@@ -9,6 +9,7 @@
 #include "ASRCharacter.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnHealthChanged);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStaminaChanged);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCombatStateChanged, ECombatState, NewState);
 
 
@@ -82,6 +83,8 @@ public:
 
 
 	FOnHealthChanged OnHealthChanged;
+	FOnStaminaChanged OnStaminaChanged;
+
 
 	void PlayRandomSection(UAnimMontage* Montage);
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
@@ -96,6 +99,16 @@ public:
 	class UASRMainHUD* MainHUDWidget;
 
 	FOnCombatStateChanged OnCombatStateChanged;
+
+	UPROPERTY(EditAnywhere, Category=Move)
+	float MaxWalkSpeed = 700.f;
+
+	UPROPERTY(EditAnywhere, Category = Move)
+	float MaxStrafeSpeed = 500.f;
+
+	UPROPERTY(EditAnywhere, Category = Move)
+	float YawRotationRate = 900.f;
+
 
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
 	template <typename AssetType>
@@ -169,10 +182,13 @@ protected:
 	float MaxHealth = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
-	float Stability = 1000.f;
+	float Stamina = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
-	float MaxStability = 1000.f;
+	float MaxStamina = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
+	float StaminaRegenRate = 100.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat)
 	float ExecutionDistance = 400.f;
@@ -195,6 +211,9 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void SetHealth(float NewHealth);
+
+	UFUNCTION(BlueprintCallable)
+	void SetStamina(float NewStamina);
 
 	UFUNCTION(BlueprintCallable)
 	void SetInvulnerable(bool InInvulnerable) { bIsInvulnerable = InInvulnerable; }
@@ -313,10 +332,18 @@ private:
 
 	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
 
+	bool bIsStrafe = false;
+
+	// Stamina
+	FTimerHandle StaminaRegenTimerHandle;
+	float StaminaRegenInterval = 0.1f;
+	void RegenStamina();
+	
 
 public:
 	// Getter & Setter
 	void SetCombatState(ECombatState InCombatState);
+	void SetStrafe(bool bEnableStrafe);
 
 	// FORCEINLINE 
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
@@ -329,8 +356,8 @@ public:
 	FORCEINLINE float GetHealth() const { return Health; }
 	FORCEINLINE float GetMaxHealth() const { return MaxHealth; }
 	FORCEINLINE float GetExecutionDistance() const { return ExecutionDistance; }
-	FORCEINLINE float GetStability() const { return Stability; }
-	FORCEINLINE float GetMaxStability() const { return MaxStability; }
+	FORCEINLINE float GetStamina() const { return Stamina; }
+	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 	FORCEINLINE float GetDashAttackWarpDistance() const { return DashAttackWarpDistance; }
 	FORCEINLINE float GetNormalAttackWarpDistance() const { return NormalAttackWarpDistance; }
 

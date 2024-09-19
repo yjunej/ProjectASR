@@ -12,7 +12,9 @@ void UASRMainHUD::NativeConstruct()
 	if (Owner != nullptr)
 	{
 		Owner->OnHealthChanged.AddDynamic(this, &UASRMainHUD::UpdateHealthBar);
+		Owner->OnStaminaChanged.AddDynamic(this, &UASRMainHUD::UpdateStaminaBar);
 	}
+
 }
 
 void UASRMainHUD::UpdateHealthBar()
@@ -27,13 +29,13 @@ void UASRMainHUD::UpdateHealthBar()
 	}
 }
 
-void UASRMainHUD::UpdateStabilityBar()
+void UASRMainHUD::UpdateStaminaBar()
 {
 	if (Owner != nullptr)
 	{
-		if (Owner->GetMaxStability() > 0)
+		if (Owner->GetMaxStamina() > 0)
 		{
-			StabilityBar->SetPercent(Owner->GetStability() / Owner->GetMaxStability());
+			StaminaBar->SetPercent(Owner->GetStamina() / Owner->GetMaxStamina());
 		}
 
 	}

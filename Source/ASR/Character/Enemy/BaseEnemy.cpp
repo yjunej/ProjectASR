@@ -118,14 +118,22 @@ void ABaseEnemy::NotifyAttackEnd(AActor* AttackTarget)
 
 void ABaseEnemy::SetHealth(float NewHealth)
 {
-
 	NewHealth = FMath::Clamp(NewHealth, 0.f, MaxHealth);
 	if (Health != NewHealth)
 	{
 		Health = NewHealth;
 		OnHealthChanged.Broadcast();
 	}
+}
 
+void ABaseEnemy::SetStamina(float NewStamina)
+{
+	NewStamina = FMath::Clamp(NewStamina, 0.f, MaxStamina);
+	if (Stamina != NewStamina)
+	{
+		Stamina = NewStamina;
+		OnStaminaChanged.Broadcast();
+	}
 }
 
 void ABaseEnemy::OnTargeting()
@@ -311,7 +319,6 @@ void ABaseEnemy::HandleDeath()
 		{
 			GetMesh()->SetSimulatePhysics(true);
 			GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-			return;
 		}
 		else if (GetCharacterMovement()->IsFalling())
 		{
