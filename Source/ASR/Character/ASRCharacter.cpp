@@ -492,8 +492,9 @@ void AASRCharacter::SetStamina(float NewStamina)
 		// Use Stamina
 		if (NewStamina < Stamina)
 		{
+			float StaminaRegenCooldown = NewStamina == 0 ? 2.5f : 1.5f;
 			GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
-			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &AASRCharacter::RegenStamina, StaminaRegenInterval, true, 1.5f);
+			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &AASRCharacter::RegenStamina, StaminaRegenInterval, true, StaminaRegenCooldown);
 		}
 		Stamina = NewStamina;
 		OnStaminaChanged.Broadcast();
@@ -683,13 +684,13 @@ void AASRCharacter::Guard()
 		ResetSkills();
 		ResetDodge();
 
-		// Rotate Before Dodge
 		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
 		if (LastInputVector.Size() != 0.f)
 		{
 			SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
 		}
 
+		SetStamina(Stamina - 100.f);
 		PlayAnimMontage(GuardMontage);
 	}
 }
@@ -697,7 +698,7 @@ void AASRCharacter::Guard()
 bool AASRCharacter::CanGuard() const
 {
 	if (CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Guard
-		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling())
+		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && Stamina > 0)
 	{
 		return true;
 	}
@@ -715,12 +716,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 
 	if (bIsInvulnerable)
 	{
-		UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 0.7f);
-		FTimerHandle GlobalTimeDilationTimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(GlobalTimeDilationTimerHandle, FTimerDelegate::CreateLambda([this]()
-			{
-				UGameplayStatics::SetGlobalTimeDilation(GetWorld(), 1.0f);
-			}), 0.1f, false);
+		// Optional : Add Dodge Succeed Effects
 		return;
 	}
 
@@ -732,10 +728,22 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	// Guard
 	if (CombatState == ECombatState::ECS_Guard && IsAttackFromFront(HitResult))
 	{
-		FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
-		LaunchCharacter(KnockbackForce, true, true);
-		PlayAnimMontage(GuardAcceptMontage);
-		return;
+		if (HitReactionState == EHitReactionState::EHR_Parry)
+		{
+			SetCombatState(ECombatState::ECS_Attack);
+			SetHitReactionState(EHitReactionState::EHR_None);
+			SetStamina(Stamina + 100.f);
+			PlayAnimMontage(GuardAcceptMontage, 1.f, "Parry");
+			return;
+		}
+		else
+		{
+			FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
+			LaunchCharacter(KnockbackForce, true, true);
+			PlayAnimMontage(GuardAcceptMontage, 1.f, "Guard");
+			return;
+		}
+
 	}
 
 	// Apply Damage

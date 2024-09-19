@@ -632,10 +632,12 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 
 	// TODO - Parry by AnimNotify
 	if (FMath::RandRange(0.f, 1.f) < AutoGuardRate &&
-		!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
+		!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
+		&& bIsCombatReady && IsAttackFromFront(HitResult))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("AUTO GUARD"));
 		//Guard(1.f);
-		SetCombatState(ECombatState::ECS_Guard);
+		SetCombatState(ECombatState::ECS_Attack);
 		SetHitReactionState(EHitReactionState::EHR_SuperArmor);
 		PlayAnimMontage(GuardRevengeMontage);
 		return;
