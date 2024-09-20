@@ -734,23 +734,23 @@ bool AASRCharacter::CanGuard() const
 }
 
 
-void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
+bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {	
 	// Dead
 	if (CombatState == ECombatState::ECS_Death)
 	{
-		return;
+		return false;
 	}
 
 	if (bIsInvulnerable)
 	{
 		// Optional : Add Dodge Succeed Effects
-		return;
+		return false;
 	}
 
 	if (Cast<ABaseEnemy>(Attacker) == nullptr)
 	{
-		return;
+		return false;
 	}
 
 	// Guard
@@ -761,15 +761,17 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 			SetCombatState(ECombatState::ECS_Attack);
 			SetHitReactionState(EHitReactionState::EHR_None);
 			SetStamina(Stamina + 100.f);
-			PlayAnimMontage(GuardAcceptMontage, 1.f, "Parry");
-			return;
+			// TODO - Divide Parry System and Parry Counter System
+			PlayAnimMontage(ParryCounterMontage, 1.f);
+			return true;
 		}
 		else
 		{
 			FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
-			LaunchCharacter(KnockbackForce, true, true);
+			UE_LOG(LogTemp, Warning, TEXT("KnockbackForce: %s"), *KnockbackForce.ToString());
+			LaunchCharacter(KnockbackForce, true, false);
 			PlayAnimMontage(GuardAcceptMontage, 1.f, "Guard");
-			return;
+			return true;
 		}
 
 	}
@@ -806,7 +808,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
 	{
 		HandleDeath();
-		return;
+		return true;
 	}
 
 	// Select Hit React Animation
@@ -829,6 +831,7 @@ void AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
 	}
+	return true;
 	
 }
 

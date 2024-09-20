@@ -70,7 +70,7 @@ public:
 
 	// TODO - Create Combat Component.. 
 	// CombatInterface
-	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
+	virtual bool GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 	virtual bool IsDead() const override;
 	virtual ECombatState GetCombatState() const override;
 	virtual EHitReactionState GetHitReactionState() const override;
@@ -340,6 +340,10 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ExecutionMontage;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ParryCounterMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
 	UDataTable* AttackDataTable;

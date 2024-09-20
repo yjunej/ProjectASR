@@ -33,3 +33,5 @@ enum class EHitReactionState : uint8
 	EHR_MAX			UMETA(Hidden)
 };
 
+
+

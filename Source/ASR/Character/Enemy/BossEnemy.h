@@ -16,6 +16,12 @@ class ASR_API ABossEnemy : public ABaseEnemy
 protected:
 	virtual void BeginPlay() override;
 
+	virtual void Landed(const FHitResult& HitResult) override;
+
+
+	UFUNCTION(BlueprintCallable)
+	virtual bool LaunchForJumpSmash(bool bIsJump, float Arc, float TimeToTarget);
+
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<class UEnemyInfoWidget> BossInfoWidgetClass;
@@ -25,6 +31,7 @@ private:
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	bool BossAIAttack(AActor* AttackTarget, EAIAttack BossAttackType);
+
 
 
 

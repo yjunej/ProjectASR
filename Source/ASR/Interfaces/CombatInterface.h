@@ -57,7 +57,7 @@ class ASR_API ICombatInterface
 	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 	// Damage System
-	virtual void GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) = 0;
+	virtual bool GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) = 0;
 
 	// State Management
 	UFUNCTION(BlueprintCallable)

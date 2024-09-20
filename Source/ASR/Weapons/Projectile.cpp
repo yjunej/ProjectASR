@@ -49,35 +49,42 @@ void AProjectile::BeginPlay()
 
 	if (HasAuthority())
 	{
+		CollisionBox->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::OnBeginOverlap);
 		CollisionBox->OnComponentHit.AddDynamic(this, &AProjectile::OnHit);
+
 	}
 	
 }
 
-void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& HitResult)
-{ 
+void AProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	// Record All Hit Actor
+	UE_LOG(LogTemp, Warning, TEXT("Projectile Overlap: %s %s %s %s"), *GetName(), *OtherActor->GetName(), *OtherComp->GetName(), *OtherActor->GetClass()->GetName());
+	if (OtherActor == nullptr || OtherActor == this || OtherActor == ProjectileOwner)
+	{
+		return;
+	}
 
 	ICombatInterface* CombatInterface = Cast<ICombatInterface>(OtherActor);
+	bool bDestoryProjectile = true;
 	if (CombatInterface != nullptr)
 	{
 		// [TODO] - Hit Data Handle Particle!
-		//FHitData HitData = { .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall, .HitEffect = HitEnemyParticle, .HitSound = HitEnemySound };
 		FHitData HitData;
 		HitData.Damage = ProjectileDamage;
 		HitData.DamageType = EASRDamageType::EDT_FrontSmall;
-		//{ .Damage = ProjectileDamage, .DamageType = EASRDamageType::EDT_FrontSmall };
 
 		if (Cast<APawn>(OtherActor) != nullptr)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("PROJECTILE HIT Pawn: %s"), *OtherActor->GetName());
 			HitData.HitEffect = HitEnemyEffect;
 			HitData.HitParticleEffect = HitEnemyParticle;
 			HitData.HitSound = HitEnemySound;
-			CombatInterface->GetHit(HitResult, ProjectileOwner, HitData);
+			bDestoryProjectile = CombatInterface->GetHit(SweepResult, ProjectileOwner, HitData);
 
 			AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);
 			if (ASRCharacter != nullptr)
 			{
+				// FPS Setting
 				UGameplayStatics::PlaySoundAtLocation(this, HitEnemySound, ASRCharacter->GetActorLocation(), 2.f);
 				ASRCharacter->OnAttackEnemy();
 			}
@@ -89,12 +96,13 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 		{
 			UGameplayStatics::PlaySoundAtLocation(this, HitObjectSound, GetActorLocation(), 2.f);
 		}
+
 		if (HitObjectEffect != nullptr)
 		{
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 				GetWorld(),
 				HitObjectEffect,
-				HitResult.ImpactPoint,
+				SweepResult.ImpactPoint,
 				GetActorRotation(),
 				FVector(1.f)
 			);
@@ -107,8 +115,74 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimi
 		}
 	}
 
+	if (bDestoryProjectile)
+	{
+		Destroy();
+	}
+}
 
-	Destroy();
+void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	// Same as OnBeginOverlap
+	UE_LOG(LogTemp, Warning, TEXT("Projectile Hit: %s %s %s %s"), *GetName(), *OtherActor->GetName(), *OtherComp->GetName(), *OtherActor->GetClass()->GetName());
+
+	if (OtherActor == nullptr || OtherActor == this || OtherActor == ProjectileOwner)
+	{
+		return;
+	}
+	ICombatInterface* CombatInterface = Cast<ICombatInterface>(OtherActor);
+	bool bDestoryProjectile = true;
+	if (CombatInterface != nullptr)
+	{
+		FHitData HitData;
+		HitData.Damage = ProjectileDamage;
+		HitData.DamageType = EASRDamageType::EDT_FrontSmall;
+
+		if (Cast<APawn>(OtherActor) != nullptr)
+		{
+			HitData.HitEffect = HitEnemyEffect;
+			HitData.HitParticleEffect = HitEnemyParticle;
+			HitData.HitSound = HitEnemySound;
+			bDestoryProjectile = CombatInterface->GetHit(Hit, ProjectileOwner, HitData);
+
+			AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);
+			if (ASRCharacter != nullptr)
+			{
+				// FPS Setting
+				UGameplayStatics::PlaySoundAtLocation(this, HitEnemySound, ASRCharacter->GetActorLocation(), 2.f);
+				ASRCharacter->OnAttackEnemy();
+			}
+		}
+	}
+	else
+	{
+		if (HitObjectSound != nullptr)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, HitObjectSound, GetActorLocation(), 2.f);
+		}
+
+		if (HitObjectEffect != nullptr)
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+				GetWorld(),
+				HitObjectEffect,
+				Hit.ImpactPoint,
+				GetActorRotation(),
+				FVector(1.f)
+			);
+		}
+		else if (HitObjectParticle != nullptr)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(
+				GetWorld(), HitObjectParticle, GetActorTransform()
+			);
+		}
+	}
+
+	if (bDestoryProjectile)
+	{
+		Destroy();
+	}
 }
 
 // Called every frame

@@ -602,19 +602,19 @@ bool ABaseEnemy::IsAttackFromFront(const FHitResult& HitResult) const
 	return DotProduct > 0.5f;
 }
 
-void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
+bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {
 	// [TODO] Block Handling Before Take Damage
 	
 
 	if (GetCombatState() == ECombatState::ECS_Death)
 	{ 
-		return;
+		return false;
 	}
 	
 	if (Cast<APawn>(Attacker) == nullptr)
 	{
-		return;
+		return false;
 	}
 
 
@@ -627,7 +627,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		//FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
 		//LaunchCharacter(KnockbackForce, true, true);
 		PlayAnimMontage(GuardRevengeMontage);	
-		return;
+		return true;
 	}
 
 	// AutoGuard
@@ -645,7 +645,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		SetCombatState(ECombatState::ECS_Attack);
 		SetHitReactionState(EHitReactionState::EHR_SuperArmor);
 		PlayAnimMontage(GuardRevengeMontage);
-		return;
+		return true;
 	}
 
 
@@ -699,7 +699,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
 	{
 		HandleDeath();
-		return;
+		return true;
 	}
 
 	// Animation
@@ -710,7 +710,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	{
 		if (DamageMapping->CombatState != ECombatState::ECS_Death && GetHitReactionState() == EHitReactionState::EHR_SuperArmor)
 		{
-			return;
+			return true;
 		}
 		SetCombatState(DamageMapping->CombatState);
 		GetCharacterMovement()->StopMovementImmediately();
@@ -737,6 +737,7 @@ void ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
 	}
+	return true;
 }
 
 bool ABaseEnemy::IsDead() const
