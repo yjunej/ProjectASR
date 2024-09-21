@@ -11,7 +11,6 @@
 void URootMotionEnemyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-	bIsAttackTargetExists = IsAttackTargetExists();
 
 	// TODO
 	if (EnemyAIInterface == nullptr ? EnemyAIInterface : Cast<IEnemyAIInterface>(GetOwningActor()))
@@ -25,25 +24,6 @@ void URootMotionEnemyAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 	EnemyAIInterface = Cast<IEnemyAIInterface>(GetOwningActor());
-}
-
-bool URootMotionEnemyAnimInstance::IsAttackTargetExists() const
-{
-	APawn* ControlPawn = Cast<APawn>(GetOwningActor());
-	if (ControlPawn != nullptr)
-	{
-		ABaseAIController* BaseAIController = Cast<ABaseAIController>(ControlPawn->GetController());
-		if (BaseAIController != nullptr)
-		{
-			UBlackboardComponent* BBComponent = BaseAIController->GetBlackboardComponent();
-			if (BBComponent != nullptr)
-			{
-				AActor* TargetActor = Cast<AActor>(BBComponent->GetValueAsObject(BaseAIController->GetAttackTargetKeyName()));
-				return TargetActor != nullptr;
-			}
-		}
-	}
-	return false;
 }
 
 void URootMotionEnemyAnimInstance::UpdateDesiredDirection()

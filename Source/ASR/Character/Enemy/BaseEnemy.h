@@ -176,6 +176,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* GuardRevengeMontage;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GuardBrokenMontage;
+
+
 	UPROPERTY(EditAnywhere, Category = Animation)
 	TMap<EAIAttack, FAIAttackMontages> AttackMontageMap;
 

@@ -341,6 +341,11 @@ void ABaseEnemy::HandleDeath()
 			CombatInterface->ReturnAttackTokens(Tokens);
 		}
 	}
+
+	// Disable Character Rotation
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	bUseControllerRotationYaw = false;
+	
 }
 
 
@@ -641,6 +646,12 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 
 		SetStamina(Stamina - 100.f);
 
+		if (Stamina <= 0.f && GuardBrokenMontage != nullptr)
+		{
+			SetHitReactionState(EHitReactionState::EHR_SuperArmor);
+			PlayAnimMontage(GuardBrokenMontage);
+			return true;
+		}
 		// SetCombatState(ECombatState::ECS_Guard);
 		SetCombatState(ECombatState::ECS_Attack);
 		SetHitReactionState(EHitReactionState::EHR_SuperArmor);

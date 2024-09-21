@@ -38,6 +38,8 @@ AASRCharacter::AASRCharacter()
 	GetCharacterMovement()->MaxWalkSpeed = MaxWalkSpeed;
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 	GetCharacterMovement()->RotationRate.Yaw = YawRotationRate;
+	bUseControllerRotationYaw = false;
+
 
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->bEnableCameraLag = true;
@@ -659,6 +661,8 @@ void AASRCharacter::HandleDeath()
 	{
 		DisableInput(PlayerController);
 	}
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	bUseControllerRotationYaw = false;
 }
 
 void AASRCharacter::RegenStamina()
@@ -679,7 +683,8 @@ void AASRCharacter::SetStrafe(bool bEnableStrafe)
 {
 	bIsStrafe = bEnableStrafe;
 	GetCharacterMovement()->bOrientRotationToMovement = !bEnableStrafe;
-	bUseControllerRotationYaw = bEnableStrafe;
+	GetCharacterMovement()->bUseControllerDesiredRotation = bEnableStrafe;
+
 	GetCharacterMovement()->MaxWalkSpeed = bEnableStrafe ? MaxStrafeSpeed : MaxWalkSpeed;
 }
 
@@ -712,11 +717,11 @@ void AASRCharacter::Guard()
 		ResetSkills();
 		ResetDodge();
 
-		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
-		if (LastInputVector.Size() != 0.f)
-		{
-			SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
-		}
+		//FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
+		//if (LastInputVector.Size() != 0.f)
+		//{
+		//	SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
+		//}
 
 		SetStamina(Stamina - 100.f);
 		PlayAnimMontage(GuardMontage);

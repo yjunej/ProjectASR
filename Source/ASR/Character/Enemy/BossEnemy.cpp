@@ -42,14 +42,15 @@ bool ABossEnemy::LaunchForJumpSmash(bool bIsJump, float Arc, float TimeToTarget)
 				Arc /= 2;
 			}
 			UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, LaunchVelocity, SourceLocation, TargetLocation, 0.f, Arc);
+
 		}
 		else
 		{
 			// Adjust Target Location
-			FVector OffsetVector =  (SourceLocation - TargetLocation).GetSafeNormal() * 300.f;
+			FVector OffsetVector =  (SourceLocation - TargetLocation).GetSafeNormal() * 450.f;
 			if (FVector::Dist(SourceLocation, TargetLocation) < 700.f)
 			{
-				OffsetVector /= 3.f;
+				OffsetVector /= 2.f;
 			}
 			UGameplayStatics::SuggestProjectileVelocity_MovingTarget(this, LaunchVelocity, SourceLocation, AttackTarget, OffsetVector, 0.f, TimeToTarget);			
 		}

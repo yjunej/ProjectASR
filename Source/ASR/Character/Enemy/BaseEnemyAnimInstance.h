@@ -18,11 +18,17 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	bool IsFocusingTarget() const;
+	void UpdateTargetingInfo();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	bool bIsFocusingTarget;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	bool bIsAttackTargetExists;
+
+	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	AActor* AttackTarget;
 
 
 };

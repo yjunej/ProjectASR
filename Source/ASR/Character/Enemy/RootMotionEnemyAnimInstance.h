@@ -25,8 +25,6 @@ public:
 	bool bIsRootMotionActive = true;
 
 private:
-	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
-	bool bIsAttackTargetExists;
 
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float MaxWalkSpeed;
@@ -34,10 +32,6 @@ private:
 	UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	float DesiredDirection;
 
-
-
-	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
-	bool IsAttackTargetExists() const;
 
 	UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = "true"))
 	void UpdateDesiredDirection();

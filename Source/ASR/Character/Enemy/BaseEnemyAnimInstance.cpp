@@ -2,24 +2,29 @@
 
 
 #include "BaseEnemyAnimInstance.h"
-#include "AIController.h"
+#include "BaseAIController.h"
 
 void UBaseEnemyAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
-	bIsFocusingTarget = IsFocusingTarget();
+	UpdateTargetingInfo();
 }
 
-bool UBaseEnemyAnimInstance::IsFocusingTarget() const
+void UBaseEnemyAnimInstance::UpdateTargetingInfo()
 {
 	APawn* ControlPawn = Cast<APawn>(GetOwningActor());
 	if (ControlPawn != nullptr)
 	{
-		AAIController* AIController = Cast<AAIController>(ControlPawn->GetController());
-		if (AIController != nullptr)
+		ABaseAIController* BaseAIController = Cast<ABaseAIController>(ControlPawn->GetController());
+		if (BaseAIController != nullptr)
 		{
-			return AIController->GetFocusActor() != nullptr;
+			bIsFocusingTarget = BaseAIController->GetFocusActor() != nullptr;
+			AttackTarget = BaseAIController->AttackTarget;
+			bIsAttackTargetExists = AttackTarget != nullptr;
+			return;
 		}
 	}
-	return false;
+	bIsFocusingTarget = false;
+	bIsAttackTargetExists = false;
+	AttackTarget = nullptr;
 }
