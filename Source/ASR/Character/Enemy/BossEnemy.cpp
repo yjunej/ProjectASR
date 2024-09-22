@@ -63,7 +63,6 @@ bool ABossEnemy::LaunchForJumpSmash(bool bIsJump, float Arc, float TimeToTarget)
 }
 
 
-
 bool ABossEnemy::BossAIAttack(AActor* AttackTarget, EAIAttack BossAttackType)
 {
 	// No Token System

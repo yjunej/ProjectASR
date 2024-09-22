@@ -22,7 +22,7 @@ public:
 
 	EEnemyAIState GetCurrentAIState();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
 	AActor* AttackTarget;
 	
 	UFUNCTION()

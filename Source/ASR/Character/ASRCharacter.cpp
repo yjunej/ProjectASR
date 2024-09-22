@@ -766,15 +766,23 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 			SetCombatState(ECombatState::ECS_Attack);
 			SetHitReactionState(EHitReactionState::EHR_None);
 			SetStamina(Stamina + 100.f);
+			if (Cast<ABaseEnemy>(Attacker) != nullptr)
+			{
+				ABaseEnemy* Enemy = Cast<ABaseEnemy>(Attacker);
+				UE_LOG(LogTemp, Warning, TEXT("Stamina: %f"), Enemy->Stamina);
+				Enemy->SetStamina(Enemy->Stamina - 50.f);
+				UE_LOG(LogTemp, Warning, TEXT("Stamina: %f"), Enemy->Stamina);
+			}
 			// TODO - Divide Parry System and Parry Counter System
 			PlayAnimMontage(ParryCounterMontage, 1.f);
 			return true;
 		}
 		else
 		{
-			FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 10;
+			FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 20;
 			UE_LOG(LogTemp, Warning, TEXT("KnockbackForce: %s"), *KnockbackForce.ToString());
 			LaunchCharacter(KnockbackForce, true, false);
+			SetStamina(Stamina - 50.f);
 			PlayAnimMontage(GuardAcceptMontage, 1.f, "Guard");
 			return true;
 		}

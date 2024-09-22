@@ -170,6 +170,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* CombatEndMontage;
 
+
+	// Guard System
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* GuardMontage;
 
@@ -178,6 +180,9 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* GuardBrokenMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* GuardHitMontage;
 
 
 	UPROPERTY(EditAnywhere, Category = Animation)
@@ -311,7 +316,7 @@ private:
 
 	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
 
-
+	void PlayRandomSection(UAnimMontage* Montage);
 
 	//AI
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = AI, meta = (AllowPrivateAccess = "true"))
@@ -329,6 +334,11 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	float ReactStateGuardRate = 0.5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float GuardRevengeRate = 0.5;
+
+	void ApplyGuardKnockback(float Damage);
 
 
 public:
