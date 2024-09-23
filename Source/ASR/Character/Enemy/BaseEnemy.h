@@ -114,6 +114,10 @@ public:
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 
+	// LockOnWidget
+	UPROPERTY(EditAnywhere)
+	float LockOnWidgetHeightOffset = 130.f;
+
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
 	template <typename AssetType>
 	AssetType* EnsureAssetLoaded(TSoftObjectPtr<AssetType> const& AssetPtr)
@@ -143,7 +147,6 @@ protected:
 
 
 	virtual bool ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType);
-
 
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
 
@@ -339,6 +342,10 @@ private:
 	float GuardRevengeRate = 0.5;
 
 	void ApplyGuardKnockback(float Damage);
+
+	EHitDirection GetHitDirection(const FVector AttackerLocation) const;
+
+	virtual void PlayHitAnimation(const FHitData& HitData, AActor* Attacker);
 
 
 public:

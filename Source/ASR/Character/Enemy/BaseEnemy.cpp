@@ -43,7 +43,7 @@ ABaseEnemy::ABaseEnemy()
 	LockOnWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("LockOnWidgetComponent"));
 	LockOnWidgetComponent->SetWidgetSpace(EWidgetSpace::Screen);
 	LockOnWidgetComponent->SetDrawSize(FVector2D(10.f, 10.f));
-	LockOnWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, 130.f));
+	LockOnWidgetComponent->SetRelativeLocation(FVector(0.f, 0.f, LockOnWidgetHeightOffset));
 	LockOnWidgetComponent->SetupAttachment(GetMesh());
 
 	// Set this for Enemy that spanwned by spanwer
@@ -564,6 +564,71 @@ void ABaseEnemy::ApplyGuardKnockback(float Damage)
 	LaunchCharacter(KnockbackForce, true, false);
 }
 
+EHitDirection ABaseEnemy::GetHitDirection(const FVector AttackerLocation) const
+{
+	FVector Direction = (AttackerLocation - GetActorLocation()).GetSafeNormal();
+	FRotator AttackerRotator = UKismetMathLibrary::MakeRotFromX(Direction);
+	FRotator DeltaRotator = UKismetMathLibrary::NormalizedDeltaRotator(AttackerRotator, GetActorRotation());
+	float HitDirectionYaw = DeltaRotator.Yaw;
+
+	if (HitDirectionYaw >= -90.0f && HitDirectionYaw <= 90.0f)
+	{
+		return EHitDirection::EHD_Front;
+	}
+	else
+	{
+		return EHitDirection::EHD_Back;
+	}
+}
+
+void ABaseEnemy::PlayHitAnimation(const FHitData& HitData, AActor* Attacker)
+{
+	FDamageTypeMapping* DamageMapping = nullptr;
+	DamageMapping = FindDamageDTRow(HitData.DamageType);
+	if (DamageMapping != nullptr)
+	{
+		SetCombatState(DamageMapping->CombatState);
+		UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
+		if (LoadedMontage != nullptr)
+		{
+			EHitDirection HitDirection = GetHitDirection(Attacker->GetActorLocation());
+			FName SectionName = "Front";
+			switch (HitDirection)
+			{
+			case EHitDirection::EHD_Back:
+				SectionName = "Back";
+				break;
+			case EHitDirection::EHD_Left:
+				SectionName = "Left";
+				break;
+			case EHitDirection::EHD_Right:
+				SectionName = "Right";
+				break;
+			case EHitDirection::EHD_Front:
+			case EHitDirection::EHD_MAX:
+			default:
+				break;
+			}
+			if (LoadedMontage->IsValidSectionName(SectionName))
+			{
+				PlayAnimMontage(LoadedMontage, 1.f, SectionName);
+			}
+			else
+			{
+				PlayRandomSection(LoadedMontage);
+			}
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to Load Animation Montage"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
+	}
+}
+
 void ABaseEnemy::SetCombatState(ECombatState InCombatState)
 {
 	if (InCombatState != GetCombatState() && GetCombatState() != ECombatState::ECS_Death)
@@ -709,8 +774,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		}
 	}
 
-
-
+	// Apply HitStop, AIDamageSense
 	if (Cast<AASRCharacter>(Attacker) != nullptr)
 	{
 		ApplyHitStop(HitStopDuration, HitStopTimeDilation);
@@ -726,7 +790,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		);
 	}
 
-
+	// Take Damage
 	SetHealth(Health - HitData.Damage);
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
@@ -773,7 +837,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		{
 			return true;
 		}
-		SetCombatState(DamageMapping->CombatState);
+		//SetCombatState(DamageMapping->CombatState);
 		GetCharacterMovement()->StopMovementImmediately();
 		RotateToAttacker(Attacker, false);
 		HandleHitTransform(Attacker, HitData.DamageType, HitData.Damage);
@@ -783,15 +847,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 			AerialHitAnimMapping(Attacker, DamageMapping, HitData.DamageType);
 		}
 
-		UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
-		if (LoadedMontage != nullptr)
-		{
-			PlayAnimMontage(LoadedMontage);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("Failed to Load Animation Montage"));
-		}
+		PlayHitAnimation(HitData, Attacker);
 
 	}
 	else

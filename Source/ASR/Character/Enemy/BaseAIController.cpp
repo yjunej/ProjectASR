@@ -128,6 +128,13 @@ void ABaseAIController::SwitchToPassiveState()
 
 void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 {
+	if (TargetActor == nullptr)
+	{
+		UBlackboardComponent* BBComponent = GetBlackboardComponent();
+		BBComponent->ClearValue(AttackTargetKeyName);
+		BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(ECombatState::ECS_None));
+		return;
+	}
 
 	if (AttackTarget != TargetActor)
 	{
@@ -140,12 +147,11 @@ void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 			}
 		}
 		// Changed and Valid New Target
-		if (TargetActor != nullptr && TargetActor != AttackTarget)
+		if (TargetActor != AttackTarget)
 		{
 			AASRCharacter* NewTargetCharacter = Cast<AASRCharacter>(TargetActor);
 			if (NewTargetCharacter != nullptr)
 			{
-
 				NewTargetCharacter->OnCombatStateChanged.AddDynamic(this, &ABaseAIController::OnPlayerCombatStateChanged);
 			}
 

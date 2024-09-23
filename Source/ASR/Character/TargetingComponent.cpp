@@ -362,7 +362,7 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 				FRotator LookRotator;
 				FRotator NewControlRotator;
 
-				LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetActorLocation() + FVector(0.f, 0.f, CameraStartHeightOffset), TargetActor->GetActorLocation() - CameraOffset);
+				LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetActorLocation() + FVector(0.f, 0.f, CameraStartHeightOffset), BaseEnemy->GetActorLocation() + CameraOffset +FVector(0.f, 0.f, BaseEnemy->LockOnWidgetHeightOffset));
 
 				if (Owner == nullptr)
 				{
@@ -373,7 +373,7 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 				if (OwnerController != nullptr)
 				{
 					NewControlRotator = FMath::RInterpTo(OwnerController->GetControlRotation(), LookRotator, DeltaTime, CameraRotationSpeed);
-					NewControlRotator.Pitch = FMath::Clamp(NewControlRotator.Pitch, CameraMinPitch, -CameraMinPitch);
+					//NewControlRotator.Pitch = FMath::Clamp(NewControlRotator.Pitch, CameraMinPitch, -CameraMinPitch);
 					OwnerController->SetControlRotation(NewControlRotator);
 				}
 

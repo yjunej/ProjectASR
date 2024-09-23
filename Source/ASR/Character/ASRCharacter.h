@@ -351,6 +351,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
 	UDataTable* DamageDataTable;
 
+	EHitDirection GetHitDirection(const FVector AttackerLocation) const;
+
 	UFUNCTION()
 	void OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupted);
 
@@ -366,6 +368,9 @@ private:
 
 
 	APlayerCameraManager* PlayerCameraManager;
+
+	void PlayHitAnimation(const FHitData& HitData, AActor* Attacker);
+
 	
 
 public:

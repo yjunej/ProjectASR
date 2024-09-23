@@ -83,7 +83,7 @@ private:
 	float CameraStartHeightOffset = 250.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float CameraMinPitch = -40.f;
+	float CameraMinPitch = -90.f;
 
 	
 	// TODO - Write Comprehensive Motion Warping Control Function

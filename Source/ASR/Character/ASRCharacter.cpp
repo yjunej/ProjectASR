@@ -617,6 +617,34 @@ void AASRCharacter::ResetCamera()
 	}
 }
 
+EHitDirection AASRCharacter::GetHitDirection(const FVector AttackerLocation) const
+{
+	FVector Direction = (AttackerLocation - GetActorLocation()).GetSafeNormal();
+	FRotator AttackerRotator = UKismetMathLibrary::MakeRotFromX(Direction);
+	FRotator DeltaRotator = UKismetMathLibrary::NormalizedDeltaRotator(AttackerRotator, GetActorRotation()); 
+	float HitDirectionYaw = DeltaRotator.Yaw;
+
+	if (HitDirectionYaw >= -90.0f && HitDirectionYaw <= 90.0f)
+	{
+		return EHitDirection::EHD_Front;
+	}
+	// TODO - Make 4-Directional Animation
+	
+	//else if (HitDirectionYaw > 45.0f && HitDirectionYaw <= 135.0f)
+	//{
+	//	return EHitDirection::EHD_Right;
+	//}
+	//else if (HitDirectionYaw < -45.0f && HitDirectionYaw >= -135.0f)
+	//{
+	//	return EHitDirection::EHD_Left;
+	//}
+	else
+	{
+		return EHitDirection::EHD_Back;
+	}
+}
+
+
 void AASRCharacter::OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupted)
 {
 	bIsExecuting = false;
@@ -824,7 +852,14 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 		return true;
 	}
 
-	// Select Hit React Animation
+	// Play Hit React Animation
+	PlayHitAnimation(HitData, Attacker);
+	return true;
+	
+}
+
+void AASRCharacter::PlayHitAnimation(const FHitData& HitData, AActor* Attacker)
+{
 	FDamageTypeMapping* DamageMapping = nullptr;
 	DamageMapping = FindDamageDTRow(HitData.DamageType);
 	if (DamageMapping != nullptr)
@@ -833,7 +868,32 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 		UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
 		if (LoadedMontage != nullptr)
 		{
-			PlayRandomSection(LoadedMontage);
+			EHitDirection HitDirection = GetHitDirection(Attacker->GetActorLocation());
+			FName SectionName = "Front";
+			switch (HitDirection)
+			{
+			case EHitDirection::EHD_Back:
+				SectionName = "Back";
+				break;
+			case EHitDirection::EHD_Left:
+				SectionName = "Left";
+				break;
+			case EHitDirection::EHD_Right:
+				SectionName = "Right";
+				break;
+			case EHitDirection::EHD_Front:
+			case EHitDirection::EHD_MAX:
+			default:
+				break;
+			}
+			if (LoadedMontage->IsValidSectionName(SectionName))
+			{
+				PlayAnimMontage(LoadedMontage, 1.f, SectionName);
+			}
+			else
+			{
+				PlayRandomSection(LoadedMontage);
+			}
 		}
 		else
 		{
@@ -844,8 +904,6 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	{
 		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
 	}
-	return true;
-	
 }
 
 bool AASRCharacter::IsDead() const
