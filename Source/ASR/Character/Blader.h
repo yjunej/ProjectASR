@@ -60,6 +60,8 @@ protected:
 	void Input_FirstSkill(const FInputActionValue& Value);
 	void Input_Ult(const FInputActionValue& Value);
 	void Input_Release_Ult(const FInputActionValue& Value);
+	void Input_SuperDodge(const FInputActionValue& Value);
+
 
 	// Override Parent Hook 
 	// TODO - Categorize Reset Func (Index Based or State Based)
@@ -86,7 +88,6 @@ private:
 
 	// Aerial Combo
 	bool AerialAttack();
-
 	void ExecuteNormalAttackInAir(int32 AttackIndex);
 
 	// Ult
@@ -119,6 +120,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* UltAction;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SuperDodgeAction;
+
 
 	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
@@ -144,6 +148,9 @@ private:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* UltLastAttackMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* SuperDodgeMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> NormalAttackInAirMontages;

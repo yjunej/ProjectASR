@@ -92,6 +92,8 @@ void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 		EnhancedInputComponent->BindAction(BladerFirstSkillAction, ETriggerEvent::Triggered, this, &ABlader::Input_FirstSkill);
 		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Started, this, &ABlader::Input_Ult);
 		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Completed, this, &ABlader::Input_Release_Ult);
+		EnhancedInputComponent->BindAction(SuperDodgeAction, ETriggerEvent::Triggered, this, &ABlader::Input_SuperDodge);
+
 	}
 }
 
@@ -287,6 +289,44 @@ void ABlader::Input_Release_Ult(const FInputActionValue& Value)
 	{
 		ResetUlt();
 	}
+}
+
+void ABlader::Input_SuperDodge(const FInputActionValue& Value)
+{
+	if (GetCombatState() != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
+		&& !bIsLevitating && Stamina >= 500.f)
+	{
+		ResetUlt();
+
+		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
+		FName SectionName("Left");
+
+		if (LastInputVector.Size() != 0.f)
+		{
+			if (!bIsStrafe)
+			{
+				SetActorRotation(UKismetMathLibrary::MakeRotFromX(LastInputVector));
+			}
+			else
+			{
+				FRotator RotFromX = UKismetMathLibrary::MakeRotFromX(LastInputVector);
+				float DeltaYaw = UKismetMathLibrary::NormalizedDeltaRotator(RotFromX, GetActorRotation()).Yaw;
+
+				if (DeltaYaw < 0.f)
+				{
+					SectionName = "Left";
+				}
+				else
+				{
+					SectionName = "Right";
+				}
+			}
+		}
+		SetCombatState(ECombatState::ECS_Dodge);
+		SetStamina(Stamina - 500.f);
+		PlayAnimMontage(SuperDodgeMontage, 1.f, SectionName);
+	}
+
 }
 
 void ABlader::Input_Guard(const FInputActionValue& Value)
