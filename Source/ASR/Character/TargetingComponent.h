@@ -74,7 +74,7 @@ private:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float CameraRotationSpeed = 15.f;
+	float CameraRotationSpeed = 6.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
 	FVector CameraOffset = { 0.f ,0.f, 0.f };

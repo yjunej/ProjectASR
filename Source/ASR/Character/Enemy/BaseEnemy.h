@@ -114,9 +114,13 @@ public:
 	void OnMontageEnded(UAnimMontage* Montage, bool bInterrupted);
 
 
-	// LockOnWidget
+	// LockOn CamSetting
 	UPROPERTY(EditAnywhere)
 	float LockOnWidgetHeightOffset = 130.f;
+
+	UPROPERTY(EditAnywhere)
+	float LockOnCameraOfffsetZ = -40.f;
+
 
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
 	template <typename AssetType>
@@ -209,6 +213,8 @@ protected:
 	float DefendDistance = 450.f;
 
 	bool bIsWeaponHidden = false;
+
+	
 
 
 private:
@@ -347,6 +353,7 @@ private:
 
 	virtual void PlayHitAnimation(const FHitData& HitData, AActor* Attacker);
 
+	bool bPlayLandedAnim = false;
 
 public:
 	void SetCombatState(ECombatState InCombatState);

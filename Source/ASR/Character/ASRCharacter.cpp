@@ -47,12 +47,20 @@ AASRCharacter::AASRCharacter()
 	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
 
 	// Katana Blade Zero 
-	CameraBoom->TargetArmLength = 350.f;
-	CameraBoom->SocketOffset = FVector(0.f, 100.f, 40.f);
+	// CameraBoom->TargetArmLength = 350.f;
+	// CameraBoom->SocketOffset = FVector(0.f, 100.f, 40.f);
 
 	// Sekiro
 	// CameraBoom->TargetArmLength = 400.f;
 	// CameraBoom->SocketOffset = FVector(0.f, 0.f, 40.f);
+
+	// Elden Ring
+	CameraBoom->TargetArmLength = 450.f;
+	CameraBoom->SocketOffset = FVector(0.f, 10.f, 40.f);
+	CameraBoom->CameraLagMaxDistance = 200.f;
+	CameraBoom->CameraLagSpeed = 8.f;
+	CameraBoom->CameraRotationLagSpeed = 14.f;
+	CameraBoom->bEnableCameraRotationLag = true;
 
 
 	CameraBoom->bUsePawnControlRotation = true;
@@ -110,13 +118,14 @@ void AASRCharacter::UpdateArmLength(float Value)
 	}
 }
 
-void AASRCharacter::StartArmLengthChange()
+void AASRCharacter::StartArmLengthChange(UCurveFloat* ArmCurve)
 {
-	if (ArmLengthCurve)
+	ArmCurve == nullptr ? ArmLengthCurve : ArmCurve;
+	if (ArmCurve != nullptr)
 	{
 		FOnTimelineFloat TimelineCallback;
 		TimelineCallback.BindUFunction(this, FName("UpdateArmLength"));
-		ArmLengthTimeline->AddInterpFloat(ArmLengthCurve, TimelineCallback);
+		ArmLengthTimeline->AddInterpFloat(ArmCurve, TimelineCallback);
 		ArmLengthTimeline->SetLooping(false);
 		ArmLengthTimeline->PlayFromStart();
 	}

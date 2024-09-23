@@ -362,7 +362,16 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 				FRotator LookRotator;
 				FRotator NewControlRotator;
 
-				LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetActorLocation() + FVector(0.f, 0.f, CameraStartHeightOffset), BaseEnemy->GetActorLocation() + CameraOffset +FVector(0.f, 0.f, BaseEnemy->LockOnWidgetHeightOffset));
+				//LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetActorLocation() + FVector(0.f, 0.f, CameraStartHeightOffset), BaseEnemy->GetActorLocation() + CameraOffset +FVector(0.f, 0.f, BaseEnemy->LockOnWidgetHeightOffset));
+				
+				//LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetFollowCamera()->GetComponentLocation() + FVector(0.f, 0.f, CameraStartHeightOffset), BaseEnemy->GetActorLocation() + CameraOffset + FVector(0.f, 0.f, BaseEnemy->LockOnWidgetHeightOffset));
+
+				FVector AdjustedLockTargetPosition = BaseEnemy->GetActorLocation();
+				AdjustedLockTargetPosition.Z -= FVector::Dist(Owner->GetActorLocation(), BaseEnemy->GetActorLocation()) * 0.2f;
+
+				// [TODO - Capsule Height Based Sophomore Target Cam Setting
+				// If Tall Enemy Camera Should be Higher
+					LookRotator = UKismetMathLibrary::FindLookAtRotation(Owner->GetFollowCamera()->GetComponentLocation()+FVector(0.f, 0.f, BaseEnemy->LockOnCameraOfffsetZ), AdjustedLockTargetPosition);
 
 				if (Owner == nullptr)
 				{
@@ -373,7 +382,7 @@ void UTargetingComponent::TickComponent(float DeltaTime, ELevelTick TickType, FA
 				if (OwnerController != nullptr)
 				{
 					NewControlRotator = FMath::RInterpTo(OwnerController->GetControlRotation(), LookRotator, DeltaTime, CameraRotationSpeed);
-					//NewControlRotator.Pitch = FMath::Clamp(NewControlRotator.Pitch, CameraMinPitch, -CameraMinPitch);
+					NewControlRotator.Pitch = FMath::Clamp(NewControlRotator.Pitch, CameraMinPitch, -CameraMinPitch);
 					OwnerController->SetControlRotation(NewControlRotator);
 				}
 

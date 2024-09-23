@@ -125,7 +125,7 @@ public:
 	void UpdateArmLength(float Value);
 
 	UFUNCTION(BlueprintCallable)
-	void StartArmLengthChange();
+	void StartArmLengthChange(UCurveFloat* ArmCurve);
 	//
 
 
@@ -251,7 +251,7 @@ protected:
 	bool bIsGuardPressed = false;
 	bool bIsDodgePending = false;
 	bool bIsNormalAttackPending = false;
-
+	bool bIsStrafe = false;
 	int32 NormalAttackIndex;
 
 
@@ -359,7 +359,6 @@ private:
 
 	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
 
-	bool bIsStrafe = false;
 
 	// Stamina
 	FTimerHandle StaminaRegenTimerHandle;

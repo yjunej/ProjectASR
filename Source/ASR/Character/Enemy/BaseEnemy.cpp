@@ -266,9 +266,10 @@ void ABaseEnemy::Landed(const FHitResult& HitResult)
 	{
 		HandleDeath();
 	}
-	else
+	else if (bPlayLandedAnim)
 	{
 		PlayAnimMontage(StandUpMontage);
+		bPlayLandedAnim = false;
 	}
 
 }
@@ -289,6 +290,7 @@ void ABaseEnemy::ResetState()
 	}
 	bIsAirSmash = false;
 	bIsLevitating = false;
+	bPlayLandedAnim = false;
 }
 
 void ABaseEnemy::HandleDeath()
@@ -414,6 +416,7 @@ void ABaseEnemy::ApplyKnockback()
 void ABaseEnemy::Levitate()
 {
 	bIsLevitating = true;
+	bPlayLandedAnim = true;
 	StopTimeline();
 	StartLocation = GetActorLocation();
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Flying);
@@ -424,6 +427,7 @@ void ABaseEnemy::Levitate()
 void ABaseEnemy::AerialKnockdown()
 {
 	bIsAirSmash = true;
+	bPlayLandedAnim = true;
 	StopTimeline();
 	StartLocation = GetActorLocation();
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
@@ -557,6 +561,7 @@ void ABaseEnemy::InitializeTimeline()
 	TimelineComponent->SetTimelineFinishedFunc(TimelineFinishedCallback);
 }
 
+// TODO - Not Work with Root Motion
 void ABaseEnemy::ApplyGuardKnockback(float Damage)
 {
 	FVector KnockbackForce = -GetActorForwardVector() * Damage * 20;
