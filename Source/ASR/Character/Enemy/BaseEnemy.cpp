@@ -745,12 +745,8 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Guard Maintain"));
-
-			if (GuardHitMontage != nullptr)
+			if (GuardHit(HitData))
 			{
-				ApplyGuardKnockback(HitData.Damage);
-				SetStamina(Stamina - 25.f);
-				PlayAnimMontage(GuardHitMontage);
 				return true;
 			}
 		}
@@ -833,6 +829,12 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	}
 
 	// Animation
+	ProcessHitAnimation(HitData, Attacker);
+	return true;
+}
+
+void ABaseEnemy::ProcessHitAnimation(const FHitData& HitData, AActor* Attacker)
+{
 	FDamageTypeMapping* DamageMapping;
 	UE_LOG(LogTemp, Warning, TEXT("Find DT Row Check"));
 	DamageMapping = FindDamageDTRow(HitData.DamageType);
@@ -840,7 +842,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	{
 		if (DamageMapping->CombatState != ECombatState::ECS_Death && GetHitReactionState() == EHitReactionState::EHR_SuperArmor)
 		{
-			return true;
+			return;
 		}
 		//SetCombatState(DamageMapping->CombatState);
 		GetCharacterMovement()->StopMovementImmediately();
@@ -851,15 +853,22 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		{
 			AerialHitAnimMapping(Attacker, DamageMapping, HitData.DamageType);
 		}
-
 		PlayHitAnimation(HitData, Attacker);
 
 	}
-	else
+
+}
+
+bool ABaseEnemy::GuardHit(const FHitData& HitData)
+{
+	if (GuardHitMontage != nullptr)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("NULL DamageType Mapping!"));
+		ApplyGuardKnockback(HitData.Damage);
+		SetStamina(Stamina - 25.f);
+		PlayAnimMontage(GuardHitMontage);
+		return true;
 	}
-	return true;
+	return false;
 }
 
 bool ABaseEnemy::IsDead() const

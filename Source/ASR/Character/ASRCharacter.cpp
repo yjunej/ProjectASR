@@ -577,6 +577,7 @@ void AASRCharacter::SphereTrace(float TraceDistance, float TraceRadius, const FH
 		for (const FHitResult& HitResult : HitResults)
 		{
 			AActor* HitActor = HitResult.GetActor();
+
 			// Check Duplicated Hit
 			if (HitActor != nullptr && !HitActors.Contains(HitActor))
 			{

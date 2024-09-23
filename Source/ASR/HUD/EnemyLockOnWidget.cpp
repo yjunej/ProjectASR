@@ -9,9 +9,6 @@
 void UEnemyLockOnWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-
-	UE_LOG(LogTemp, Warning, TEXT("LockOn Constructor"));
-
 	LockOnMarker->SetVisibility(ESlateVisibility::Visible);
 	ExecutionMarker->SetVisibility(ESlateVisibility::Collapsed);
 
@@ -27,14 +24,12 @@ void UEnemyLockOnWidget::SelectMarker()
 	{
 		if (Owner->Health <= Owner->ExecutionThresholdHealth)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%f, %f"), Owner->Health, Owner->ExecutionThresholdHealth);
 			LockOnMarker->SetVisibility(ESlateVisibility::Collapsed);
 			ExecutionMarker->SetVisibility(ESlateVisibility::Visible);
 			PlayAnimation(CanExecute, 0.f, 0.f);
 		}
 		else
 		{
-			UE_LOG(LogTemp, Warning, TEXT("%f, %f"), Owner->Health, Owner->ExecutionThresholdHealth);
 			StopAnimation(CanExecute);
 			ExecutionMarker->SetVisibility(ESlateVisibility::Collapsed);
 			LockOnMarker->SetVisibility(ESlateVisibility::Visible);

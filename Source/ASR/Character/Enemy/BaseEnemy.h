@@ -146,9 +146,10 @@ protected:
 	
 	UFUNCTION(BlueprintCallable)
 	virtual bool Guard(float GuardProb);
-
 	virtual bool CanGuard() const;
+	virtual bool GuardHit(const FHitData& HitData);
 
+	virtual void ProcessHitAnimation(const FHitData& HitData, AActor* Attacker);
 
 	virtual bool ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType);
 
@@ -214,7 +215,8 @@ protected:
 
 	bool bIsWeaponHidden = false;
 
-	
+	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
+
 
 
 private:
@@ -323,7 +325,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
 	UDataTable* DamageDataTable;
 
-	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
 
 	void PlayRandomSection(UAnimMontage* Montage);
 

@@ -25,6 +25,40 @@ void ABossEnemy::Landed(const FHitResult& HitResult)
 	ACharacter::Landed(HitResult);
 }
 
+void ABossEnemy::ProcessHitAnimation(const FHitData& HitData, AActor* Attacker)
+{
+	FDamageTypeMapping* DamageMapping;
+	UE_LOG(LogTemp, Warning, TEXT("Find DT Row Check"));
+	DamageMapping = FindDamageDTRow(HitData.DamageType);
+	if (DamageMapping != nullptr)
+	{
+		//SetCombatState(DamageMapping->CombatState);
+		//RotateToAttacker(Attacker, false);
+		//HandleHitTransform(Attacker, HitData.DamageType, HitData.Damage);
+		BossPlayHitAnimation(HitData, DamageMapping, Attacker);
+	}
+}	
+
+void ABossEnemy::BossPlayHitAnimation(const FHitData& HitData, FDamageTypeMapping* DamageMapping, AActor* Attacker)
+{
+	if (Stamina > 0)
+	{
+		return;
+	}
+
+	
+	// 1. If KnockDownFrontBig, Always Flinch, Although Super Armor
+	// 2. Flinch Rate Check
+
+	if (HitData.DamageType == EASRDamageType::EDT_KnockDownFrontBig || 
+		(FMath::RandRange(0.f, 1.f) < FlinchRate && GetHitReactionState() != EHitReactionState::EHR_None && GetCombatState() == ECombatState::ECS_None))
+	{
+		SetCombatState(DamageMapping->CombatState);
+		UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
+		PlayAnimMontage(LoadedMontage, 1.f);
+	}
+}
+
 bool ABossEnemy::LaunchForJumpSmash(bool bIsJump, float Arc, float TimeToTarget)
 {
 	ABaseAIController* AIController = Cast<ABaseAIController>(GetController());
