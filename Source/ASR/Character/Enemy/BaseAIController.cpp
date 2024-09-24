@@ -171,13 +171,18 @@ void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 		return;
 	}
 
+	// Disable AI Team Fighting
 	// Update Keys
-	UBlackboardComponent* BBComponent = GetBlackboardComponent();
-	BBComponent->SetValueAsObject(AttackTargetKeyName, TargetActor);
-	BBComponent->SetValueAsEnum(AIStateKeyName, StaticCast<uint8>(EEnemyAIState::EAS_Attack));
-	if (CombatInterface != nullptr)
+	AASRCharacter* PlayerCharacter = Cast<AASRCharacter>(TargetActor);
+	if (PlayerCharacter != nullptr)
 	{
-		BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(CombatInterface->GetCombatState()));
+		UBlackboardComponent* BBComponent = GetBlackboardComponent();
+		BBComponent->SetValueAsObject(AttackTargetKeyName, TargetActor);
+		BBComponent->SetValueAsEnum(AIStateKeyName, StaticCast<uint8>(EEnemyAIState::EAS_Attack));
+		if (CombatInterface != nullptr)
+		{
+			BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(CombatInterface->GetCombatState()));
+		}
 	}
 	
 }

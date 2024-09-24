@@ -21,12 +21,14 @@ protected:
 
 	virtual void Landed(const FHitResult& HitResult) override;
 	virtual void ProcessHitAnimation(const FHitData& HitData, AActor* Attacker) override;
-
+	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
+	
 	void BossPlayHitAnimation(const FHitData& HitData, FDamageTypeMapping* DamageMapping, AActor* Attacker);
 
 	UFUNCTION(BlueprintCallable)
 	virtual bool LaunchForJumpSmash(bool bIsJump, float Arc, float TimeToTarget);
 
+	
 
 private:
 	UPROPERTY(EditDefaultsOnly, meta = (AllowPrivateAccess = "true"))

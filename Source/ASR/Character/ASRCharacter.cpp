@@ -19,6 +19,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Components/TimelineComponent.h"
+#include "Camera/CameraActor.h"
 
 
 
@@ -66,17 +67,19 @@ AASRCharacter::AASRCharacter()
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->SetupAttachment(GetMesh());
 
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	//FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
+	//FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
 
 	FollowCameraManager = CreateDefaultSubobject<UChildActorComponent>(TEXT("FollowCameraManager"));
-	FollowCameraManager->SetupAttachment(FollowCamera);
+	FollowCameraManager->SetupAttachment(CameraBoom);
+	FollowCameraManager->SetChildActorClass(ACameraActor::StaticClass());
 
-	ExecutionCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ExecutionCamera"));
-	ExecutionCamera->SetupAttachment(RootComponent);
+	//ExecutionCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("ExecutionCamera"));
+	//ExecutionCamera->SetupAttachment(RootComponent);
 
 	ExecutionCameraManager = CreateDefaultSubobject<UChildActorComponent>(TEXT("ExecutionCameraManager"));
-	ExecutionCameraManager->SetupAttachment(ExecutionCamera);
+	ExecutionCameraManager->SetupAttachment(RootComponent);
+	ExecutionCameraManager->SetChildActorClass(ACameraActor::StaticClass());
 
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
@@ -149,6 +152,15 @@ void AASRCharacter::BeginPlay()
 		}
 			
 	}
+	
+
+	// Camera Actor Setting
+	if (FollowCameraManager != nullptr)
+	{
+		APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+		PlayerController->SetViewTargetWithBlend(FollowCameraManager->GetChildActor(), 0.0f, EViewTargetBlendFunction::VTBlend_EaseInOut, 2.0f, false);
+	}
+
 
 	SetHealth(MaxHealth);
 	SetStamina(MaxStamina);
@@ -543,7 +555,7 @@ void AASRCharacter::SetStamina(float NewStamina)
 void AASRCharacter::SetExecutionCamera()
 {
 	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
-	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.2f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
+	PlayerController->SetViewTargetWithBlend(GetExecutionCameraManager()->GetChildActor(), 0.3f, EViewTargetBlendFunction::VTBlend_EaseInOut, 1.0f, false);
 }
 
 void AASRCharacter::ResetState()
@@ -623,7 +635,7 @@ void AASRCharacter::ResetCamera()
 	APawn* ControlledPawn = PlayerController->GetPawn();
 	if (PlayerController != nullptr && this == ControlledPawn)
 	{
-		PlayerController->SetViewTargetWithBlend(FollowCameraManager->GetChildActor(), 0.4f, EViewTargetBlendFunction::VTBlend_EaseInOut, 0.8f, false);
+		PlayerController->SetViewTargetWithBlend(FollowCameraManager->GetChildActor(), 0.5f, EViewTargetBlendFunction::VTBlend_EaseInOut, 2.f, false);
 	}
 }
 
@@ -724,6 +736,16 @@ void AASRCharacter::SetStrafe(bool bEnableStrafe)
 	GetCharacterMovement()->bUseControllerDesiredRotation = bEnableStrafe;
 
 	GetCharacterMovement()->MaxWalkSpeed = bEnableStrafe ? MaxStrafeSpeed : MaxWalkSpeed;
+}
+
+UCameraComponent* AASRCharacter::GetFollowCamera() const
+{
+	return FollowCameraManager->GetChildActor()->FindComponentByClass<UCameraComponent>();
+}
+
+UCameraComponent* AASRCharacter::GetExecutionCamera() const
+{
+	return ExecutionCameraManager->GetChildActor()->FindComponentByClass<UCameraComponent>();
 }
 
 void AASRCharacter::Jump()

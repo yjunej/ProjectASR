@@ -6,6 +6,8 @@
 #include "ASR/Character/Enemy/BaseAIController.h"
 #include "ASR/HUD/EnemyInfoWidget.h"
 #include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
+
 
 
 void ABossEnemy::BeginPlay()
@@ -37,7 +39,37 @@ void ABossEnemy::ProcessHitAnimation(const FHitData& HitData, AActor* Attacker)
 		//HandleHitTransform(Attacker, HitData.DamageType, HitData.Damage);
 		BossPlayHitAnimation(HitData, DamageMapping, Attacker);
 	}
-}	
+}
+float ABossEnemy::SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed)
+{
+	float NewSpeed;
+
+	switch (EnemyMovementSpeed)
+	{
+	case EEnemyMovementSpeed::EMS_Idle:
+		NewSpeed = 0.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Walk:
+		NewSpeed = 180.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Jog:
+		NewSpeed = 300.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Run:
+		NewSpeed = 500.f;
+		break;
+	case EEnemyMovementSpeed::EMS_Sprint:
+		NewSpeed = 600.f;
+		break;
+	case EEnemyMovementSpeed::EMS_MAX:
+	default:
+		NewSpeed = 0.f;
+		break;
+	}
+	GetCharacterMovement()->MaxWalkSpeed = NewSpeed;
+	return NewSpeed;
+}
+
 
 void ABossEnemy::BossPlayHitAnimation(const FHitData& HitData, FDamageTypeMapping* DamageMapping, AActor* Attacker)
 {

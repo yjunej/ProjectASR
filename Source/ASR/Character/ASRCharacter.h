@@ -304,15 +304,15 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	//class UCameraComponent* FollowCamera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UChildActorComponent* FollowCameraManager;
 
 	// TODO - Delete Duplicated Camera (Use Child Actor)
-	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* ExecutionCamera;
+	//UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	//class UCameraComponent* ExecutionCamera;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UChildActorComponent* ExecutionCameraManager;
@@ -378,9 +378,14 @@ public:
 	void SetCombatState(ECombatState InCombatState);
 	void SetStrafe(bool bEnableStrafe);
 
+	UFUNCTION(BlueprintCallable)
+	class UCameraComponent* GetFollowCamera() const;
+
+	UFUNCTION(BlueprintCallable)
+	class UCameraComponent* GetExecutionCamera() const;
+
 	// FORCEINLINE 
-	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; }
-	FORCEINLINE UCameraComponent* GetExecutionCamera() const { return ExecutionCamera; }
+	
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	FORCEINLINE UMotionWarpingComponent* GetMotionWarpingComponent() const { return MotionWarpingComponent; }
 	FORCEINLINE UTargetingComponent* GetTargetingComponent() const { return TargetingComp; }
