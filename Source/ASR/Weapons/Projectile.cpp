@@ -79,6 +79,9 @@ void AProjectile::OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* Ot
 			HitData.HitEffect = HitEnemyEffect;
 			HitData.HitParticleEffect = HitEnemyParticle;
 			HitData.HitSound = HitEnemySound;
+			HitData.HitEffectRotation = HitEffectRotation;
+			HitData.HitEffectScale = HitEffectScale;
+			
 			bDestoryProjectile = CombatInterface->GetHit(SweepResult, ProjectileOwner, HitData);
 
 			AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);
@@ -143,6 +146,10 @@ void AProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, U
 			HitData.HitEffect = HitEnemyEffect;
 			HitData.HitParticleEffect = HitEnemyParticle;
 			HitData.HitSound = HitEnemySound;
+			HitData.HitEffectRotation = HitEffectRotation;
+			HitData.HitEffectScale = HitEffectScale;
+
+
 			bDestoryProjectile = CombatInterface->GetHit(Hit, ProjectileOwner, HitData);
 
 			AASRCharacter* ASRCharacter = Cast<AASRCharacter>(ProjectileOwner);

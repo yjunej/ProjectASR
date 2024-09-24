@@ -20,6 +20,12 @@ public:
 	UPROPERTY(BlueprintReadWrite)
 	AActor* ProjectileOwner;
 
+	UPROPERTY(BlueprintReadWrite)
+	FRotator HitEffectRotation;
+
+	UPROPERTY(BlueprintReadWrite)
+	FVector HitEffectScale;
+
 protected:
 	virtual void BeginPlay() override;
 

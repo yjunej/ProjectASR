@@ -17,6 +17,11 @@ public:
 	FHitData()
 	: Damage(0.f)
 	, DamageType(EASRDamageType::EDT_Default)
+	, HitSound(nullptr)
+	, HitEffect(nullptr)
+	, HitEffectRotation(FRotator::ZeroRotator)
+	, HitEffectScale(FVector::OneVector)
+	, HitParticleEffect(nullptr)
 	{}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -34,6 +39,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	class UNiagaraSystem* HitEffect;
 	//TSoftObjectPtr<class UNiagaraSystem> HitEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FRotator HitEffectRotation;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FVector HitEffectScale;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UParticleSystem* HitParticleEffect;

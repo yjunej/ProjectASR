@@ -282,7 +282,6 @@ void ABaseEnemy::ResetState()
 	}
 	SetCombatState(ECombatState::ECS_None);
 
-	
 	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Flying)
 	{
 		GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Falling);
@@ -796,30 +795,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
 	// Effects
-	if (HitData.HitSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this,
-			HitData.HitSound, GetActorLocation());
-	}
-	if (HitData.HitEffect != nullptr)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
-			HitData.HitEffect,
-			HitResult.ImpactPoint,
-			//GetActorRotation(),
-			FRotator::ZeroRotator,
-			FVector(1.f)
-		);
-	}
-	else if (HitData.HitParticleEffect != nullptr)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(),
-			HitData.HitParticleEffect,
-			HitResult.ImpactPoint
-		);
-	}
+	SpawnEffects(HitData, HitResult);
 
 	// Death
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
@@ -831,6 +807,35 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	// Animation
 	ProcessHitAnimation(HitData, Attacker);
 	return true;
+}
+
+void ABaseEnemy::SpawnEffects(const FHitData& HitData, const FHitResult& HitResult)
+{
+	if (HitData.HitSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this,
+			HitData.HitSound, GetActorLocation());
+	}
+	if (HitData.HitEffect != nullptr)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			HitData.HitEffect,
+			HitResult.ImpactPoint,
+			HitData.HitEffectRotation,
+			HitData.HitEffectScale
+		);
+	}
+	else if (HitData.HitParticleEffect != nullptr)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			HitData.HitParticleEffect,
+			HitResult.ImpactPoint,
+			HitData.HitEffectRotation,
+			HitData.HitEffectScale
+		);
+	}
 }
 
 void ABaseEnemy::ProcessHitAnimation(const FHitData& HitData, AActor* Attacker)

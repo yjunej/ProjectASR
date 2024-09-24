@@ -833,27 +833,7 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 
 
 	// Effects
-	if (HitData.HitSound != nullptr)
-	{
-		UGameplayStatics::PlaySoundAtLocation(this, 
-			HitData.HitSound, GetActorLocation());
-	}
-	if (HitData.HitEffect != nullptr)
-	{
-		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-			GetWorld(),
-			HitData.HitEffect,
-			HitResult.ImpactPoint,
-			GetActorRotation(),
-			FVector(1.f)
-		);
-	}
-	else if (HitData.HitParticleEffect != nullptr)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(), HitData.HitParticleEffect, HitResult.ImpactPoint
-		);
-	}
+	SpawnEffects(HitData, HitResult);
 
 	// Handle Death
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
@@ -866,6 +846,35 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	PlayHitAnimation(HitData, Attacker);
 	return true;
 	
+}
+
+void AASRCharacter::SpawnEffects(const FHitData& HitData, const FHitResult& HitResult)
+{
+	if (HitData.HitSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this,
+			HitData.HitSound, GetActorLocation());
+	}
+	if (HitData.HitEffect != nullptr)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			GetWorld(),
+			HitData.HitEffect,
+			HitResult.ImpactPoint,
+			HitData.HitEffectRotation,
+			HitData.HitEffectScale
+		);
+	}
+	else if (HitData.HitParticleEffect != nullptr)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(
+			GetWorld(),
+			HitData.HitParticleEffect,
+			HitResult.ImpactPoint,
+			HitData.HitEffectRotation,
+			HitData.HitEffectScale
+		);
+	}
 }
 
 void AASRCharacter::PlayHitAnimation(const FHitData& HitData, AActor* Attacker)

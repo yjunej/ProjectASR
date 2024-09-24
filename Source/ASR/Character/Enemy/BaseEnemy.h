@@ -40,6 +40,7 @@ public:
 
 	// CombatInterface
 	virtual bool GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
+	void SpawnEffects(const FHitData& HitData, const FHitResult& HitResult);
 	virtual bool IsDead() const override;
 	virtual ECombatState GetCombatState() const override;
 	virtual EHitReactionState GetHitReactionState() const override;
@@ -154,7 +155,6 @@ protected:
 	virtual bool ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType);
 
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
-
 
 	// Animation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
