@@ -231,13 +231,13 @@ bool ABaseEnemy::ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType)
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 		if (AnimInstance != nullptr)
 		{
-			FOnMontageEnded LMontageEnded;
-			LMontageEnded.BindUObject(this, &ABaseEnemy::OnMontageEnded);
-			AnimInstance->Montage_SetEndDelegate(LMontageEnded, AttackMontages[MontageIndex]);
 			AnimInstance->Montage_Play(
 				AttackMontages[MontageIndex], 1.0f, EMontagePlayReturnType::Duration,
 				0.0f, true
 			);
+			FOnMontageEnded LMontageEnded;
+			LMontageEnded.BindUObject(this, &ABaseEnemy::OnMontageEnded);
+			AnimInstance->Montage_SetEndDelegate(LMontageEnded, AttackMontages[MontageIndex]);
 			return true;
 		}
 	}
