@@ -147,6 +147,7 @@ void AASRCharacter::BeginPlay()
 			{
 				MainHUDWidget->Owner = this;
 				MainHUDWidget->UpdateHealthBar();
+				MainHUDWidget->UpdateStaminaBar();
 				MainHUDWidget->AddToViewport();
 			}
 		}

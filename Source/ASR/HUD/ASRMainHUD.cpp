@@ -13,7 +13,18 @@ void UASRMainHUD::NativeConstruct()
 	{
 		Owner->OnHealthChanged.AddDynamic(this, &UASRMainHUD::UpdateHealthBar);
 		Owner->OnStaminaChanged.AddDynamic(this, &UASRMainHUD::UpdateStaminaBar);
+		PostHealth = Owner->GetHealth();
+		PostStamina = Owner->GetStamina();
 	}
+
+}
+
+void UASRMainHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	UpdatePostHealthBar();
+	UpdatePostStaminaBar();
 
 }
 
@@ -38,5 +49,29 @@ void UASRMainHUD::UpdateStaminaBar()
 			StaminaBar->SetPercent(Owner->GetStamina() / Owner->GetMaxStamina());
 		}
 
+	}
+}
+
+void UASRMainHUD::UpdatePostHealthBar()
+{
+	if (Owner != nullptr)
+	{
+		if (Owner->GetMaxHealth() > 0)
+		{
+			PostHealth = FMath::FInterpTo(PostHealth, Owner->GetHealth(), GetWorld()->GetDeltaSeconds(), PostBarLerpSpeed);
+			PostHealthBar->SetPercent(PostHealth / Owner->GetMaxHealth());
+		}
+	}
+}
+
+void UASRMainHUD::UpdatePostStaminaBar()
+{
+	if (Owner != nullptr)
+	{
+		if (Owner->GetMaxStamina() > 0)
+		{
+			PostStamina = FMath::FInterpTo(PostStamina, Owner->GetStamina(), GetWorld()->GetDeltaSeconds(), PostBarLerpSpeed);
+			PostStaminaBar->SetPercent(PostStamina / Owner->GetMaxStamina());
+		}
 	}
 }

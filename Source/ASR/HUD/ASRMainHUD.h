@@ -17,6 +17,7 @@ class ASR_API UASRMainHUD : public UUserWidget
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 public:
 	UFUNCTION()
@@ -24,6 +25,12 @@ public:
 
 	UFUNCTION()
 	void UpdateStaminaBar();
+
+	UFUNCTION()
+	void UpdatePostHealthBar();
+
+	UFUNCTION()
+	void UpdatePostStaminaBar();
 	
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
@@ -33,8 +40,19 @@ public:
 	class UProgressBar* HealthBar;
 
 	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* PostHealthBar;
+
+	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* StaminaBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UProgressBar* PostStaminaBar;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UCanvasPanel* BossInfoCanvas;
+
+	float PostBarLerpSpeed = 1.5f;
+	float PostHealth;
+	float PostStamina;
+
 };
