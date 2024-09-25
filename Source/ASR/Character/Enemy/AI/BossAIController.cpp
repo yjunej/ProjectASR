@@ -4,9 +4,15 @@
 #include "BossAIController.h"
 #include "ASR/Character/Enemy/BossEnemy.h"
 #include "ASR/Character/ASRCharacter.h"
-#include "Components/VerticalBox.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 #include "ASR/HUD/EnemyInfoWidget.h"
 #include "ASR/HUD/ASRMainHUD.h"
+
+ABossAIController::ABossAIController()
+{
+	bUseBaseInfoWidget = false;
+}
 
 void ABossAIController::SwitchToAttackState(AActor* TargetActor)
 {
@@ -25,7 +31,13 @@ void ABossAIController::SwitchToAttackState(AActor* TargetActor)
 				// TODO
 				if (ASRCharacter->MainHUDWidget != nullptr)
 				{
-					ASRCharacter->MainHUDWidget->BossInfoVBox->AddChildToVerticalBox(Cast<UUserWidget>(BossEnemy->GetBossInfoWidget()));
+					UCanvasPanelSlot* NewSlot = ASRCharacter->MainHUDWidget->BossInfoCanvas->AddChildToCanvas
+						(Cast<UUserWidget>(BossEnemy->GetBossInfoWidget()));
+					if (NewSlot != nullptr)	
+					{
+						NewSlot->SetAlignment(FVector2D(0.5f, 0.f));
+						NewSlot->SetAnchors(FAnchors(0.5f, 0.f, 0.5f, 0.f));
+					}
 				}
 
 			}

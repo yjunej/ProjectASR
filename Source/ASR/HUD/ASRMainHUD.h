@@ -36,5 +36,5 @@ public:
 	class UProgressBar* StaminaBar;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
-	class UVerticalBox* BossInfoVBox;
+	class UCanvasPanel* BossInfoCanvas;
 };

@@ -189,7 +189,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual void ResolveDodgeAndGuardPending();
 
-
+	// Interaction
+	UFUNCTION(BlueprintImplementableEvent)
+	void CreateFields(const FVector& FieldLocation);
 
 
 	TArray<AActor*> HitActors;

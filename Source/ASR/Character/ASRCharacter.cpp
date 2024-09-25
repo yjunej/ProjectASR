@@ -597,8 +597,9 @@ void AASRCharacter::SphereTrace(float TraceDistance, float TraceRadius, const FH
 				if (CombatInterface != nullptr)
 				{
 					CombatInterface->GetHit(HitResult, this, HitData);
-					HitActors.AddUnique(HitActor);
 				}
+				HitActors.AddUnique(HitActor);
+				//CreateFields(HitResult.ImpactPoint);
 			}
 		}
 	}

@@ -11,6 +11,15 @@ void UEnemyInfoWidget::NativeConstruct()
 	Super::NativeConstruct();
 }
 
+void UEnemyInfoWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
+{
+	Super::NativeTick(MyGeometry, InDeltaTime);
+
+	UpdatePostHealthBar();
+	UpdatePostStaminaBar();
+
+}
+
 void UEnemyInfoWidget::UpdateHealthBar()
 {
 	if (Owner != nullptr)
@@ -34,6 +43,30 @@ void UEnemyInfoWidget::UpdateStaminaBar()
 	}
 }
 
+void UEnemyInfoWidget::UpdatePostHealthBar()
+{
+	if (Owner != nullptr)
+	{
+		if (Owner->MaxHealth > 0)
+		{
+			PostHealth = FMath::FInterpTo(PostHealth, Owner->Health, GetWorld()->GetDeltaSeconds(), PostBarLerpSpeed);
+			EnemyPostHealthBar->SetPercent(PostHealth / Owner->MaxHealth);
+		}
+	}
+}
+
+void UEnemyInfoWidget::UpdatePostStaminaBar()
+{
+	if (Owner != nullptr)
+	{
+		if (Owner->MaxStamina > 0)
+		{
+			PostStamina = FMath::FInterpTo(PostStamina, Owner->Stamina, GetWorld()->GetDeltaSeconds(), PostBarLerpSpeed);
+			EnemyPostStaminaBar->SetPercent(PostStamina / Owner->MaxStamina);
+		}
+	}
+}
+
 void UEnemyInfoWidget::SetOwner(ABaseEnemy* NewOwner)
 {
 	if (Owner != NewOwner && NewOwner != nullptr)
@@ -49,5 +82,7 @@ void UEnemyInfoWidget::SetOwner(ABaseEnemy* NewOwner)
 
 		UpdateHealthBar();
 		UpdateStaminaBar();
+		PostHealth = Owner->Health;
+		PostStamina = Owner->Stamina;
 	}
 }

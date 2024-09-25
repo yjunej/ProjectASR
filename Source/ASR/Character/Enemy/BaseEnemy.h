@@ -217,7 +217,12 @@ protected:
 
 	FDamageTypeMapping* FindDamageDTRow(EASRDamageType DamageType) const;
 
+	// Interaction
+	UFUNCTION(BlueprintImplementableEvent)
+	void CreateFields(const FVector& FieldLocation);
 
+	// Attack Modifier Hook
+	virtual int32 ModifyAttackMontage(EAIAttack AIAttackType, int32 SelectedIndex) { return SelectedIndex; }
 
 private:
 	
@@ -365,5 +370,6 @@ public:
 	FORCEINLINE AMeleeWeapon* GetMeleeWeapon() const { return MeleeWeapon; }
 	FORCEINLINE void SetAutoGuardRate(float Rate) { AutoGuardRate = Rate; }
 	FORCEINLINE UWidgetComponent* GetInfoWidgetComponent() const { return InfoWidgetComponent; }
+	FORCEINLINE UEnemyInfoWidget* GetInfoWidget() const { return InfoWidget; }
 	FORCEINLINE void SetCachedAttackTarget(AActor* NewAttackTarget) { CachedAttackTarget = NewAttackTarget; }
 };

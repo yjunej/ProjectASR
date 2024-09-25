@@ -9,7 +9,6 @@
 #include "GameFramework/CharacterMovementComponent.h"
 
 
-
 void ABossEnemy::BeginPlay()
 {
 	Super::BeginPlay();
@@ -71,6 +70,32 @@ float ABossEnemy::SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed)
 }
 
 
+int32 ABossEnemy::ModifyAttackMontage(EAIAttack AIAttackType, int32 SelectedIndex)
+{
+
+	//TArray<UAnimMontage*> AttackMontages;
+	//FAIAttackMontages* FoundMontages = AttackMontageMap.Find(AIAttackType);
+	//if (FoundMontages != nullptr && FoundMontages->AIAttackMontages.Num() > 0)
+	if (AIAttackType == EAIAttack::EAA_Default)
+	{
+		// if Last Default Attack
+		int32 NumOfMontages = AttackMontageMap.Find(EAIAttack::EAA_Default)->AIAttackMontages.Num();
+		if (SelectedIndex == NumOfMontages- 1)
+		{
+			if (IsUltAttackReady())
+			{
+				StartUltCoolDown();
+				return SelectedIndex;
+			}
+			else
+			{
+				return FMath::RandRange(0, NumOfMontages - 2);
+			}
+		}
+	}
+	return SelectedIndex;
+}
+
 void ABossEnemy::BossPlayHitAnimation(const FHitData& HitData, FDamageTypeMapping* DamageMapping, AActor* Attacker)
 {
 	if (Stamina > 0)
@@ -124,7 +149,6 @@ bool ABossEnemy::LaunchForJumpSmash(bool bIsJump, float Arc, float TimeToTarget)
 	}
 	return false;
 
-		// TODO
 	
 }
 
@@ -138,6 +162,23 @@ bool ABossEnemy::BossAIAttack(AActor* AttackTarget, EAIAttack BossAttackType)
 	}
 	return false;
 }
+
+bool ABossEnemy::IsUltAttackReady() const
+{
+	return !GetWorld()->GetTimerManager().IsTimerActive(BossUltTimerHandle);
+}
+
+// TODO - Sophisticated CoolDown System
+void ABossEnemy::StartUltCoolDown()
+{
+	GetWorld()->GetTimerManager().SetTimer(BossUltTimerHandle, this, &ABossEnemy::ResetUltCoolDown, BossUltCooldown, false);
+}
+
+void ABossEnemy::ResetUltCoolDown()
+{
+	return;
+}
+
 
 UEnemyInfoWidget* ABossEnemy::GetBossInfoWidget() const
 {

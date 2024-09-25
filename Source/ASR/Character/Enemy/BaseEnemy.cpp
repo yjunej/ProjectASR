@@ -72,6 +72,7 @@ void ABaseEnemy::BeginPlay()
 		if (InfoWidget != nullptr)
 		{
 			InfoWidget->SetOwner(this);
+			InfoWidget->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
 
@@ -1032,8 +1033,10 @@ void ABaseEnemy::SphereTrace(float TraceDistance, float TraceRadius, const FHitD
 				{
 					//UGameplayStatics::PlaySoundAtLocation(this, HitSoundCue, HitActor->GetActorLocation());
 					CombatInterface->GetHit(HitResult, this, HitData);
-					HitActors.AddUnique(HitActor);
 				}
+				HitActors.AddUnique(HitActor);
+				//CreateFields(HitResult.ImpactPoint);
+
 			}
 		}
 	}

@@ -16,13 +16,21 @@ class ASR_API UEnemyInfoWidget : public UUserWidget
 
 protected:
 	virtual void NativeConstruct() override;
+	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 public:
+
 	UFUNCTION(BlueprintCallable)
 	void UpdateHealthBar();
 
 	UFUNCTION(BlueprintCallable)
 	void UpdateStaminaBar();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdatePostHealthBar();
+
+	UFUNCTION(BlueprintCallable)
+	void UpdatePostStaminaBar();
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class ABaseEnemy* Owner;
@@ -36,9 +44,18 @@ public:
 	class UProgressBar* EnemyHealthBar;
 
 	UPROPERTY(meta = (BindWidget))
+	UProgressBar* EnemyPostHealthBar;
+
+	UPROPERTY(meta = (BindWidget))
 	UProgressBar* EnemyStaminaBar;
+
+	UPROPERTY(meta = (BindWidget))
+	UProgressBar* EnemyPostStaminaBar;
 
 	void SetOwner(ABaseEnemy* NewOwner);
 
+	float PostBarLerpSpeed = 1.5f;
+	float PostHealth;
+	float PostStamina;
 	
 };

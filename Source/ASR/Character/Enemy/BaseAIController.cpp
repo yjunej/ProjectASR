@@ -4,6 +4,7 @@
 #include "BaseAIController.h"
 
 #include "ASR/Character/Enemy/BaseEnemy.h"
+#include "ASR/HUD/EnemyInfoWidget.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "ASR/Enums/EnemyAIState.h"
@@ -153,6 +154,7 @@ void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 			if (NewTargetCharacter != nullptr)
 			{
 				NewTargetCharacter->OnCombatStateChanged.AddDynamic(this, &ABaseAIController::OnPlayerCombatStateChanged);
+				
 			}
 
 		}
@@ -182,6 +184,15 @@ void ABaseAIController::SwitchToAttackState(AActor* TargetActor)
 		if (CombatInterface != nullptr)
 		{
 			BBComponent->SetValueAsEnum(AttackTargetCombatStateKeyName, StaticCast<uint8>(CombatInterface->GetCombatState()));
+			if (bUseBaseInfoWidget)
+			{
+				ABaseEnemy* Enemy = Cast<ABaseEnemy>(GetPawn());
+				UEnemyInfoWidget* EnemyInfoWidget = Enemy->GetInfoWidget();
+				if (EnemyInfoWidget != nullptr && bUseBaseInfoWidget)
+				{
+					EnemyInfoWidget->SetVisibility(ESlateVisibility::Visible);
+				}
+			}
 		}
 	}
 	

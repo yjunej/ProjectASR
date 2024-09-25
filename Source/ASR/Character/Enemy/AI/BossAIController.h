@@ -14,6 +14,9 @@ class ASR_API ABossAIController : public ABaseAIController
 {
 	GENERATED_BODY()
 
+public:
+	ABossAIController();
+
 protected:
 	virtual void SwitchToAttackState(AActor* TargetActor) override;
 
