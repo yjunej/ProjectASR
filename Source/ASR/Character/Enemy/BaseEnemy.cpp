@@ -227,6 +227,8 @@ bool ABaseEnemy::ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType)
 	{
 		int32 MontageIndex = 0;
 		MontageIndex = FMath::RandRange(0, AttackMontages.Num() - 1);
+		MontageIndex = ModifyAttackMontage(AIAttackType, MontageIndex);
+
 		SetCombatState(ECombatState::ECS_Attack);
 
 		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
@@ -688,6 +690,8 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 {
 	// [TODO] Block Handling Before Take Damage
 	
+	UE_LOG(LogTemp, Warning, TEXT("HITTYPE: %s"), *StaticEnum<EASRDamageType>()->GetNameStringByValue(StaticCast<uint8>(HitData.DamageType)));
+
 
 	if (GetCombatState() == ECombatState::ECS_Death)
 	{ 
@@ -1057,18 +1061,30 @@ void ABaseEnemy::ResetTimeDilation()
 FDamageTypeMapping* ABaseEnemy::FindDamageDTRow(EASRDamageType DamageType) const
 {
 	FDamageInfoData* DamageInfoData = nullptr;
-	FText RowText;
-	UEnum::GetDisplayValueAsText(DamageType, RowText);
+	//FString EnumName = UEnum::GetValueAsString(DamageType);
+	FString EnumName = StaticEnum<EASRDamageType>()->GetNameStringByValue(StaticCast<uint8>(DamageType));
 
-	UE_LOG(LogTemp, Warning, TEXT("Find DT Row TEXT: %s"), *RowText.ToString());
 
+	
+
+	UE_LOG(LogTemp, Warning, TEXT("Find DT Row String: %s"), *EnumName);
+
+	if (EnumName.StartsWith("EDT_"))
+	{
+		EnumName.RemoveFromStart("EDT_");
+	}
+
+
+	UE_LOG(LogTemp, Warning, TEXT("Find DT Parsed Row String: %s"), *EnumName);
+
+	//// Handling for Packing Version - TODO convert to if def
 
 	if (DamageDataTable != nullptr)
 	{
-		DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(*RowText.ToString(), FString::Printf(TEXT("Failed to Find: [%s] %s"), *GetName(), *RowText.ToString()));
+		DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(*EnumName, FString::Printf(TEXT("Failed to Find: [%s] %s"), *GetName(), *EnumName));
 		if (DamageInfoData == nullptr)
 		{
-			DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(FName("Default"), FString::Printf(TEXT("Failed to Find Default: [%s] %s"), *GetName(), *RowText.ToString()));
+			DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(FName("Default"), FString::Printf(TEXT("Failed to Find Default: [%s] %s"), *GetName(), *EnumName));
 		}
 		return &DamageInfoData->DamageReaction;
 	}

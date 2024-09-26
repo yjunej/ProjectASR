@@ -677,18 +677,27 @@ void AASRCharacter::OnExecutionMontageEnd(UAnimMontage* Montage, bool bInterrupt
 FDamageTypeMapping* AASRCharacter::FindDamageDTRow(EASRDamageType DamageType) const
 {
 	FDamageInfoData* DamageInfoData = nullptr;
-	FText RowText;
-	UEnum::GetDisplayValueAsText(DamageType, RowText);
+	FString EnumName = StaticEnum<EASRDamageType>()->GetNameStringByValue(StaticCast<uint8>(DamageType));
 
-	UE_LOG(LogTemp, Warning, TEXT("Find DT Row TEXT: %s"), *RowText.ToString());
+
+
+	UE_LOG(LogTemp, Warning, TEXT("Find DT Row String: %s"), *EnumName);
+
+	if (EnumName.StartsWith("EDT_"))
+	{
+		EnumName.RemoveFromStart("EDT_");
+	}
+
+
+	UE_LOG(LogTemp, Warning, TEXT("Find DT Parsed Row String: %s"), *EnumName);
 
 
 	if (DamageDataTable != nullptr)
 	{
-		DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(*RowText.ToString(), FString::Printf(TEXT("Failed to Find: [%s] %s"), *GetName(), *RowText.ToString()));
+		DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(*EnumName, FString::Printf(TEXT("Failed to Find: [%s] %s"), *GetName(), *EnumName));
 		if (DamageInfoData == nullptr)
 		{
-			DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(FName("Default"), FString::Printf(TEXT("Failed to Find Default: [%s] %s"), *GetName(), *RowText.ToString()));
+			DamageInfoData = DamageDataTable->FindRow<FDamageInfoData>(FName("Default"), FString::Printf(TEXT("Failed to Find Default: [%s] %s"), *GetName(), *EnumName));
 		}
 
 
