@@ -654,8 +654,11 @@ void AGunner::WeaponFire(const FVector& HitTargetPoint)
 void AGunner::OnAttackEnemy()
 {
 	URangerHUD* GunnerHUD = GunnerPlayerController->GunnerHUD;
-	GunnerHUD->SetCrosshairColor(FLinearColor::Red);
-	GetWorld()->GetTimerManager().SetTimer(CrosshairTimerHandle, this, &AGunner::ResetCrosshairColor, 0.5f, false);
+	if (GunnerHUD != nullptr)
+	{
+		GunnerHUD->SetCrosshairColor(FLinearColor::Red);
+		GetWorld()->GetTimerManager().SetTimer(CrosshairTimerHandle, this, &AGunner::ResetCrosshairColor, 0.5f, false);
+	}
 }
 
 void AGunner::ResetCrosshairColor()
