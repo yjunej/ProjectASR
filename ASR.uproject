@@ -63,6 +63,10 @@
 		{
 			"Name": "TcpMessaging",
 			"Enabled": false
+		},
+		{
+			"Name": "SkeletalMeshModelingTools",
+			"Enabled": true
 		}
 	]
 }
