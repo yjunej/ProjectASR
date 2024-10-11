@@ -96,7 +96,7 @@ protected:
 
 	// Hook
 	virtual void NormalAttack() override;
-	virtual void ResetSkills() override;
+	//virtual void ResetSkills() override;
 	virtual void ResolveHeavyAttackPending() override;
 	virtual void OnAttackEnemy() override;
 	//

@@ -88,8 +88,8 @@ void ABlader::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_HeavyAttack);
-		EnhancedInputComponent->BindAction(BladerFirstSkillAction, ETriggerEvent::Triggered, this, &ABlader::Input_FirstSkill);
+		//EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &ABlader::Input_HeavyAttack);
+		//EnhancedInputComponent->BindAction(BladerFirstSkillAction, ETriggerEvent::Triggered, this, &ABlader::Input_FirstSkill);
 		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Started, this, &ABlader::Input_Ult);
 		EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Completed, this, &ABlader::Input_Release_Ult);
 		EnhancedInputComponent->BindAction(SuperDodgeAction, ETriggerEvent::Triggered, this, &ABlader::Input_SuperDodge);
@@ -138,7 +138,7 @@ void ABlader::ResetState()
 
 	// Reset Attack Pendig & Count
 	ResetNormalAttack();
-	ResetSkills();
+	//ResetSkills();
 	ResetDodge();
 
 	if (GetTargetingComponent() != nullptr)
@@ -209,22 +209,22 @@ void ABlader::NormalAttack()
 }
 
 
-void ABlader::Input_HeavyAttack(const FInputActionValue& Value)
-{
-	if (bIsUltCharging)
-	{
-		ResetUlt();
-	}
-	bIsNormalAttackPending = false;
-	if (GetCombatState() == ECombatState::ECS_Attack)
-	{
-		bIsHeavyAttackPending = true;
-	}
-	else
-	{
-		HeavyAttack();
-	}
-}
+//void ABlader::Input_HeavyAttack(const FInputActionValue& Value)
+//{
+//	if (bIsUltCharging)
+//	{
+//		ResetUlt();
+//	}
+//	bIsNormalAttackPending = false;
+//	if (GetCombatState() == ECombatState::ECS_Attack)
+//	{
+//		bIsHeavyAttackPending = true;
+//	}
+//	else
+//	{
+//		HeavyAttack();
+//	}
+//}
 
 void ABlader::Input_Dodge(const FInputActionValue& Value)
 {
@@ -236,24 +236,24 @@ void ABlader::Input_Dodge(const FInputActionValue& Value)
 
 }
 
-void ABlader::Input_FirstSkill(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Warning, TEXT("INPUT_FIRSTSKILL!"));
-	if (bIsUltCharging)
-	{
-		ResetUlt();
-	}
-	bIsNormalAttackPending = false;
-	bIsHeavyAttackPending = false;
-	if (GetCombatState() == ECombatState::ECS_Attack)
-	{
-		bIsFirstSkillPending = true;
-	}
-	else
-	{
-		FirstSkill();
-	}
-}
+//void ABlader::Input_FirstSkill(const FInputActionValue& Value)
+//{
+	//UE_LOG(LogTemp, Warning, TEXT("INPUT_FIRSTSKILL!"));
+	//if (bIsUltCharging)
+	//{
+	//	ResetUlt();
+	//}
+	//bIsNormalAttackPending = false;
+	//bIsHeavyAttackPending = false;
+	//if (GetCombatState() == ECombatState::ECS_Attack)
+	//{
+	//	bIsFirstSkillPending = true;
+	//}
+	//else
+	//{
+	//	FirstSkill();
+	//}
+//}
 
 void ABlader::Input_Ult(const FInputActionValue& Value)
 {
@@ -345,31 +345,31 @@ bool ABlader::CanAttack() const
 }
 
 
-void ABlader::HeavyAttack()
-{
-	if (CanAttack())
-	{
-		// TODO: NOT RESET L/H Counter for custom combo
-
-		if (GetVelocity().Size() > MaxWalkSpeed * 0.9 && HeavyAttackIndex == 0)
-		{
-			DashHeavyAttack();
-		}
-		else
-		{
-			ResetNormalAttack();
-			ExecuteHeavyAttack(HeavyAttackIndex);
-		}
-
-
-	}
-}
+//void ABlader::HeavyAttack()
+//{
+//	if (CanAttack())
+//	{
+//		// TODO: NOT RESET L/H Counter for custom combo
+//
+//		if (GetVelocity().Size() > MaxWalkSpeed * 0.9 && HeavyAttackIndex == 0)
+//		{
+//			DashHeavyAttack();
+//		}
+//		else
+//		{
+//			ResetNormalAttack();
+//			ExecuteHeavyAttack(HeavyAttackIndex);
+//		}
+//
+//
+//	}
+//}
 
 void ABlader::DashAttack()
 {
 	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
-	ResetSkills();
+	//ResetSkills();
 	ResetDodge();
 	PlayAnimMontage(DashAttackMontage);
 }
@@ -378,7 +378,7 @@ void ABlader::DashHeavyAttack()
 {
 	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
-	ResetSkills();
+	//ResetSkills();
 	ResetDodge();
 	PlayAnimMontage(DashHeavyAttackMontage);
 }
@@ -434,30 +434,30 @@ void ABlader::ExecuteNormalAttackInAir(int32 AttackIndex)
 	}
 }
 
-void ABlader::ExecuteHeavyAttack(int32 AttackIndex)
-{
-	if (AttackIndex >= HeavyAttackMontages.Num())
-	{
-		HeavyAttackIndex = 0;
-	}
-	else
-	{
-		if (HeavyAttackMontages.IsValidIndex(AttackIndex) && HeavyAttackMontages[AttackIndex] != nullptr)
-		{
-			SetCombatState(ECombatState::ECS_Attack);
-			PlayAnimMontage(HeavyAttackMontages[AttackIndex]);
-
-			if (HeavyAttackIndex + 1 >= HeavyAttackMontages.Num())
-			{
-				HeavyAttackIndex = 0;
-			}
-			else
-			{
-				++HeavyAttackIndex;
-			}
-		}
-	}
-}
+//void ABlader::ExecuteHeavyAttack(int32 AttackIndex)
+//{
+//	if (AttackIndex >= HeavyAttackMontages.Num())
+//	{
+//		HeavyAttackIndex = 0;
+//	}
+//	else
+//	{
+//		if (HeavyAttackMontages.IsValidIndex(AttackIndex) && HeavyAttackMontages[AttackIndex] != nullptr)
+//		{
+//			SetCombatState(ECombatState::ECS_Attack);
+//			PlayAnimMontage(HeavyAttackMontages[AttackIndex]);
+//
+//			if (HeavyAttackIndex + 1 >= HeavyAttackMontages.Num())
+//			{
+//				HeavyAttackIndex = 0;
+//			}
+//			else
+//			{
+//				++HeavyAttackIndex;
+//			}
+//		}
+//	}
+//}
 
 void ABlader::ResetHeavyAttack()
 {
@@ -465,11 +465,11 @@ void ABlader::ResetHeavyAttack()
 	HeavyAttackIndex = 0;
 }
 
-void ABlader::ResetSkills()
-{
-	ResetHeavyAttack();
-	bIsFirstSkillPending = false;
-}
+//void ABlader::ResetSkills()
+//{
+//	ResetHeavyAttack();
+//	bIsFirstSkillPending = false;
+//}
 
 
 void ABlader::ExecuteAerialAttack()

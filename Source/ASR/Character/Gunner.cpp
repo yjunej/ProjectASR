@@ -122,7 +122,7 @@ void AGunner::DashAttack()
 {
 	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
-	ResetSkills();
+	//ResetSkills();
 	ResetDodge();
 	PlayAnimMontage(DashAttackMontage);
 }
@@ -175,11 +175,11 @@ void AGunner::NormalAttack()
 	}
 }
 
-void AGunner::ResetSkills()
-{
-	bIsFirstSkillPending = false;
-	bIsSecondSkillPending = false;
-}
+//void AGunner::ResetSkills()
+//{
+//	bIsFirstSkillPending = false;
+//	bIsSecondSkillPending = false;
+//}
 
 void AGunner::ResolveHeavyAttackPending()
 {
@@ -200,7 +200,7 @@ void AGunner::ResetState()
 	Super::ResetState();
 	ResetNormalAttack();
 	ResetDodge();
-	ResetSkills();
+	//ResetSkills();
 	bStartFire = false;
 	bUseOnlyDefaultSlot = false;
 	GunnerAnimState = EGunnerAnimState::EGA_Normal;

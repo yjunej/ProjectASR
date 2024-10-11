@@ -154,7 +154,6 @@ void AASRCharacter::BeginPlay()
 			
 	}
 	
-
 	// Camera Actor Setting
 	if (FollowCameraManager != nullptr)
 	{
@@ -200,6 +199,9 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Dodge);
 
 		EnhancedInputComponent->BindAction(NormalAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_NormalAttack);
+		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_HeavyAttack);
+		EnhancedInputComponent->BindAction(SkillAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_SkillAttack);
+
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
@@ -289,7 +291,8 @@ void AASRCharacter::Input_Dodge(const FInputActionValue& Value)
 
 void AASRCharacter::Input_NormalAttack(const FInputActionValue& Value)
 {
-	if (CombatState == ECombatState::ECS_Attack)
+	bIsHeavyAttackPending = false;
+	if (GetCombatState() == ECombatState::ECS_Attack)
 	{
 		bIsNormalAttackPending = true;
 	}
@@ -299,11 +302,43 @@ void AASRCharacter::Input_NormalAttack(const FInputActionValue& Value)
 	}
 }
 
+void AASRCharacter::Input_HeavyAttack(const FInputActionValue& Value)
+{
+	bIsNormalAttackPending = false;
+	if (CombatState == ECombatState::ECS_Attack)
+	{
+		bIsHeavyAttackPending = true;
+	}
+	else
+	{
+		HeavyAttack();
+	}
+}
+
+void AASRCharacter::Input_SkillAttack(const FInputActionValue& Value)
+{
+	bIsNormalAttackPending = false;
+	bIsHeavyAttackPending = false;
+	//if (GetCombatState() == ECombatState::ECS_Attack)
+	//{
+	//	bIsFirstSkillPending = true;
+	//}
+	//else
+	//{
+	SkillAttack();
+	//}
+}
 
 void AASRCharacter::ResetNormalAttack()
 {
 	bIsNormalAttackPending = false;
 	NormalAttackIndex = 0;
+}
+
+void AASRCharacter::ResetHeavyAttack()
+{
+	bIsHeavyAttackPending = false;
+	HeavyAttackIndex = 0;
 }
 
 float AASRCharacter::GetFirstSkillWarpDistance() const
@@ -333,6 +368,87 @@ void AASRCharacter::ExecuteNormalAttack(int32 AttackIndex)
 				++NormalAttackIndex;
 			}
 		}
+	}
+}
+
+void AASRCharacter::ExecuteHeavyAttack(int32 AttackIndex)
+{
+	if (AttackIndex >= HeavyAttackMontages.Num())
+	{
+		HeavyAttackIndex = 0;
+	}
+	else
+	{
+		if (HeavyAttackMontages.IsValidIndex(AttackIndex) && HeavyAttackMontages[AttackIndex] != nullptr)
+		{
+			SetCombatState(ECombatState::ECS_Attack);
+			PlayAnimMontage(HeavyAttackMontages[AttackIndex]);
+
+			if (HeavyAttackIndex + 1 >= HeavyAttackMontages.Num())
+			{
+				HeavyAttackIndex = 0;
+			}
+			else
+			{
+				++HeavyAttackIndex;
+			}
+		}
+	}
+}
+
+void AASRCharacter::ExecuteSkillAttack()
+{
+	if (SkillAttackMontage != nullptr)
+	{
+		SetCombatState(ECombatState::ECS_Attack);
+		PlayAnimMontage(SkillAttackMontage);
+	}
+
+}
+
+void AASRCharacter::NormalAttack()
+{
+	if (CanAttack())
+	{
+		//if (GetVelocity().Size() >= MaxWalkSpeed * 0.9 && NormalAttackIndex == 0)
+		//{
+			//DashAttack();
+		//}
+		//else
+		//{
+		ResetHeavyAttack();
+		ExecuteNormalAttack(NormalAttackIndex);
+		//}
+	}
+}
+
+void AASRCharacter::HeavyAttack()
+{
+	if (CanAttack())
+	{
+		// TODO: NOT RESET L/H Counter for custom combo
+
+		//if (GetVelocity().Size() > MaxWalkSpeed * 0.9 && HeavyAttackIndex == 0)
+		//{
+		//	DashHeavyAttack();
+		//}
+		//else
+		//{
+		ResetNormalAttack();
+		ExecuteHeavyAttack(HeavyAttackIndex);
+		//}
+
+	}
+}
+
+void AASRCharacter::SkillAttack()
+{
+	if (CanAttack())
+	{
+		ResetNormalAttack();
+		ResetHeavyAttack();
+		ResetDodge();
+		ExecuteSkillAttack();
 	}
 }
 
@@ -401,7 +517,7 @@ void AASRCharacter::Dodge()
 		SetCombatState(ECombatState::ECS_Dodge);
 
 		ResetNormalAttack();
-		ResetSkills();
+		ResetHeavyAttack();
 
 		// Rotate Before Dodge
 		FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();
@@ -463,7 +579,6 @@ void AASRCharacter::Execution()
 {
 	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
-	ResetSkills();
 	ResetDodge();
 
 	FTransform WarpTransform;
@@ -565,6 +680,16 @@ void AASRCharacter::ResetState()
 	{
 		SetCombatState(ECombatState::ECS_None);
 	}
+
+	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
+	ResetNormalAttack();
+	ResetDodge();
+	if (GetTargetingComponent() != nullptr)
+	{
+		GetTargetingComponent()->ClearSubTarget();
+	}
+	ResetCamera();
+	bIsInvulnerable = false;
 }
 
 
@@ -785,7 +910,6 @@ void AASRCharacter::Guard()
 		SetCombatState(ECombatState::ECS_Guard);
 
 		ResetNormalAttack();
-		ResetSkills();
 		ResetDodge();
 
 		//FVector LastInputVector = GetCharacterMovement()->GetLastInputVector();

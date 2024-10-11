@@ -23,7 +23,7 @@ public:
 	
 	bool CanAttakInAir() const;
 
-	void HeavyAttack();
+	//void HeavyAttack();
 	void DashAttack();
 	void DashHeavyAttack();
 	void FirstSkill();
@@ -33,8 +33,8 @@ public:
 
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	float HeavyAttackWarpDistance = 150.f;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	//float HeavyAttackWarpDistance = 150.f;
 
 
 
@@ -56,8 +56,8 @@ protected:
 
 
 	// Enhanced Input
-	void Input_HeavyAttack(const FInputActionValue& Value);
-	void Input_FirstSkill(const FInputActionValue& Value);
+	//void Input_HeavyAttack(const FInputActionValue& Value);
+	//void Input_FirstSkill(const FInputActionValue& Value);
 	void Input_Ult(const FInputActionValue& Value);
 	void Input_Release_Ult(const FInputActionValue& Value);
 	void Input_SuperDodge(const FInputActionValue& Value);
@@ -66,7 +66,7 @@ protected:
 	// Override Parent Hook 
 	// TODO - Categorize Reset Func (Index Based or State Based)
 	virtual void NormalAttack() override;
-	virtual void ResetSkills() override;
+	//virtual void ResetSkills() override;
 	virtual void ResolveHeavyAttackPending() override;
 
 
@@ -80,7 +80,7 @@ private:
 
 
 	// Handling Combo Attack
-	void ExecuteHeavyAttack(int32 AttackIndex);
+	//void ExecuteHeavyAttack(int32 AttackIndex);
 	void ExecuteAerialAttack();
 
 
@@ -111,8 +111,8 @@ private:
 	AMeleeWeapon* MeleeWeapon;
 
 	// Enhanced Input
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* HeavyAttackAction;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	//UInputAction* HeavyAttackAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* BladerFirstSkillAction;
@@ -125,8 +125,8 @@ private:
 
 
 	// Animations
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	TArray<class UAnimMontage*> HeavyAttackMontages;
+	//UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	//TArray<class UAnimMontage*> HeavyAttackMontages;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* AerialAttackMontage;

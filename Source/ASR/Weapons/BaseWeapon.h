@@ -4,38 +4,26 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "MeleeWeapon.generated.h"
+#include "BaseWeapon.generated.h"
 
 UCLASS()
-class ASR_API AMeleeWeapon : public AActor
+class ASR_API ABaseWeapon : public AActor
 {
 	GENERATED_BODY()
 	
-	// TODO - Change Name Or Create Base class! (Decide Not to Use Weapon mesh based Hit System)
-
 public:	
-	AMeleeWeapon();
+	ABaseWeapon();
 
 	virtual void Tick(float DeltaTime) override;
-	
-	void WeaponBoxTrace(FHitResult& WeaponBoxHitResult);
-
-	UPROPERTY(BlueprintReadWrite)
-	TArray<AActor*> IgnoreActors;
-
-	UFUNCTION()
-	void OnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UPROPERTY(EditDefaultsOnly)
-	bool bShowBoxDebug = true;
-
-	AActor* WeaponOwner;
 
 protected:
 	virtual void BeginPlay() override;
+	
 
-private:	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta=(AllowPrivateAccess="true"))
+private:
+	AActor* WeaponOwner;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	USkeletalMeshComponent* WeaponMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
@@ -50,8 +38,22 @@ private:
 	UPROPERTY(EditAnywhere)
 	FVector TraceExtent = FVector(10.f);
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FName WeaponEquipSocketName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	FName WeaponUnequipSocketName;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UAnimMontage* EquipMontage;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+	class UAnimMontage* UnequipMontage;
+
+
 public:
 	FORCEINLINE USkeletalMeshComponent* GetWeaponMesh() const { return WeaponMesh; }
+
 
 
 };

@@ -148,9 +148,13 @@ protected:
 	virtual void Input_Move(const FInputActionValue& Value);
 	virtual void Input_ToggleLockOn(const FInputActionValue& Value);
 	virtual void Input_Execution(const FInputActionValue& Value);
+
 	virtual void Input_Guard(const FInputActionValue& Value);
 	virtual void Input_Dodge(const FInputActionValue& Value);
+
 	virtual void Input_NormalAttack(const FInputActionValue& Value);
+	virtual void Input_HeavyAttack(const FInputActionValue& Value);
+	virtual void Input_SkillAttack(const FInputActionValue& Value);
 
 
 	void Input_Look(const FInputActionValue& Value);
@@ -170,14 +174,21 @@ protected:
 	virtual void Execution();
 
 	virtual void ResetNormalAttack();
+	virtual void ResetHeavyAttack();
+
 
 
 	void ExecuteNormalAttack(int32 AttackIndex);
+	void ExecuteHeavyAttack(int32 AttackIndex);
+	void ExecuteSkillAttack();
 
 	// Handle logic that is fully state-based in the parent class.
 	// Use Hook method for character specific skill base logic
-	virtual void ResetSkills() {};
-	virtual void NormalAttack() {};
+	//virtual void ResetSkills();
+
+	virtual void NormalAttack();
+	virtual void HeavyAttack();
+	virtual void SkillAttack();
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResolveHeavyAttackPending() {};
@@ -192,7 +203,7 @@ protected:
 	// Interaction
 	UFUNCTION(BlueprintImplementableEvent)
 	void CreateFields(const FVector& FieldLocation);
-
+	//
 
 	TArray<AActor*> HitActors;
 	FVector2D PrevInput;
@@ -217,6 +228,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float NormalAttackWarpDistance = 150.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	float HeavyAttackWarpDistance = 150.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	float DashAttackWarpDistance = 500.f;
@@ -254,8 +268,10 @@ protected:
 	bool bIsGuardPressed = false;
 	bool bIsDodgePending = false;
 	bool bIsNormalAttackPending = false;
+	bool bIsHeavyAttackPending = false;
 	bool bIsStrafe = false;
 	int32 NormalAttackIndex;
+	int32 HeavyAttackIndex;
 
 
 
@@ -292,8 +308,20 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* NormalAttackAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* HeavyAttackAction;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SkillAttackAction;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> NormalAttackMontages;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	TArray<class UAnimMontage*> HeavyAttackMontages;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* SkillAttackMontage;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState;
@@ -306,15 +334,8 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraBoom;
 
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	//class UCameraComponent* FollowCamera;
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UChildActorComponent* FollowCameraManager;
-
-	// TODO - Delete Duplicated Camera (Use Child Actor)
-	//UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	//class UCameraComponent* ExecutionCamera;
 
 	UPROPERTY(VisibleAnywhere, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UChildActorComponent* ExecutionCameraManager;
@@ -343,7 +364,6 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ExecutionMontage;
-
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ParryCounterMontage;
@@ -400,5 +420,6 @@ public:
 	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 	FORCEINLINE float GetDashAttackWarpDistance() const { return DashAttackWarpDistance; }
 	FORCEINLINE float GetNormalAttackWarpDistance() const { return NormalAttackWarpDistance; }
+	FORCEINLINE bool IsInvulnerable() const { return bIsInvulnerable; }
 
 };

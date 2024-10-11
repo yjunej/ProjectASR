@@ -73,7 +73,7 @@ void ASlayer::DashAttack()
 {
 	SetCombatState(ECombatState::ECS_Attack);
 	ResetNormalAttack();
-	ResetSkills();
+	//ResetSkills();
 	ResetDodge();
 	PlayAnimMontage(DashAttackMontage);
 }
@@ -109,11 +109,11 @@ void ASlayer::NormalAttack()
 	}
 }
 
-void ASlayer::ResetSkills()
-{
-	bIsFirstSkillPending = false;
-	bIsSecondSkillPending = false;
-}
+//void ASlayer::ResetSkills()
+//{
+//	bIsFirstSkillPending = false;
+//	bIsSecondSkillPending = false;
+//}
 
 void ASlayer::ResolveHeavyAttackPending()
 {
@@ -134,7 +134,7 @@ void ASlayer::ResetState()
 	Super::ResetState();
 	ResetNormalAttack();
 	ResetDodge();
-	ResetSkills();
+	//ResetSkills();
 }
 
 void ASlayer::Input_FirstSkill(const FInputActionValue& Value)
