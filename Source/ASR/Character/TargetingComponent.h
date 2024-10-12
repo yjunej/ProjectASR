@@ -17,6 +17,8 @@ public:
 	UTargetingComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	friend class AASRCharacter;
+	friend class AASRPlayerController;
+
 
 
 	bool FindSubTarget();

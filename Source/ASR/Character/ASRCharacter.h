@@ -68,7 +68,6 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Jump() override;
 
-	// TODO - Create Combat Component.. 
 	// CombatInterface
 	virtual bool GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 	void SpawnEffects(const FHitData& HitData, const FHitResult& HitResult);
@@ -80,12 +79,11 @@ public:
 	virtual void ReturnAttackTokens(int32 Amount) override;
 	virtual UDataTable* GetAttackDataTable() const override; 
 	virtual void SphereTrace(float TraceDistance, float TraceRadius, const FHitData& HitData, ECollisionChannel CollisionChannel, bool bDrawDebugTrace) override;
-
+	//
 
 
 	FOnHealthChanged OnHealthChanged;
 	FOnStaminaChanged OnStaminaChanged;
-
 
 	void PlayRandomSection(UAnimMontage* Montage);
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
@@ -127,7 +125,8 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void StartArmLengthChange(UCurveFloat* ArmCurve);
-	//
+
+	bool bIsExecuting = false;
 
 
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
@@ -145,7 +144,10 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	// Enhanced Input
-	virtual void Input_Move(const FInputActionValue& Value);
+	// virtual void Input_Move(const FInputActionValue& Value);
+	//void Input_Look(const FInputActionValue& Value);
+
+
 	virtual void Input_ToggleLockOn(const FInputActionValue& Value);
 	virtual void Input_Execution(const FInputActionValue& Value);
 
@@ -157,7 +159,6 @@ protected:
 	virtual void Input_SkillAttack(const FInputActionValue& Value);
 
 
-	void Input_Look(const FInputActionValue& Value);
 	void Input_ToggleCrouch(const FInputActionValue& Value);
 	void Input_Release_Guard(const FInputActionValue& Value);
 
@@ -206,7 +207,6 @@ protected:
 	//
 
 	TArray<AActor*> HitActors;
-	FVector2D PrevInput;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float Health = 1000.f;
@@ -263,7 +263,6 @@ protected:
 	bool CanExecution() const;
 
 
-	bool bIsExecuting = false;
 	bool bIsInvulnerable = false;
 	bool bIsGuardPressed = false;
 	bool bIsDodgePending = false;
@@ -281,11 +280,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* JumpAction;
@@ -314,6 +309,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SkillAttackAction;
 
+	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> NormalAttackMontages;
 
@@ -322,6 +318,8 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* SkillAttackMontage;
+
+	// State
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState;
@@ -393,6 +391,7 @@ private:
 
 	void PlayHitAnimation(const FHitData& HitData, AActor* Attacker);
 
+	TObjectPtr<class UCombatComponent> CombatComponent;
 	
 
 public:

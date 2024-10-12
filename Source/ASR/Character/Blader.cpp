@@ -153,14 +153,14 @@ void ABlader::ResetState()
 	bIsInvulnerable = false;
 }
 
-void ABlader::Input_Move(const FInputActionValue& Value)
-{
-	if (bIsUltCharging)
-	{
-		ResetUlt();
-	}
-	Super::Input_Move(Value);
-}
+//void ABlader::Input_Move(const FInputActionValue& Value)
+//{
+//	if (bIsUltCharging)
+//	{
+//		ResetUlt();
+//	}
+//	Super::Input_Move(Value);
+//}
 
 void ABlader::Input_Execution(const FInputActionValue& Value)
 {
@@ -491,11 +491,11 @@ bool ABlader::AerialAttack()
 {
 	if (GetTargetingComponent()->IsTargeting())
 	{
-		if (PrevInput.Y <= -0.5)
-		{
+		//if (PrevInput.Y <= -0.5)
+		//{
 			ExecuteAerialAttack();
 			return true;
-		}
+		//}
 	}
 	return false;
 }

@@ -43,7 +43,7 @@ protected:
 	virtual void BeginPlay() override;
 	
 	// ASRCharacter
-	virtual void Input_Move(const FInputActionValue& Value) override;
+	//virtual void Input_Move(const FInputActionValue& Value) override;
 	virtual void Input_Execution(const FInputActionValue& Value) override;
 	virtual	void Input_Dodge(const FInputActionValue& Value) override;
 	virtual void Input_Guard(const FInputActionValue& Value) override;

@@ -20,6 +20,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Components/TimelineComponent.h"
 #include "Camera/CameraActor.h"
+#include "ASR/Character/Component/CombatComponent.h"
 
 
 
@@ -47,7 +48,7 @@ AASRCharacter::AASRCharacter()
 	CameraBoom->CameraLagSpeed = 16.f;
 	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
 
-	// Katana Blade Zero 
+	// Katana Blade Zero
 	// CameraBoom->TargetArmLength = 350.f;
 	// CameraBoom->SocketOffset = FVector(0.f, 100.f, 40.f);
 
@@ -84,6 +85,8 @@ AASRCharacter::AASRCharacter()
 	MotionWarpingComponent = CreateDefaultSubobject<UMotionWarpingComponent>(TEXT("MotionWarping"));
 	TargetingComp = CreateDefaultSubobject<UTargetingComponent>(TEXT("TargetingComponent"));
 	TargetingComp->Owner = this;
+	
+	CombatComponent = CreateDefaultSubobject<UCombatComponent>(TEXT("CombatComponent"));
 
 	ArmLengthTimeline = CreateDefaultSubobject<UTimelineComponent>(TEXT("ArmLengthTimeline"));
 
@@ -191,8 +194,8 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Look);
+		//EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Move);
+		//EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Look);
 		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &AASRCharacter::Input_ToggleCrouch);
 		EnhancedInputComponent->BindAction(ToggleLockOnAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_ToggleLockOn);
 		EnhancedInputComponent->BindAction(ExecutionAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Execution);
@@ -201,7 +204,6 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(NormalAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_NormalAttack);
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_HeavyAttack);
 		EnhancedInputComponent->BindAction(SkillAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_SkillAttack);
-
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AASRCharacter::StopJumping);
@@ -212,44 +214,43 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 	}
 }
 
-void AASRCharacter::Input_Move(const FInputActionValue& Value)
-{
-	FVector2D MoveVector = Value.Get<FVector2D>();
-	PrevInput = MoveVector;
+//void AASRCharacter::Input_Move(const FInputActionValue& Value)
+//{
+//	FVector2D MoveVector = Value.Get<FVector2D>();
+//
+//	// Guard Accept, Gunner Flinching Not use Root motion (Knockback by launch..)
+//	if (CombatState == ECombatState::ECS_Guard || CombatState == ECombatState::ECS_Flinching ||
+//		CombatState == ECombatState::ECS_KnockDown || CombatState == ECombatState::ECS_Death)
+//	{
+//		return;
+//	}
+//
+//	if (Controller != nullptr)
+//	{
+//		const FRotator YawRotation(0, Controller->GetControlRotation().Yaw, 0);
+//		const FVector ForwardDirectionVector(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
+//		const FVector RightDirectionVector(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
+//
+//		AddMovementInput(ForwardDirectionVector, MoveVector.Y);
+//		AddMovementInput(RightDirectionVector, MoveVector.X);
+//	}
+//}
 
-	// Guard Accept, Gunner Flinching Not use Root motion (Knockback by launch..)
-	if (CombatState == ECombatState::ECS_Guard || CombatState == ECombatState::ECS_Flinching ||
-		CombatState == ECombatState::ECS_KnockDown || CombatState == ECombatState::ECS_Death)
-	{
-		return;
-	}
-
-	if (Controller != nullptr)
-	{
-		const FRotator YawRotation(0, Controller->GetControlRotation().Yaw, 0);
-		const FVector ForwardDirectionVector(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X));
-		const FVector RightDirectionVector(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y));
-
-		AddMovementInput(ForwardDirectionVector, MoveVector.Y);
-		AddMovementInput(RightDirectionVector, MoveVector.X);
-	}
-}
-
-void AASRCharacter::Input_Look(const FInputActionValue& Value)
-{
-	FVector2D LookVector = Value.Get<FVector2D>();
-	if (Controller != nullptr)
-	{
-		if (TargetingComp == nullptr || !(TargetingComp->bIsTargeting))
-		{
-			if (!bIsExecuting)
-			{
-				AddControllerYawInput(LookVector.X);
-				AddControllerPitchInput(LookVector.Y);
-			}
-		}
-	}
-}
+//void AASRCharacter::Input_Look(const FInputActionValue& Value)
+//{
+//	FVector2D LookVector = Value.Get<FVector2D>();
+//	if (Controller != nullptr)
+//	{
+//		if (TargetingComp == nullptr || !(TargetingComp->bIsTargeting))
+//		{
+//			if (!bIsExecuting)
+//			{
+//				AddControllerYawInput(LookVector.X);
+//				AddControllerPitchInput(LookVector.Y);
+//			}
+//		}
+//	}
+//}
 
 void AASRCharacter::Input_ToggleCrouch(const FInputActionValue& Value)
 {
@@ -319,10 +320,10 @@ void AASRCharacter::Input_SkillAttack(const FInputActionValue& Value)
 {
 	bIsNormalAttackPending = false;
 	bIsHeavyAttackPending = false;
-	//if (GetCombatState() == ECombatState::ECS_Attack)
-	//{
-	//	bIsFirstSkillPending = true;
-	//}
+	//// if (GetCombatState() == ECombatState::ECS_Attack)
+	//// {
+	////	bIsFirstSkillPending = true;
+	//// }
 	//else
 	//{
 	SkillAttack();
@@ -932,7 +933,6 @@ bool AASRCharacter::CanGuard() const
 	}
 	return false;
 }
-
 
 bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {	

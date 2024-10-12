@@ -17,52 +17,29 @@ class ASR_API AASRPlayerController : public APlayerController
 {
 	GENERATED_BODY()
 	
+	AASRPlayerController();
+
+	FVector2D LastInput;
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void SetupInputComponent() override;
 
-public: 
-	void SetKillScore(float KillScore);
-	void SetRangerAmmo(float AmmoPercent);
-
-	UPROPERTY(EditAnywhere)
-	TSubclassOf<UUserWidget> GunenrHUDClass;
-
-	class URangerHUD* GunnerHUD;
-
-
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
+	TObjectPtr<UInputMappingContext> DefaultMappingContext;
+
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<class AASRCharacter> ControlCharacter;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* SwapAction;
-
+	TObjectPtr<UInputAction> MoveAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* RestoreAction;
+	TObjectPtr<UInputAction> LookAction;
 
-	UPROPERTY(EditDefaultsOnly)
-	TSoftClassPtr<class AASRCharacter> NewCharacterClass;
+	void Input_Move(const FInputActionValue& Value);
+	void Input_Look(const FInputActionValue& Value);
 
 
-	UPROPERTY(EditDefaultsOnly)
-	TSoftClassPtr<AASRCharacter> OriginalCharacterClass;
-
-	UPROPERTY(EditDefaultsOnly)
-	AASRCharacter* ControlCharacter;
-
-	UPROPERTY()
-	AASRCharacter* NextCharacter;
-
-	UPROPERTY()
-	AASRCharacter* OriginalCharacter;
-
-	UFUNCTION(BlueprintCallable)
-	void SwapCharacter();
-
-	UFUNCTION(BlueprintCallable)
-	void RestoreOriginalCharacter();
-
-	bool bSpawned = false;
 };
