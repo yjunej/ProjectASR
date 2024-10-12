@@ -20,8 +20,9 @@ void UASRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 
-	if (MovementComponent != nullptr && Owner != nullptr)
+	if (MovementComponent && Owner)
 	{
+
 		FVector Velocity = MovementComponent->Velocity;
 		FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(Velocity);
 		MoveDirectionYaw = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, Owner->GetBaseAimRotation()).Yaw;
@@ -31,7 +32,7 @@ void UASRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 
 		bIsCrouched = Owner->bIsCrouched;
 		bIsStrafe = !MovementComponent->bOrientRotationToMovement;
-		
+
 		FVector Acceleration = MovementComponent->GetCurrentAcceleration();
 		Acceleration2D = FVector2D(Acceleration.X, Acceleration.Y);
 
@@ -40,9 +41,15 @@ void UASRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		DisplacementSpeed = DeltaSeconds != 0.f ? DisplacementSinceLastUpdate / DeltaSeconds : 0.f;
 
 		bIsAccelerating = !Acceleration2D.IsNearlyZero();
+		if (bIsAccelerating)
+		{
+			LastMoveDirectionYaw = MoveDirectionYaw;
+		}
 		bIsFalling = MovementComponent->IsFalling();
-
-		
+		AASRCharacter* ASRCharacter = Cast<AASRCharacter>(Owner);
+		if (ASRCharacter != nullptr)
+		{
+			bIsGuarding = ASRCharacter->GetCombatState() == ECombatState::ECS_Guard;
+		}
 	}
-
 }

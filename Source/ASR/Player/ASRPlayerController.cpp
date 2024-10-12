@@ -47,8 +47,7 @@ void AASRPlayerController::SetupInputComponent()
 
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASRPlayerController::Input_Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AASRPlayerController::Input_Look);
-
-
+	EnhancedInputComponent->BindAction(ToggleLockOnAction, ETriggerEvent::Triggered, this, &AASRPlayerController::Input_ToggleLockOn);
 }
 
 void AASRPlayerController::Input_Move(const FInputActionValue& Value)
@@ -86,5 +85,25 @@ void AASRPlayerController::Input_Look(const FInputActionValue& Value)
 			ControlCharacter->AddControllerYawInput(LookVector.X);
 			ControlCharacter->AddControllerPitchInput(LookVector.Y);
 		}
+	}
+}
+
+void AASRPlayerController::Input_ToggleLockOn(const FInputActionValue& Value)
+{
+	check(ControlCharacter);
+	if (UTargetingComponent* TargetingComp = ControlCharacter->GetTargetingComponent())
+	{
+		if (TargetingComp->bIsTargeting)
+		{
+			TargetingComp->ClearTarget();	
+		}
+		else
+		{
+			TargetingComp->FindTarget();
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("NULL TargetingComponent"));
 	}
 }

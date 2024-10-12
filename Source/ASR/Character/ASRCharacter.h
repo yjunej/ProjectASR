@@ -148,7 +148,6 @@ protected:
 	//void Input_Look(const FInputActionValue& Value);
 
 
-	virtual void Input_ToggleLockOn(const FInputActionValue& Value);
 	virtual void Input_Execution(const FInputActionValue& Value);
 
 	virtual void Input_Guard(const FInputActionValue& Value);
@@ -288,8 +287,6 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleCrouchAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* ToggleLockOnAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ExecutionAction;

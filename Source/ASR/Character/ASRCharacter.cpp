@@ -197,7 +197,6 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		//EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Move);
 		//EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Look);
 		EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &AASRCharacter::Input_ToggleCrouch);
-		EnhancedInputComponent->BindAction(ToggleLockOnAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_ToggleLockOn);
 		EnhancedInputComponent->BindAction(ExecutionAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Execution);
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Dodge);
 
@@ -613,24 +612,6 @@ void AASRCharacter::Execution()
 
 }
 
-void AASRCharacter::Input_ToggleLockOn(const FInputActionValue& Value)
-{
-	if (TargetingComp != nullptr)
-	{
-		if (TargetingComp->bIsTargeting)
-		{
-			TargetingComp->ClearTarget();
-		}
-		else
-		{
-			TargetingComp->FindTarget();
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("NULL TargetingComponent"));
-	}
-}
 
 void AASRCharacter::Input_Execution(const FInputActionValue& Value)
 {

@@ -55,14 +55,14 @@ private:
 	bool bIsTargeting;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float ClearTargetDistance = 1500.f;
+	float ClearTargetDistance = 5000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
 	float ClearSubTargetDistance = 600.f;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float TargetingDistance = 1200.f;
+	float TargetingDistance = 4000.f;
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
@@ -82,10 +82,10 @@ private:
 	FVector CameraOffset = { 0.f ,0.f, 0.f };
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float CameraStartHeightOffset = 250.f;
+	float CameraStartHeightOffset = 85.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float CameraMinPitch = -90.f;
+	float CameraMinPitch = -50.f;
 
 	
 	// TODO - Write Comprehensive Motion Warping Control Function
