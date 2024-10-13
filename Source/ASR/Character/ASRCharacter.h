@@ -100,10 +100,16 @@ public:
 	FOnCombatStateChanged OnCombatStateChanged;
 
 	UPROPERTY(EditAnywhere, Category=Move)
-	float MaxWalkSpeed = 700.f;
+	float MaxWalkSpeed = 800.f;
 
 	UPROPERTY(EditAnywhere, Category = Move)
 	float MaxStrafeSpeed = 500.f;
+
+	UPROPERTY(EditAnywhere, Category = Move)
+	float MaxGuardStrafeSpeed = 100.f;
+
+	UPROPERTY(EditAnywhere, Category = Move)
+	float MaxGuardSpeed = 500.f;
 
 	UPROPERTY(EditAnywhere, Category = Move)
 	float YawRotationRate = 900.f;
@@ -166,6 +172,7 @@ protected:
 
 	virtual void Guard();
 	virtual bool CanGuard() const;
+	virtual void ResetGuard();
 
 	virtual void Dodge();
 	virtual bool CanDodge() const;

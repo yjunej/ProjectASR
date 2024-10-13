@@ -57,7 +57,7 @@ void AASRPlayerController::Input_Move(const FInputActionValue& Value)
 
 	// Guard Accept, Gunner Flinching Not use Root motion (Knockback by launch..)
 	ECombatState CombatState = ControlCharacter->GetCombatState();
-	if (CombatState== ECombatState::ECS_Guard || CombatState == ECombatState::ECS_Flinching ||
+	if (CombatState == ECombatState::ECS_Flinching || 
 		CombatState == ECombatState::ECS_KnockDown || CombatState == ECombatState::ECS_Death)
 	{
 		return;

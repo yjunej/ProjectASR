@@ -495,6 +495,8 @@ void AASRCharacter::Input_Release_Guard(const FInputActionValue& Value)
 	if (CombatState == ECombatState::ECS_Guard)
 	{
 		SetCombatState(ECombatState::ECS_None);
+		float NewMaxWalkSpeed = bIsStrafe ? MaxStrafeSpeed : MaxWalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
 		PlayAnimMontage(GuardMontage, 1.f, FName("GuardEnd"));
 	}
 }
@@ -666,6 +668,7 @@ void AASRCharacter::ResetState()
 	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
 	ResetNormalAttack();
 	ResetDodge();
+	//ResetGuard();
 	if (GetTargetingComponent() != nullptr)
 	{
 		GetTargetingComponent()->ClearSubTarget();
@@ -854,6 +857,7 @@ void AASRCharacter::SetStrafe(bool bEnableStrafe)
 	GetCharacterMovement()->bUseControllerDesiredRotation = bEnableStrafe;
 
 	GetCharacterMovement()->MaxWalkSpeed = bEnableStrafe ? MaxStrafeSpeed : MaxWalkSpeed;
+
 }
 
 UCameraComponent* AASRCharacter::GetFollowCamera() const
@@ -901,6 +905,9 @@ void AASRCharacter::Guard()
 		//}
 
 		SetStamina(Stamina - 100.f);
+
+		float GuardWalkSpeed = bIsStrafe ? MaxGuardStrafeSpeed : MaxGuardSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = GuardWalkSpeed;
 		PlayAnimMontage(GuardMontage);
 	}
 }
@@ -913,6 +920,11 @@ bool AASRCharacter::CanGuard() const
 		return true;
 	}
 	return false;
+}
+
+void AASRCharacter::ResetGuard()
+{
+	//bIsGuardPressed = false;
 }
 
 bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
@@ -939,7 +951,7 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	{
 		if (HitReactionState == EHitReactionState::EHR_Parry)
 		{
-			SetCombatState(ECombatState::ECS_Attack);
+			//SetCombatState(ECombatState::ECS_Attack);
 			SetHitReactionState(EHitReactionState::EHR_None);
 			SetStamina(Stamina + 100.f);
 			if (Cast<ABaseEnemy>(Attacker) != nullptr)
@@ -950,7 +962,7 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 				UE_LOG(LogTemp, Warning, TEXT("Stamina: %f"), Enemy->Stamina);
 			}
 			// TODO - Divide Parry System and Parry Counter System
-			PlayAnimMontage(ParryCounterMontage, 1.f);
+			//PlayAnimMontage(ParryCounterMontage, 1.f);
 			return true;
 		}
 		else
