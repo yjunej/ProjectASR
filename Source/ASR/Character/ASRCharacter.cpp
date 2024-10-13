@@ -452,6 +452,19 @@ void AASRCharacter::SkillAttack()
 	}
 }
 
+void AASRCharacter::ResolveHeavyAttackPending()
+{
+	if (bIsHeavyAttackPending)
+	{
+		bIsHeavyAttackPending = false;
+		if (CombatState == ECombatState::ECS_Attack)
+		{
+			SetCombatState(ECombatState::ECS_None);
+		}
+		HeavyAttack();
+	}
+}
+
 void AASRCharacter::ResolveLightAttackPending()
 {
 	if (bIsNormalAttackPending)

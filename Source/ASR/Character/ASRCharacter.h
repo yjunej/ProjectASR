@@ -198,7 +198,7 @@ protected:
 	virtual void SkillAttack();
 
 	UFUNCTION(BlueprintCallable)
-	virtual void ResolveHeavyAttackPending() {};
+	virtual void ResolveHeavyAttackPending();
 	//
 
 	UFUNCTION(BlueprintCallable)
