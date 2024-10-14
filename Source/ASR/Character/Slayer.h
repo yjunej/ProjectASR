@@ -31,9 +31,9 @@ protected:
 	virtual void BeginPlay() override;
 
 	// Hook
-	virtual void NormalAttack() override;
+	virtual void NormalAttack(int32 AttackIndex) override;
 	//virtual void ResetSkills() override;
-	virtual void ResolveHeavyAttackPending() override;
+	//virtual void ResolveHeavyAttackPending(int32 AttackIndex) override;
 	//
 
 	virtual void ResetState() override;
@@ -44,7 +44,7 @@ protected:
 	void Input_Ult(const FInputActionValue& Value);
 
 
-	virtual void ResolveLightAttackPending() override;
+	//virtual void ResolveLightAttackPending() override;
 	
 
 

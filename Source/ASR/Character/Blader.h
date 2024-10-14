@@ -52,7 +52,7 @@ protected:
 	virtual void ResetState() override;
 
 	virtual bool CanAttack() const override;
-	virtual void ResolveLightAttackPending() override;
+	//virtual void ResolveLightAttackPending() override;
 
 
 	// Enhanced Input
@@ -65,9 +65,9 @@ protected:
 
 	// Override Parent Hook 
 	// TODO - Categorize Reset Func (Index Based or State Based)
-	virtual void NormalAttack() override;
+	virtual void NormalAttack(int32 AttackIndex) override;
 	//virtual void ResetSkills() override;
-	virtual void ResolveHeavyAttackPending() override;
+	//virtual void ResolveHeavyAttackPending(int32 AttackIndex) override;
 
 
 private:

@@ -188,7 +188,7 @@ void ABlader::Input_NormalAttack(const FInputActionValue& Value)
 	Super::Input_NormalAttack(Value);
 }
 
-void ABlader::NormalAttack()
+void ABlader::NormalAttack(int32 AttackIndex)
 {
 	if (CanAttack())
 	{
@@ -526,38 +526,38 @@ void ABlader::ResetUlt()
 }
 
 
-void ABlader::ResolveLightAttackPending()
-{
-	if (bIsFirstSkillPending)
-	{
-		bIsFirstSkillPending = false; 
-		bIsNormalAttackPending = false;
-		if (GetCombatState() == ECombatState::ECS_Attack)
-		{
-			SetCombatState(ECombatState::ECS_None);
-		}
-		FirstSkill();
-	}
-
-	Super::ResolveLightAttackPending();
-
-}
-
-void ABlader::ResolveHeavyAttackPending()
-{
-	if (bIsHeavyAttackPending)
-	{
-		bIsHeavyAttackPending = false;
-
-		if (GetCombatState() == ECombatState::ECS_Attack)
-		{
-			SetCombatState(ECombatState::ECS_None);
-		}
-
-		HeavyAttack();
-
-	}
-}
+//void ABlader::ResolveLightAttackPending()
+//{
+//	if (bIsFirstSkillPending)
+//	{
+//		bIsFirstSkillPending = false; 
+//		bIsNormalAttackPending = false;
+//		if (GetCombatState() == ECombatState::ECS_Attack)
+//		{
+//			SetCombatState(ECombatState::ECS_None);
+//		}
+//		FirstSkill();
+//	}
+//
+//	Super::ResolveLightAttackPending();
+//
+//}
+//
+//void ABlader::ResolveHeavyAttackPending()
+//{
+//	if (bIsHeavyAttackPending)
+//	{
+//		bIsHeavyAttackPending = false;
+//
+//		if (GetCombatState() == ECombatState::ECS_Attack)
+//		{
+//			SetCombatState(ECombatState::ECS_None);
+//		}
+//
+//		HeavyAttack();
+//
+//	}
+//}
 
 void ABlader::HandleTimelineUpdate(float Value)
 {

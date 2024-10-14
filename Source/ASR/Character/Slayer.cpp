@@ -94,7 +94,7 @@ void ASlayer::BeginPlay()
 	}
 }
 
-void ASlayer::NormalAttack()
+void ASlayer::NormalAttack(int32 AttackIndex)
 {
 	if (CanAttack())
 	{
@@ -115,19 +115,19 @@ void ASlayer::NormalAttack()
 //	bIsSecondSkillPending = false;
 //}
 
-void ASlayer::ResolveHeavyAttackPending()
-{
-	if (bIsSecondSkillPending)
-	{
-		bIsSecondSkillPending = false;
-		bIsNormalAttackPending = false;
-		if (GetCombatState() == ECombatState::ECS_Attack)
-		{
-			SetCombatState(ECombatState::ECS_None);
-		}
-		SecondSkill();
-	}
-}
+//void ASlayer::ResolveHeavyAttackPending()
+//{
+//	if (bIsSecondSkillPending)
+//	{
+//		bIsSecondSkillPending = false;
+//		bIsNormalAttackPending = false;
+//		if (GetCombatState() == ECombatState::ECS_Attack)
+//		{
+//			SetCombatState(ECombatState::ECS_None);
+//		}
+//		SecondSkill();
+//	}
+//}
 
 void ASlayer::ResetState()
 {
@@ -170,22 +170,6 @@ void ASlayer::Input_Ult(const FInputActionValue& Value)
 		SetCombatState(ECombatState::ECS_Attack);
 		PlayAnimMontage(UltMontage);
 	}
-}
-
-void ASlayer::ResolveLightAttackPending()
-{
-	if (bIsFirstSkillPending)
-	{
-		bIsFirstSkillPending = false;
-		bIsNormalAttackPending = false;
-		if (GetCombatState() == ECombatState::ECS_Attack)
-		{
-			SetCombatState(ECombatState::ECS_None);
-		}
-		FirstSkill();
-	}
-	// Only Resolve Light Attack in Parent function
-	Super::ResolveLightAttackPending();
 }
 
 float ASlayer::GetFirstSkillWarpDistance() const
