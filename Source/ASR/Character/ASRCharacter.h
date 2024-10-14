@@ -173,6 +173,7 @@ protected:
 	virtual void Guard();
 	virtual bool CanGuard() const;
 	virtual void ResetGuard();
+	void ReleaseGuard();
 
 	virtual void Dodge();
 	virtual bool CanDodge() const;
@@ -193,16 +194,16 @@ protected:
 	// Use Hook method for character specific skill base logic
 	//virtual void ResetSkills();
 
-	virtual void NormalAttack();
-	virtual void HeavyAttack();
+	virtual void NormalAttack(int32 AttackIndex);
+	virtual void HeavyAttack(int32 AttackIndex);
 	virtual void SkillAttack();
 
 	UFUNCTION(BlueprintCallable)
-	virtual void ResolveHeavyAttackPending();
+	virtual void ResolveHeavyAttackPending(int32 AttackIndex);
 	//
 
 	UFUNCTION(BlueprintCallable)
-	virtual void ResolveLightAttackPending();
+	virtual void ResolveLightAttackPending(int32 AttackIndex);
 
 	UFUNCTION(BlueprintCallable)
 	virtual void ResolveDodgeAndGuardPending();
@@ -272,12 +273,16 @@ protected:
 	bool bIsInvulnerable = false;
 	bool bIsGuardPressed = false;
 	bool bIsDodgePending = false;
+
 	bool bIsNormalAttackPending = false;
 	bool bIsHeavyAttackPending = false;
+
 	bool bIsStrafe = false;
+
+	// Deprecated - Old Combat System
 	int32 NormalAttackIndex;
 	int32 HeavyAttackIndex;
-
+	//
 
 
 

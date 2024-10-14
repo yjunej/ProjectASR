@@ -22,6 +22,8 @@ public:
 	, HitEffectRotation(FRotator::ZeroRotator)
 	, HitEffectScale(FVector::OneVector)
 	, HitParticleEffect(nullptr)
+	, bIsLethalAttack(false)
+	, bIsFatalAttack(false)
 	{}
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -48,6 +50,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	UParticleSystem* HitParticleEffect;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsLethalAttack = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bIsFatalAttack = false;
 	//TSoftObjectPtr<UParticleSystem> HitParticleEffect;
 };
 

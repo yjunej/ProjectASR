@@ -298,7 +298,7 @@ void AASRCharacter::Input_NormalAttack(const FInputActionValue& Value)
 	}
 	else
 	{
-		NormalAttack();
+		NormalAttack(0);
 	}
 }
 
@@ -311,7 +311,7 @@ void AASRCharacter::Input_HeavyAttack(const FInputActionValue& Value)
 	}
 	else
 	{
-		HeavyAttack();
+		HeavyAttack(0);
 	}
 }
 
@@ -332,13 +332,13 @@ void AASRCharacter::Input_SkillAttack(const FInputActionValue& Value)
 void AASRCharacter::ResetNormalAttack()
 {
 	bIsNormalAttackPending = false;
-	NormalAttackIndex = 0;
+	//NormalAttackIndex = 0;
 }
 
 void AASRCharacter::ResetHeavyAttack()
 {
 	bIsHeavyAttackPending = false;
-	HeavyAttackIndex = 0;
+	//HeavyAttackIndex = 0;
 }
 
 float AASRCharacter::GetFirstSkillWarpDistance() const
@@ -350,7 +350,8 @@ void AASRCharacter::ExecuteNormalAttack(int32 AttackIndex)
 {
 	if (AttackIndex >= NormalAttackMontages.Num())
 	{
-		NormalAttackIndex = 0;
+		UE_LOG(LogTemp, Warning, TEXT("Invalid Attack Index"));
+		return;
 	}
 	else
 	{
@@ -359,14 +360,14 @@ void AASRCharacter::ExecuteNormalAttack(int32 AttackIndex)
 			SetCombatState(ECombatState::ECS_Attack);
 			PlayAnimMontage(NormalAttackMontages[AttackIndex]);
 
-			if (NormalAttackIndex + 1 >= NormalAttackMontages.Num())
+			/*if (NormalAttackIndex + 1 >= NormalAttackMontages.Num())
 			{
 				NormalAttackIndex = 0;
 			}
 			else
 			{
 				++NormalAttackIndex;
-			}
+			}*/
 		}
 	}
 }
@@ -375,7 +376,8 @@ void AASRCharacter::ExecuteHeavyAttack(int32 AttackIndex)
 {
 	if (AttackIndex >= HeavyAttackMontages.Num())
 	{
-		HeavyAttackIndex = 0;
+		UE_LOG(LogTemp, Warning, TEXT("Invalid Attack Index"));
+		return;
 	}
 	else
 	{
@@ -384,14 +386,14 @@ void AASRCharacter::ExecuteHeavyAttack(int32 AttackIndex)
 			SetCombatState(ECombatState::ECS_Attack);
 			PlayAnimMontage(HeavyAttackMontages[AttackIndex]);
 
-			if (HeavyAttackIndex + 1 >= HeavyAttackMontages.Num())
-			{
-				HeavyAttackIndex = 0;
-			}
-			else
-			{
-				++HeavyAttackIndex;
-			}
+			//if (HeavyAttackIndex + 1 >= HeavyAttackMontages.Num())
+			//{
+			//	HeavyAttackIndex = 0;
+			//}
+			//else
+			//{
+			//	++HeavyAttackIndex;
+			//}
 		}
 	}
 }
@@ -406,7 +408,7 @@ void AASRCharacter::ExecuteSkillAttack()
 
 }
 
-void AASRCharacter::NormalAttack()
+void AASRCharacter::NormalAttack(int32 AttackIndex)
 {
 	if (CanAttack())
 	{
@@ -417,12 +419,12 @@ void AASRCharacter::NormalAttack()
 		//else
 		//{
 		ResetHeavyAttack();
-		ExecuteNormalAttack(NormalAttackIndex);
+		ExecuteNormalAttack(AttackIndex);
 		//}
 	}
 }
 
-void AASRCharacter::HeavyAttack()
+void AASRCharacter::HeavyAttack(int32 AttackIndex)
 {
 	if (CanAttack())
 	{
@@ -435,7 +437,7 @@ void AASRCharacter::HeavyAttack()
 		//else
 		//{
 		ResetNormalAttack();
-		ExecuteHeavyAttack(HeavyAttackIndex);
+		ExecuteHeavyAttack(AttackIndex);
 		//}
 
 	}
@@ -452,7 +454,7 @@ void AASRCharacter::SkillAttack()
 	}
 }
 
-void AASRCharacter::ResolveHeavyAttackPending()
+void AASRCharacter::ResolveHeavyAttackPending(int32 AttackIndex)
 {
 	if (bIsHeavyAttackPending)
 	{
@@ -461,11 +463,11 @@ void AASRCharacter::ResolveHeavyAttackPending()
 		{
 			SetCombatState(ECombatState::ECS_None);
 		}
-		HeavyAttack();
+		HeavyAttack(AttackIndex);
 	}
 }
 
-void AASRCharacter::ResolveLightAttackPending()
+void AASRCharacter::ResolveLightAttackPending(int32 AttackIndex)
 {
 	if (bIsNormalAttackPending)
 	{
@@ -474,7 +476,8 @@ void AASRCharacter::ResolveLightAttackPending()
 		{
 			SetCombatState(ECombatState::ECS_None);
 		}
-		NormalAttack();
+		NormalAttack(AttackIndex);
+
 	}
 }
 
@@ -507,9 +510,7 @@ void AASRCharacter::Input_Release_Guard(const FInputActionValue& Value)
 	bIsGuardPressed = false;
 	if (CombatState == ECombatState::ECS_Guard)
 	{
-		SetCombatState(ECombatState::ECS_None);
-		float NewMaxWalkSpeed = bIsStrafe ? MaxStrafeSpeed : MaxWalkSpeed;
-		GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
+		ReleaseGuard();
 		PlayAnimMontage(GuardMontage, 1.f, FName("GuardEnd"));
 	}
 }
@@ -681,7 +682,7 @@ void AASRCharacter::ResetState()
 	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
 	ResetNormalAttack();
 	ResetDodge();
-	//ResetGuard();
+	ResetGuard();
 	if (GetTargetingComponent() != nullptr)
 	{
 		GetTargetingComponent()->ClearSubTarget();
@@ -700,8 +701,6 @@ void AASRCharacter::SphereTrace(float TraceDistance, float TraceRadius, const FH
 
 
 	ObjectTypes.Add(UEngineTypes::ConvertToObjectType(CollisionChannel));
-
-
 
 	bool bHit = UKismetSystemLibrary::SphereTraceMultiForObjects(
 		this, GetActorLocation(), TraceEnd, TraceRadius, ObjectTypes, false, TArray<AActor*>(),
@@ -937,7 +936,15 @@ bool AASRCharacter::CanGuard() const
 
 void AASRCharacter::ResetGuard()
 {
-	//bIsGuardPressed = false;
+	bIsGuardPressed = false;
+	ReleaseGuard();
+}
+
+void AASRCharacter::ReleaseGuard()
+{
+	SetCombatState(ECombatState::ECS_None);
+	float NewMaxWalkSpeed = bIsStrafe ? MaxStrafeSpeed : MaxWalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = NewMaxWalkSpeed;
 }
 
 bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
@@ -950,9 +957,10 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 
 	if (bIsInvulnerable)
 	{
-		// Optional : Add Dodge Succeed Effects
 		return false;
 	}
+
+	// TODO : Fatal Attack Just Dodge Logic
 
 	if (Cast<ABaseEnemy>(Attacker) == nullptr)
 	{
@@ -960,12 +968,12 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	}
 
 	// Guard
-	if (CombatState == ECombatState::ECS_Guard && IsAttackFromFront(HitResult))
+	if (CombatState == ECombatState::ECS_Guard && IsAttackFromFront(HitResult) && !HitData.bIsFatalAttack)
 	{
 		if (HitReactionState == EHitReactionState::EHR_Parry)
 		{
 			//SetCombatState(ECombatState::ECS_Attack);
-			SetHitReactionState(EHitReactionState::EHR_None);
+			//SetHitReactionState(EHitReactionState::EHR_None);
 			SetStamina(Stamina + 100.f);
 			if (Cast<ABaseEnemy>(Attacker) != nullptr)
 			{
@@ -975,7 +983,7 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 				UE_LOG(LogTemp, Warning, TEXT("Stamina: %f"), Enemy->Stamina);
 			}
 			// TODO - Divide Parry System and Parry Counter System
-			//PlayAnimMontage(ParryCounterMontage, 1.f);
+			PlayAnimMontage(ParryCounterMontage, 1.f);
 			return true;
 		}
 		else
@@ -983,8 +991,20 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 			FVector KnockbackForce = -GetActorForwardVector() * HitData.Damage * 20;
 			UE_LOG(LogTemp, Warning, TEXT("KnockbackForce: %s"), *KnockbackForce.ToString());
 			LaunchCharacter(KnockbackForce, true, false);
-			SetStamina(Stamina - 50.f);
-			PlayAnimMontage(GuardAcceptMontage, 1.f, "Guard");
+
+			FName GuardSectionName = "Guard";
+			float StaminaDamage = HitData.bIsLethalAttack ? 200.f : 50.f;
+			SetStamina(Stamina - StaminaDamage);
+			if (Stamina - StaminaDamage <= 0)
+			{
+				GuardSectionName = "GuardBreak";
+				ReleaseGuard();
+			}
+			else if (HitData.bIsLethalAttack)
+			{
+				GuardSectionName = "Lethal";
+			}
+			PlayAnimMontage(GuardAcceptMontage, 1.f, GuardSectionName);
 			return true;
 		}
 
