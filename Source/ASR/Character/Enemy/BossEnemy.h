@@ -23,7 +23,8 @@ protected:
 	virtual void Landed(const FHitResult& HitResult) override;
 	virtual void ProcessHitAnimation(const FHitData& HitData, AActor* Attacker) override;
 	virtual float SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed) override;
-	
+	virtual void GuardBroken() override;
+
 	// Inherit Parent Hook method for Boss Enemy CoolDown system
 	virtual int32 ModifyAttackMontage(EAIAttack AIAttackType, int32 SelectedIndex) override;
 
@@ -53,7 +54,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Combat, meta=(AllowPrivateAccess = "true"))
 	float BossUltCooldown = 5.f;
-
+	void RefillStamina();
 
 public:
 	UEnemyInfoWidget* GetBossInfoWidget() const;

@@ -39,18 +39,24 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* EnemyNameText;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> DamageMultiplierText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UImage> DamageMultiplierIcon;
 
 	UPROPERTY(meta = (BindWidget))
 	class UProgressBar* EnemyHealthBar;
 
 	UPROPERTY(meta = (BindWidget))
-	UProgressBar* EnemyPostHealthBar;
+	TObjectPtr<UProgressBar> EnemyPostHealthBar;
 
 	UPROPERTY(meta = (BindWidget))
-	UProgressBar* EnemyStaminaBar;
+	TObjectPtr<UProgressBar> EnemyStaminaBar;
 
 	UPROPERTY(meta = (BindWidget))
-	UProgressBar* EnemyPostStaminaBar;
+	TObjectPtr<UProgressBar> EnemyPostStaminaBar;
+
 
 	void SetOwner(ABaseEnemy* NewOwner);
 
@@ -58,4 +64,5 @@ public:
 	float PostHealth;
 	float PostStamina;
 	
+	void ResetGuardBrokenColorChange();
 };

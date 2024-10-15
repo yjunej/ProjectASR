@@ -123,6 +123,9 @@ public:
 	float LockOnCameraOfffsetZ = -40.f;
 
 
+	// Broke Guard by Parry
+	virtual void GuardBroken();
+
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
 	template <typename AssetType>
 	AssetType* EnsureAssetLoaded(TSoftObjectPtr<AssetType> const& AssetPtr)
@@ -148,13 +151,15 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	virtual bool Guard(float GuardProb);
 	virtual bool CanGuard() const;
-	virtual bool GuardHit(const FHitData& HitData);
+	virtual bool GuardHit(const FHitData& HitData, float StaminaDamage);
 
 	virtual void ProcessHitAnimation(const FHitData& HitData, AActor* Attacker);
 
 	virtual bool ExecuteAIAttack(AActor* AttackTarget, EAIAttack AIAttackType);
 
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
+
+	void RotateToAttacker(AActor* Attacker, bool bIsRunFromAttacker);
 
 	// Animation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
@@ -224,6 +229,8 @@ protected:
 	// Attack Modifier Hook
 	virtual int32 ModifyAttackMontage(EAIAttack AIAttackType, int32 SelectedIndex) { return SelectedIndex; }
 
+	float DamageMultiplier = 1.f;
+
 private:
 	
 
@@ -290,7 +297,6 @@ private:
 
 
 	// Hit Postprocess func
-	void RotateToAttacker(AActor* Attacker, bool bIsRunFromAttacker);
 	void StepBackFromAttacker(AActor* Attacker, float Distance);
 	void HandleHitTransform(AActor* Attacker, EASRDamageType DamageType, float Damage);
 	void AerialHitAnimMapping(AActor* Attacker, FDamageTypeMapping* Mapping, EASRDamageType DamageType);
@@ -372,4 +378,5 @@ public:
 	FORCEINLINE UWidgetComponent* GetInfoWidgetComponent() const { return InfoWidgetComponent; }
 	FORCEINLINE UEnemyInfoWidget* GetInfoWidget() const { return InfoWidget; }
 	FORCEINLINE void SetCachedAttackTarget(AActor* NewAttackTarget) { CachedAttackTarget = NewAttackTarget; }
+	FORCEINLINE float GetDamageMultiplier() const { return DamageMultiplier; }
 };

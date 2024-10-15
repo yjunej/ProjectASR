@@ -949,6 +949,8 @@ void AASRCharacter::ReleaseGuard()
 
 bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData)
 {	
+	// Return: the attacker successfully hit the character
+
 	// Dead
 	if (CombatState == ECombatState::ECS_Death)
 	{
@@ -957,6 +959,12 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 
 	if (bIsInvulnerable)
 	{
+		// Fatal Attack & Just Dodge
+		if (CombatState == ECombatState::ECS_Dodge && HitReactionState == EHitReactionState::EHR_Parry && HitData.bIsFatalAttack && JustGuardDodgeMontage)
+		{
+			SetCombatState(ECombatState::ECS_Attack);
+			PlayAnimMontage(JustGuardDodgeMontage, 1.f, "JustDodge");
+		}
 		return false;
 	}
 
@@ -970,20 +978,38 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 	// Guard
 	if (CombatState == ECombatState::ECS_Guard && IsAttackFromFront(HitResult) && !HitData.bIsFatalAttack)
 	{
+		// Parry
 		if (HitReactionState == EHitReactionState::EHR_Parry)
 		{
-			//SetCombatState(ECombatState::ECS_Attack);
-			//SetHitReactionState(EHitReactionState::EHR_None);
+			// Stamina 
 			SetStamina(Stamina + 100.f);
 			if (Cast<ABaseEnemy>(Attacker) != nullptr)
 			{
 				ABaseEnemy* Enemy = Cast<ABaseEnemy>(Attacker);
 				UE_LOG(LogTemp, Warning, TEXT("Stamina: %f"), Enemy->Stamina);
-				Enemy->SetStamina(Enemy->Stamina - 50.f);
-				UE_LOG(LogTemp, Warning, TEXT("Stamina: %f"), Enemy->Stamina);
+
+				// Lethal Attack Counter
+				if (HitData.bIsLethalAttack && JustGuardDodgeMontage)
+				{
+					SetCombatState(ECombatState::ECS_Attack);
+					PlayAnimMontage(JustGuardDodgeMontage, 1.f, "JustGuard");
+				}
+				else
+				{
+					PlayAnimMontage(GuardAcceptMontage, 1.f, "Parry");
+					if (Enemy->Stamina > 0.f)
+					{
+						UE_LOG(LogTemp, Warning, TEXT("Stamina: %f"), Enemy->Stamina);
+						float EnemyPrevStamina = Enemy->Stamina;
+						Enemy->SetStamina(Enemy->Stamina - 100.f);
+						if (EnemyPrevStamina - 100.f <= 0.f)
+						{
+							Enemy->GuardBroken();
+						}
+
+					}
+				}
 			}
-			// TODO - Divide Parry System and Parry Counter System
-			PlayAnimMontage(ParryCounterMontage, 1.f);
 			return true;
 		}
 		else

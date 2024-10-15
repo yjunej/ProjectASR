@@ -69,6 +69,15 @@ float ABossEnemy::SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed)
 	return NewSpeed;
 }
 
+void ABossEnemy::GuardBroken()
+{
+	DamageMultiplier += 0.5f;
+	Super::GuardBroken();
+	FTimerHandle TimerHandle;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABossEnemy::RefillStamina, 0.5f, false);
+	OnStaminaChanged.Broadcast();
+}
+
 
 int32 ABossEnemy::ModifyAttackMontage(EAIAttack AIAttackType, int32 SelectedIndex)
 {
@@ -98,6 +107,23 @@ int32 ABossEnemy::ModifyAttackMontage(EAIAttack AIAttackType, int32 SelectedInde
 
 void ABossEnemy::BossPlayHitAnimation(const FHitData& HitData, FDamageTypeMapping* DamageMapping, AActor* Attacker)
 {
+
+	//if (HitData.bIsLethalAttack)
+	//{
+	//			SetCombatState(DamageMapping->CombatState);
+	//	UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
+	//	PlayAnimMontage(LoadedMontage, 1.f);
+	//}
+	// 
+	// 
+
+	if (HitData.bIsFatalAttack)
+	{
+		SetCombatState(DamageMapping->CombatState);
+		UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
+		PlayAnimMontage(LoadedMontage, 1.f);
+	}
+
 	if (Stamina > 0)
 	{
 		return;
@@ -107,7 +133,7 @@ void ABossEnemy::BossPlayHitAnimation(const FHitData& HitData, FDamageTypeMappin
 	// 1. If KnockDownFrontBig, Always Flinch, Although Super Armor
 	// 2. Flinch Rate Check
 
-	if (HitData.DamageType == EASRDamageType::EDT_KnockDownFrontBig || 
+	if (HitData.DamageType == EASRDamageType::EDT_KnockDownFrontBig || Stamina <= 0.f ||
 		(FMath::RandRange(0.f, 1.f) < FlinchRate && GetHitReactionState() != EHitReactionState::EHR_None && GetCombatState() == ECombatState::ECS_None))
 	{
 		SetCombatState(DamageMapping->CombatState);
@@ -179,6 +205,11 @@ void ABossEnemy::ResetUltCoolDown()
 	return;
 }
 
+
+void ABossEnemy::RefillStamina()
+{
+	SetStamina(MaxStamina);
+}
 
 UEnemyInfoWidget* ABossEnemy::GetBossInfoWidget() const
 {

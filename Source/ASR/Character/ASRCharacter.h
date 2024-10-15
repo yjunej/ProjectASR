@@ -115,6 +115,7 @@ public:
 	float YawRotationRate = 900.f;
 
 
+
 	// Cam Control Test
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Timeline)
 	float InitialArmLength;
@@ -133,6 +134,8 @@ public:
 	void StartArmLengthChange(UCurveFloat* ArmCurve);
 
 	bool bIsExecuting = false;
+
+	bool bIsFatalAttackEnabled = false;
 
 
 	// TODO - Move To Utils Func, Ensure SoftObjectPtr Asset Loaded 
@@ -328,6 +331,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* SkillAttackMontage;
 
+
+
 	// State
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
@@ -357,23 +362,26 @@ private:
 	TSubclassOf<UUserWidget> MainHUDWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* StandingDeathMontage;
+	TObjectPtr<UAnimMontage> StandingDeathMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 
-	UAnimMontage* GuardAcceptMontage;
+	TObjectPtr<UAnimMontage> GuardAcceptMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* GuardMontage;
+	TObjectPtr<UAnimMontage> GuardMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* DodgeMontage;
+	TObjectPtr<UAnimMontage> DodgeMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* ExecutionMontage;
+	TObjectPtr<UAnimMontage> ExecutionMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
-	UAnimMontage* ParryCounterMontage;
+	TObjectPtr<UAnimMontage> ParryCounterMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> JustGuardDodgeMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Data, meta = (AllowPrivateAccess = "true"))
 	UDataTable* AttackDataTable;

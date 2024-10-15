@@ -447,6 +447,15 @@ void ABaseEnemy::RotateToAttacker(AActor* Attacker, bool bIsRunFromAttacker)
 	SetActorRotation(LookAtAttackerRotator);
 }
 
+void ABaseEnemy::GuardBroken()
+{
+	if (GuardBrokenMontage)
+	{
+		SetCombatState(ECombatState::ECS_Flinching);
+		PlayAnimMontage(GuardBrokenMontage);
+	}
+}
+
 void ABaseEnemy::StepBackFromAttacker(AActor* Attacker, float Distance)
 {
 	FVector BackwardVector = -GetActorForwardVector() * Distance; 
@@ -718,18 +727,16 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	// 1. [By Animnotify] GuardEnd -> Guard Montage Finished -> Set CombatState(ECombatState::ECS_None)
 	// 2. GuardBrokenMontage -> Set CombatState(ECombatState::ECS_Flinching)
 	// 3. GuardRevenge(if Parry) -> Set CombatState (ECombatState::ECS_Attack), SuperArmor -> Play Revenge Montage 
-	
+
 	// In Guard State
-	if (GetCombatState() == ECombatState::ECS_Guard && IsAttackFromFront(HitResult))
+	if (GetCombatState() == ECombatState::ECS_Guard && IsAttackFromFront(HitResult) && !HitData.bIsFatalAttack)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("In Guard State"));
 		// Exit Guard Case 2
 		if (Stamina <= 0.f && GuardBrokenMontage != nullptr)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Guard Broken"));
-			SetCombatState(ECombatState::ECS_Flinching);
-			//SetHitReactionState(EHitReactionState::EHR_SuperArmor);
-			PlayAnimMontage(GuardBrokenMontage);
+			GuardBroken();
 			return true;
 		}
 
@@ -749,7 +756,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 		else
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Guard Maintain"));
-			if (GuardHit(HitData))
+			if (GuardHit(HitData, HitData.bIsLethalAttack ? 50.f : 25.f)) 
 			{
 				return true;
 			}
@@ -761,22 +768,32 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	if (FMath::RandRange(0.f, 1.f) < AutoGuardRate &&
 		!GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying()
 		&& bIsCombatReady && IsAttackFromFront(HitResult) && Stamina > 0
-		&& CombatState != ECombatState::ECS_Attack)
+		&& CombatState != ECombatState::ECS_Attack && !HitData.bIsFatalAttack)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Enter Guard State - Auto Guard"));
 
 		// Consume Stamina
-		SetStamina(Stamina - 100.f);
-
-		if (GuardHitMontage != nullptr)
+		float StaminaDamage = HitData.bIsLethalAttack ? 200.f : 100.f;
+		if (GuardHit(HitData, StaminaDamage))
 		{
-			ApplyGuardKnockback(HitData.Damage);
-			UE_LOG(LogTemp, Warning, TEXT("Enter Guard State - Auto Guard Execute!"));
-			SetCombatState(ECombatState::ECS_Guard);
-			//SetHitReactionState(EHitReactionState::EHR_SuperArmor);
-			PlayAnimMontage(GuardHitMontage);
 			return true;
 		}
+		//SetStamina(Stamina - StaminaDamage);
+		//if (Stamina - StaminaDamage <= 0.f)
+		//{
+		//	SetCombatState(ECombatState::ECS_Flinching);
+		//	PlayAnimMontage(GuardBrokenMontage);
+		//	return true;
+		//}
+		//else if (GuardHitMontage != nullptr)
+		//{
+		//	ApplyGuardKnockback(HitData.Damage);
+		//	UE_LOG(LogTemp, Warning, TEXT("Enter Guard State - Auto Guard Execute!"));
+		//	SetCombatState(ECombatState::ECS_Guard);
+		//	//SetHitReactionState(EHitReactionState::EHR_SuperArmor);
+		//	PlayAnimMontage(GuardHitMontage);
+		//	return true;
+		//}
 	}
 
 	// Apply HitStop, AIDamageSense
@@ -796,7 +813,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	}
 
 	// Take Damage
-	SetHealth(Health - HitData.Damage);
+	SetHealth(Health - HitData.Damage * DamageMultiplier);
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
 	// Effects
@@ -869,13 +886,21 @@ void ABaseEnemy::ProcessHitAnimation(const FHitData& HitData, AActor* Attacker)
 
 }
 
-bool ABaseEnemy::GuardHit(const FHitData& HitData)
+bool ABaseEnemy::GuardHit(const FHitData& HitData, float StaminaDamage)
 {
 	if (GuardHitMontage != nullptr)
 	{
-		ApplyGuardKnockback(HitData.Damage);
-		SetStamina(Stamina - 25.f);
-		PlayAnimMontage(GuardHitMontage);
+		SetStamina(Stamina - StaminaDamage);
+		if (Stamina - StaminaDamage < 0.f)
+		{
+			GuardBroken();
+		}
+		else
+		{
+			ApplyGuardKnockback(HitData.Damage);
+			SetCombatState(ECombatState::ECS_Guard);
+			PlayAnimMontage(GuardHitMontage);
+		}
 		return true;
 	}
 	return false;

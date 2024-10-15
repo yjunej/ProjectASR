@@ -5,6 +5,8 @@
 
 #include "ASR/Character/Enemy/BaseEnemy.h"
 #include "Components/ProgressBar.h"
+#include "Components/TextBlock.h"
+#include "Components/Image.h"
 
 void UEnemyInfoWidget::NativeConstruct()
 {
@@ -39,6 +41,22 @@ void UEnemyInfoWidget::UpdateStaminaBar()
 		if (Owner->MaxStamina > 0)
 		{
 			EnemyStaminaBar->SetPercent(Owner->Stamina / Owner->MaxStamina);
+			if (Owner->Stamina <= 0.f)
+			{
+				float DamageMultiplier = Owner->GetDamageMultiplier();
+				DamageMultiplierText->SetText(FText::FromString(FString::Printf(TEXT("x%.1f"), DamageMultiplier)));
+
+				EnemyStaminaBar->WidgetStyle.BackgroundImage.TintColor = FSlateColor(FLinearColor::Red);
+				// 0.2
+				// 0.5, 0.0, 0.0, 1.0
+				DamageMultiplierIcon->SetColorAndOpacity(FLinearColor(0.25f, 0.0f, 0.0f, 1.0f));
+				DamageMultiplierText->SetColorAndOpacity(FSlateColor(FLinearColor(0.25f, 0.0f, 0.0f, 1.0f)));
+
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UEnemyInfoWidget::ResetGuardBrokenColorChange, 1.0f, false);
+
+
+			}
 		}
 	}
 }
@@ -84,5 +102,15 @@ void UEnemyInfoWidget::SetOwner(ABaseEnemy* NewOwner)
 		UpdateStaminaBar();
 		PostHealth = Owner->Health;
 		PostStamina = Owner->Stamina;
+	}
+}
+
+void UEnemyInfoWidget::ResetGuardBrokenColorChange()
+{
+	if (Owner != nullptr)
+	{
+		EnemyStaminaBar->WidgetStyle.BackgroundImage.TintColor = FSlateColor(FLinearColor::White);
+		DamageMultiplierIcon->SetColorAndOpacity(FLinearColor::White);
+		DamageMultiplierText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
 	}
 }
