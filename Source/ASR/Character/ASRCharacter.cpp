@@ -201,7 +201,12 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 		EnhancedInputComponent->BindAction(DodgeAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Dodge);
 
 		EnhancedInputComponent->BindAction(NormalAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_NormalAttack);
-		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_HeavyAttack);
+
+		//
+		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Canceled, this, &AASRCharacter::Input_HeavyAttack);
+		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Hold_HeavyAttack);
+
+
 		EnhancedInputComponent->BindAction(SkillAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_SkillAttack);
 
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &AASRCharacter::Jump);
@@ -311,7 +316,24 @@ void AASRCharacter::Input_HeavyAttack(const FInputActionValue& Value)
 	}
 	else
 	{
-		HeavyAttack(0);
+		HeavyAttack(FirstHeavyAttackMontageIndex);
+	}
+}
+
+void AASRCharacter::Input_Hold_HeavyAttack(const FInputActionValue& Value)
+{
+	// Check Hold threshold or Release call
+	if (Value.Get<bool>())
+	{
+		bIsNormalAttackPending = false;
+		if (CombatState == ECombatState::ECS_Attack)
+		{
+			bIsHeavyAttackPending = true;
+		}
+		else
+		{
+			HeavyAttack(FirstHeavyAttackHoldMontageIndex);
+		}
 	}
 }
 

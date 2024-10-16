@@ -164,6 +164,8 @@ protected:
 
 	virtual void Input_NormalAttack(const FInputActionValue& Value);
 	virtual void Input_HeavyAttack(const FInputActionValue& Value);
+	virtual void Input_Hold_HeavyAttack(const FInputActionValue& Value);
+
 	virtual void Input_SkillAttack(const FInputActionValue& Value);
 
 
@@ -409,6 +411,12 @@ private:
 	void PlayHitAnimation(const FHitData& HitData, AActor* Attacker);
 
 	TObjectPtr<class UCombatComponent> CombatComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	int32 FirstHeavyAttackMontageIndex = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
+	int32 FirstHeavyAttackHoldMontageIndex = 0;
 	
 
 public:
