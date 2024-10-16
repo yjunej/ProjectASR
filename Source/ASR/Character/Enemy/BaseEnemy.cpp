@@ -797,10 +797,12 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	}
 
 	// Apply HitStop, AIDamageSense
-	if (Cast<AASRCharacter>(Attacker) != nullptr)
+	
+	AASRCharacter* ASRCharacter = Cast<AASRCharacter>(Attacker);
+
+	if (ASRCharacter)
 	{
 		ApplyHitStop(HitStopDuration, HitStopTimeDilation);
-		AASRCharacter* ASRCharacter = Cast<AASRCharacter>(Attacker);
 		ASRCharacter->ApplyHitStop(HitStopDuration, HitStopTimeDilation);
 		UAISense_Damage::ReportDamageEvent(
 			GetWorld(),
@@ -817,7 +819,7 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	UE_LOG(LogTemp, Warning, TEXT("HEALTH: %f"), Health);
 
 	// Effects
-	SpawnEffects(HitData, HitResult);
+	SpawnEffects(HitData, HitResult, ASRCharacter);
 
 	// Death
 	if (Health <= 0 && !GetCharacterMovement()->IsFalling() && !GetCharacterMovement()->IsFlying())
@@ -831,8 +833,9 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	return true;
 }
 
-void ABaseEnemy::SpawnEffects(const FHitData& HitData, const FHitResult& HitResult)
+void ABaseEnemy::SpawnEffects(const FHitData& HitData, const FHitResult& HitResult, AASRCharacter* Attacker)
 {
+
 	if (HitData.HitSound != nullptr)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this,
@@ -840,11 +843,28 @@ void ABaseEnemy::SpawnEffects(const FHitData& HitData, const FHitResult& HitResu
 	}
 	if (HitData.HitEffect != nullptr)
 	{
+		// TODO: Use Weapon mesh collide base location calculation 
+		FVector HitEffectPos = HitResult.ImpactPoint;
+		FRotator HitEffectRot = HitData.HitEffectRotation;
+		
+
+		if (Attacker)
+		{
+			HitEffectPos.Z = Attacker->GetActorLocation().Z + FMath::FRandRange(0.f, 50.f);
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
+			if (PlayerController)
+			{
+				FRotator CameraRotation;
+				FVector CameraLocation;
+				PlayerController->GetPlayerViewPoint(CameraLocation, CameraRotation);
+				HitEffectRot = CameraRotation + HitData.HitEffectRotation;
+			}
+		}
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
 			GetWorld(),
 			HitData.HitEffect,
-			HitResult.ImpactPoint,
-			HitData.HitEffectRotation,
+			HitEffectPos,
+			HitEffectRot,
 			HitData.HitEffectScale
 		);
 	}

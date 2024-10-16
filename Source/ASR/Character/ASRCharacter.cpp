@@ -735,6 +735,12 @@ void AASRCharacter::SphereTrace(float TraceDistance, float TraceRadius, const FH
 		{
 			AActor* HitActor = HitResult.GetActor();
 
+			// Print Component Name
+			UE_LOG(LogTemp, Warning, TEXT("Hit Component: %s"), *HitResult.Component->GetName());
+
+
+
+
 			// Check Duplicated Hit
 			if (HitActor != nullptr && !HitActors.Contains(HitActor))
 			{
@@ -1198,7 +1204,7 @@ UDataTable* AASRCharacter::GetAttackDataTable() const
 
 void AASRCharacter::ApplyHitStop(float Duration, float TimeDilation)
 {
-	CustomTimeDilation = 0.f;
+	CustomTimeDilation = TimeDilation;
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &AASRCharacter::ResetTimeDilation, Duration, false);
 }
