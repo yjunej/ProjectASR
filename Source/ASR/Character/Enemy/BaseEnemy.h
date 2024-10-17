@@ -160,6 +160,9 @@ protected:
 	bool IsAttackFromFront(const FHitResult& HitResult) const;
 
 	void RotateToAttacker(AActor* Attacker, bool bIsRunFromAttacker);
+	EHitDirection GetHitDirection(const FVector AttackerLocation) const;
+
+
 
 	// Animation
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
@@ -361,7 +364,6 @@ private:
 
 	void ApplyGuardKnockback(float Damage);
 
-	EHitDirection GetHitDirection(const FVector AttackerLocation) const;
 
 	virtual void PlayHitAnimation(const FHitData& HitData, AActor* Attacker);
 

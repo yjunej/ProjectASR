@@ -55,4 +55,6 @@ public:
 	float PostHealth;
 	float PostStamina;
 
+	void ResetGuardBrokenColorChange();
+
 };

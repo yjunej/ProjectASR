@@ -448,7 +448,7 @@ void AASRCharacter::NormalAttack(int32 AttackIndex)
 
 void AASRCharacter::HeavyAttack(int32 AttackIndex)
 {
-	if (CanAttack())
+	if (CanAttack() && Stamina > 0.f)
 	{
 		// TODO: NOT RESET L/H Counter for custom combo
 
@@ -458,6 +458,7 @@ void AASRCharacter::HeavyAttack(int32 AttackIndex)
 		//}
 		//else
 		//{
+		SetStamina(Stamina - 50.f);
 		ResetNormalAttack();
 		ExecuteHeavyAttack(AttackIndex);
 		//}
@@ -601,7 +602,7 @@ void AASRCharacter::Dodge()
 bool AASRCharacter::CanDodge() const
 {
 	if (CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Dodge
-		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && CombatState != ECombatState::ECS_Flinching && Stamina > 0)
+		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && CombatState != ECombatState::ECS_Flinching && CombatState != ECombatState::ECS_KnockDown && Stamina > 0)
 	{
 		return true;
 	}
@@ -679,7 +680,7 @@ void AASRCharacter::SetStamina(float NewStamina)
 		// Use Stamina
 		if (NewStamina < Stamina)
 		{
-			float StaminaRegenCooldown = NewStamina == 0 ? 2.5f : 1.5f;
+			float StaminaRegenCooldown = NewStamina == 0 ? 2.f : 1.f;
 			GetWorld()->GetTimerManager().ClearTimer(StaminaRegenTimerHandle);
 			GetWorld()->GetTimerManager().SetTimer(StaminaRegenTimerHandle, this, &AASRCharacter::RegenStamina, StaminaRegenInterval, true, StaminaRegenCooldown);
 		}
@@ -878,7 +879,10 @@ void AASRCharacter::HandleDeath()
 
 void AASRCharacter::RegenStamina()
 {
-	SetStamina(Stamina + StaminaRegenRate * StaminaRegenInterval);
+	if (CombatState != ECombatState::ECS_Guard)
+	{
+		SetStamina(Stamina + StaminaRegenRate * StaminaRegenInterval);
+	}
 }
 
 void AASRCharacter::SetCombatState(ECombatState InCombatState)
@@ -954,8 +958,7 @@ void AASRCharacter::Guard()
 
 bool AASRCharacter::CanGuard() const
 {
-	if (CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Guard
-		&& CombatState != ECombatState::ECS_Death && !GetCharacterMovement()->IsFalling() && Stamina > 0)
+	if (CombatState == ECombatState::ECS_None && !GetCharacterMovement()->IsFalling() && Stamina > 0)
 	{
 		return true;
 	}

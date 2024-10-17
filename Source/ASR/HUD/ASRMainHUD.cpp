@@ -47,6 +47,14 @@ void UASRMainHUD::UpdateStaminaBar()
 		if (Owner->GetMaxStamina() > 0)
 		{
 			StaminaBar->SetPercent(Owner->GetStamina() / Owner->GetMaxStamina());
+			if (Owner->GetStamina() <= 0.f)
+			{
+				StaminaBar->WidgetStyle.BackgroundImage.TintColor = FSlateColor(FLinearColor::Red);
+				FTimerHandle TimerHandle;
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &UASRMainHUD::ResetGuardBrokenColorChange, 1.0f, false);
+
+
+			}
 		}
 
 	}
@@ -73,5 +81,13 @@ void UASRMainHUD::UpdatePostStaminaBar()
 			PostStamina = FMath::FInterpTo(PostStamina, Owner->GetStamina(), GetWorld()->GetDeltaSeconds(), PostBarLerpSpeed);
 			PostStaminaBar->SetPercent(PostStamina / Owner->GetMaxStamina());
 		}
+	}
+}
+
+void UASRMainHUD::ResetGuardBrokenColorChange()
+{
+	if (Owner != nullptr)
+	{
+		StaminaBar->WidgetStyle.BackgroundImage.TintColor = FSlateColor(FLinearColor::White);
 	}
 }

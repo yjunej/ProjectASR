@@ -117,11 +117,39 @@ void ABossEnemy::BossPlayHitAnimation(const FHitData& HitData, FDamageTypeMappin
 	// 
 	// 
 
-	if (HitData.bIsFatalAttack)
+	if (HitData.bIsFatalAttack || HitData.bIsLethalAttack)
 	{
 		SetCombatState(DamageMapping->CombatState);
 		UAnimMontage* LoadedMontage = DamageMapping->HitReactionMontage;
-		PlayAnimMontage(LoadedMontage, 1.f);
+		if (LoadedMontage != nullptr)
+		{
+			EHitDirection HitDirection = GetHitDirection(Attacker->GetActorLocation());
+			FName SectionName = "Front";
+			switch (HitDirection)
+			{
+			case EHitDirection::EHD_Back:
+				SectionName = "Back";
+				break;
+			case EHitDirection::EHD_Left:
+				SectionName = "Left";
+				break;
+			case EHitDirection::EHD_Right:
+				SectionName = "Right";
+				break;
+			case EHitDirection::EHD_Front:
+			case EHitDirection::EHD_MAX:
+			default:
+				break;
+			}
+			if (LoadedMontage->IsValidSectionName(SectionName))
+			{
+				PlayAnimMontage(LoadedMontage, 1.f, SectionName);
+			}
+			else
+			{
+				PlayAnimMontage(LoadedMontage, 1.f);
+			}
+		}
 	}
 
 	if (Stamina > 0)
