@@ -10,7 +10,7 @@ public class ASR : ModuleRules
 	
 		PublicDependencyModuleNames.AddRange(new string[] { 
 			"Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "MotionWarping", "Niagara",
-            "NavigationSystem", "AIModule", "GameplayAbilities", "GameplayTags", "GameplayTasks"
+            "NavigationSystem", "AIModule", "GameplayAbilities", "GameplayTags", "GameplayTasks", "Slate", "SlateCore"
         });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });

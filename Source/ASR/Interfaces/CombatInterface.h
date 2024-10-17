@@ -92,6 +92,13 @@ public:
 	virtual bool IsDead() const = 0;
 
 	UFUNCTION(BlueprintCallable)
+	virtual bool IsInvulnerable() const = 0;
+
+	UFUNCTION(BlueprintCallable)
+	virtual void SetInvulnerable(bool bNewInvulnerable) = 0;
+
+
+	UFUNCTION(BlueprintCallable)
 	virtual UDataTable* GetAttackDataTable() const = 0;
 
 	// Attack Trace

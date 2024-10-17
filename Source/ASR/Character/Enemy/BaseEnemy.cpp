@@ -706,7 +706,12 @@ bool ABaseEnemy::GetHit(const FHitResult& HitResult, AActor* Attacker, const FHi
 	{ 
 		return false;
 	}
-	
+
+	if (IsInvulnerable())
+	{
+		return false;
+	}
+
 	if (Cast<APawn>(Attacker) == nullptr)
 	{
 		return false;
@@ -929,6 +934,16 @@ bool ABaseEnemy::GuardHit(const FHitData& HitData, float StaminaDamage)
 bool ABaseEnemy::IsDead() const
 {
 	return GetCombatState() == ECombatState::ECS_Death;
+}
+
+bool ABaseEnemy::IsInvulnerable() const
+{
+	return bIsInvulnerable;
+}
+
+void ABaseEnemy::SetInvulnerable(bool bNewInvulnerable)
+{
+	bIsInvulnerable = bNewInvulnerable;
 }
 
 ECombatState ABaseEnemy::GetCombatState() const

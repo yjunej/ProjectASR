@@ -72,6 +72,8 @@ public:
 	virtual bool GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 	void SpawnEffects(const FHitData& HitData, const FHitResult& HitResult);
 	virtual bool IsDead() const override;
+	virtual bool IsInvulnerable() const override;
+	virtual void SetInvulnerable(bool bNewInvulnerable) override;
 	virtual ECombatState GetCombatState() const override;
 	virtual EHitReactionState GetHitReactionState() const override;
 	virtual void SetHitReactionState(EHitReactionState NewState) override;
@@ -264,9 +266,6 @@ protected:
 	void SetStamina(float NewStamina);
 
 	UFUNCTION(BlueprintCallable)
-	void SetInvulnerable(bool InInvulnerable) { bIsInvulnerable = InInvulnerable; }
-
-	UFUNCTION(BlueprintCallable)
 	virtual void SetExecutionCamera();
 
 	UFUNCTION(BlueprintCallable)
@@ -444,6 +443,5 @@ public:
 	FORCEINLINE float GetMaxStamina() const { return MaxStamina; }
 	FORCEINLINE float GetDashAttackWarpDistance() const { return DashAttackWarpDistance; }
 	FORCEINLINE float GetNormalAttackWarpDistance() const { return NormalAttackWarpDistance; }
-	FORCEINLINE bool IsInvulnerable() const { return bIsInvulnerable; }
 
 };

@@ -42,6 +42,8 @@ public:
 	virtual bool GetHit(const FHitResult& HitResult, AActor* Attacker, const FHitData& HitData) override;
 	void SpawnEffects(const FHitData& HitData, const FHitResult& HitResult, class AASRCharacter* Attacker);
 	virtual bool IsDead() const override;
+	virtual bool IsInvulnerable() const override;
+	virtual void SetInvulnerable(bool bNewInvulnerable) override;
 	virtual ECombatState GetCombatState() const override;
 	virtual EHitReactionState GetHitReactionState() const override;
 	virtual void SetHitReactionState(EHitReactionState NewState) override;
@@ -233,6 +235,8 @@ protected:
 	virtual int32 ModifyAttackMontage(EAIAttack AIAttackType, int32 SelectedIndex) { return SelectedIndex; }
 
 	float DamageMultiplier = 1.f;
+
+	bool bIsInvulnerable = false;
 
 private:
 	

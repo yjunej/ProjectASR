@@ -365,7 +365,7 @@ void AASRCharacter::ResetHeavyAttack()
 
 float AASRCharacter::GetFirstSkillWarpDistance() const
 {
-	return NormalAttackWarpDistance;
+	return HeavyAttackWarpDistance;
 }
 
 void AASRCharacter::ExecuteNormalAttack(int32 AttackIndex)
@@ -704,6 +704,7 @@ void AASRCharacter::ResetState()
 
 	EMovementMode MovementMode = GetCharacterMovement()->MovementMode;
 	ResetNormalAttack();
+	ResetHeavyAttack();
 	ResetDodge();
 	ResetGuard();
 	if (GetTargetingComponent() != nullptr)
@@ -879,7 +880,7 @@ void AASRCharacter::HandleDeath()
 
 void AASRCharacter::RegenStamina()
 {
-	if (CombatState != ECombatState::ECS_Guard)
+	if (CombatState != ECombatState::ECS_Guard && CombatState != ECombatState::ECS_Attack && CombatState != ECombatState::ECS_Dodge)
 	{
 		SetStamina(Stamina + StaminaRegenRate * StaminaRegenInterval);
 	}
@@ -996,6 +997,14 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 			SetCombatState(ECombatState::ECS_Attack);
 			PlayAnimMontage(JustGuardDodgeMontage, 1.f, "JustDodge");
 		}
+		// TODO: Mikiri Counter (Sekiro)
+		else if (CombatState == ECombatState::ECS_Attack && HitReactionState == EHitReactionState::EHR_Parry)
+		{
+			if (ParryCounterMontage)
+			{
+				PlayAnimMontage(ParryCounterMontage, 1.f);
+			}
+		}
 		return false;
 	}
 
@@ -1013,7 +1022,7 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 		if (HitReactionState == EHitReactionState::EHR_Parry)
 		{
 			// Stamina 
-			SetStamina(Stamina + 100.f);
+			SetStamina(Stamina + 200.f);
 			if (Cast<ABaseEnemy>(Attacker) != nullptr)
 			{
 				ABaseEnemy* Enemy = Cast<ABaseEnemy>(Attacker);
@@ -1054,12 +1063,15 @@ bool AASRCharacter::GetHit(const FHitResult& HitResult, AActor* Attacker, const 
 			SetStamina(Stamina - StaminaDamage);
 			if (Stamina - StaminaDamage <= 0)
 			{
+				SetCombatState(ECombatState::ECS_Flinching);
 				GuardSectionName = "GuardBreak";
 				ReleaseGuard();
 			}
 			else if (HitData.bIsLethalAttack)
 			{
+				SetCombatState(ECombatState::ECS_Flinching);
 				GuardSectionName = "Lethal";
+				ReleaseGuard();
 			}
 			PlayAnimMontage(GuardAcceptMontage, 1.f, GuardSectionName);
 			return true;
@@ -1168,6 +1180,16 @@ void AASRCharacter::PlayHitAnimation(const FHitData& HitData, AActor* Attacker)
 bool AASRCharacter::IsDead() const
 {
 	return CombatState == ECombatState::ECS_Death;
+}
+
+bool AASRCharacter::IsInvulnerable() const
+{
+	return bIsInvulnerable;
+}
+
+void AASRCharacter::SetInvulnerable(bool bNewInvulnerable)
+{
+	bIsInvulnerable = bNewInvulnerable;
 }
 
 ECombatState AASRCharacter::GetCombatState() const
