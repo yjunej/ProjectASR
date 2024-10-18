@@ -5,6 +5,8 @@
 
 #include "ASR/Character/ASRCharacter.h"
 #include "Components/ProgressBar.h"
+#include "Components/CanvasPanel.h"
+#include "Components/CanvasPanelSlot.h"
 
 void UASRMainHUD::NativeConstruct()
 {
@@ -98,5 +100,21 @@ void UASRMainHUD::ResetGuardBrokenColorChange()
 
 		//StaminaBar->GetWidgetStyle().BackgroundImage.TintColor = const FSlateColor(FLinearColor::White);
 		//StaminaBar->SetWidgetStyle()
+	}
+}
+
+void UASRMainHUD::AddWidgetToMainCanvas(UUserWidget* Widget)
+{
+	if (MainCanvas)
+	{
+		UCanvasPanelSlot* NewSlot = MainCanvas->AddChildToCanvas(Widget);
+		if (NewSlot)
+		{
+			// Full Screen
+			NewSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+			NewSlot->SetPosition(FVector2D(0.f, 0.f));
+			FVector2D ScreenSize = FVector2D(MainCanvas->GetCachedGeometry().GetLocalSize());
+			NewSlot->SetSize(ScreenSize);
+		}
 	}
 }

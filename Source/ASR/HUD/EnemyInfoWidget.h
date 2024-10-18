@@ -65,4 +65,5 @@ public:
 	float PostStamina;
 	
 	void ResetGuardBrokenColorChange();
+	void UpdateDamageMultiPlier();
 };

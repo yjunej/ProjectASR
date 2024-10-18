@@ -30,7 +30,6 @@ void AASRPlayerController::BeginPlay()
 	check(PlayCharacter);
 
 	ControlCharacter = Cast<AASRCharacter>(PlayCharacter);
-
 	check(DefaultMappingContext);
 
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());

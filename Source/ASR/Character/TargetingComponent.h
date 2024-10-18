@@ -66,7 +66,7 @@ private:
 
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
-	float TargetRadius = 90.f;
+	float TargetRadius = 200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = NormalCombat, meta = (AllowPrivateAccess = "true"))
 	float SubTargetingDistance = 500.f;

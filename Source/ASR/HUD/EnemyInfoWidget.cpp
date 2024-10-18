@@ -43,8 +43,7 @@ void UEnemyInfoWidget::UpdateStaminaBar()
 			EnemyStaminaBar->SetPercent(Owner->Stamina / Owner->MaxStamina);
 			if (Owner->Stamina <= 0.f)
 			{
-				float DamageMultiplier = Owner->GetDamageMultiplier();
-				DamageMultiplierText->SetText(FText::FromString(FString::Printf(TEXT("x%.1f"), DamageMultiplier)));
+				UpdateDamageMultiPlier();
 
 				FProgressBarStyle StaminaBarStyle = EnemyStaminaBar->GetWidgetStyle();
 				StaminaBarStyle.BackgroundImage.TintColor = FSlateColor(FLinearColor::Red);
@@ -117,5 +116,14 @@ void UEnemyInfoWidget::ResetGuardBrokenColorChange()
 		EnemyStaminaBar->SetWidgetStyle(StaminaBarStyle);
 		DamageMultiplierIcon->SetColorAndOpacity(FLinearColor::White);
 		DamageMultiplierText->SetColorAndOpacity(FSlateColor(FLinearColor::White));
+	}
+}
+
+void UEnemyInfoWidget::UpdateDamageMultiPlier()
+{
+	if (Owner != nullptr)
+	{
+		float DamageMultiplier = Owner->GetDamageMultiplier();
+		DamageMultiplierText->SetText(FText::FromString(FString::Printf(TEXT("x%.1f"), DamageMultiplier)));
 	}
 }

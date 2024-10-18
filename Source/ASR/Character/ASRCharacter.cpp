@@ -48,9 +48,10 @@ AASRCharacter::AASRCharacter()
 	CameraBoom->CameraLagSpeed = 16.f;
 	CameraBoom->SetRelativeLocation(FVector(0.f, 0.f, 120.f));
 
-	// Katana Blade Zero
-	// CameraBoom->TargetArmLength = 350.f;
-	// CameraBoom->SocketOffset = FVector(0.f, 100.f, 40.f);
+	// Phantom Blade Zero
+	 CameraBoom->TargetArmLength = 375.f;
+	 CameraBoom->SocketOffset = FVector(0.f, 60.f, 40.f);
+	 //CameraBoom->SocketOffset = FVector(0.f, 100.f, 40.f);
 
 	// Sekiro
 	// CameraBoom->TargetArmLength = 400.f;
@@ -140,23 +141,32 @@ void AASRCharacter::StartArmLengthChange(UCurveFloat* ArmCurve)
 void AASRCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	if (MainHUDWidgetClass != nullptr)
+	if (MainHUDWidgetClass)
 	{
 		UUserWidget* UserWidget = CreateWidget(GetWorld(), MainHUDWidgetClass);
-		if (UserWidget != nullptr)
+		if (UserWidget)
 		{
 			MainHUDWidget = Cast<UASRMainHUD>(UserWidget);
-			if (MainHUDWidget != nullptr)
+			if (MainHUDWidget)
 			{
 				MainHUDWidget->Owner = this;
 				MainHUDWidget->UpdateHealthBar();
 				MainHUDWidget->UpdateStaminaBar();
 				MainHUDWidget->AddToViewport();
+				//if (HelpWidgetClass)
+				//{
+				//	UUserWidget* HelpWidget = CreateWidget(GetWorld(), HelpWidgetClass);
+				//	if (HelpWidget)
+				//	{
+				//		MainHUDWidget->HelpWidget = HelpWidget;
+				//		MainHUDWidget->AddWidgetToMainCanvas(HelpWidget);
+				//		MainHUDWidget->HelpWidget->SetVisibility(ESlateVisibility::Hidden);
+				//	}
+				//}
 			}
-		}
-			
+		}		
 	}
-	
+
 	// Camera Actor Setting
 	if (FollowCameraManager != nullptr)
 	{
@@ -202,7 +212,6 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		EnhancedInputComponent->BindAction(NormalAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_NormalAttack);
 
-		//
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Canceled, this, &AASRCharacter::Input_HeavyAttack);
 		EnhancedInputComponent->BindAction(HeavyAttackAction, ETriggerEvent::Triggered, this, &AASRCharacter::Input_Hold_HeavyAttack);
 
@@ -214,6 +223,10 @@ void AASRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		EnhancedInputComponent->BindAction(GuardAction, ETriggerEvent::Started, this, &AASRCharacter::Input_Guard);
 		EnhancedInputComponent->BindAction(GuardAction, ETriggerEvent::Completed, this, &AASRCharacter::Input_Release_Guard);
+
+		EnhancedInputComponent->BindAction(HelpAction, ETriggerEvent::Started, this, &AASRCharacter::Input_Help);
+		EnhancedInputComponent->BindAction(HelpAction, ETriggerEvent::Completed, this, &AASRCharacter::Input_Release_Help);
+
 
 	}
 }
@@ -535,6 +548,29 @@ void AASRCharacter::Input_Release_Guard(const FInputActionValue& Value)
 	{
 		ReleaseGuard();
 		PlayAnimMontage(GuardMontage, 1.f, FName("GuardEnd"));
+	}
+}
+
+void AASRCharacter::Input_Help(const FInputActionValue& Value)
+{
+	if (MainHUDWidget != nullptr)
+	{
+		if (MainHUDWidget->HelpWidget != nullptr)
+		{
+			MainHUDWidget->HelpWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+
+}
+
+void AASRCharacter::Input_Release_Help(const FInputActionValue& Value)
+{
+	if (MainHUDWidget != nullptr)
+	{
+		if (MainHUDWidget->HelpWidget != nullptr)
+		{
+			MainHUDWidget->HelpWidget->SetVisibility(ESlateVisibility::Hidden);
+		}
 	}
 }
 

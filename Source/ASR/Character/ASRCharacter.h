@@ -97,7 +97,8 @@ public:
 	void ApplyHitStop(float Duration, float TimeDilation);
 	void ResetTimeDilation();
 
-	class UASRMainHUD* MainHUDWidget;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = HUD)
+	TObjectPtr<class UASRMainHUD> MainHUDWidget;
 
 	FOnCombatStateChanged OnCombatStateChanged;
 
@@ -173,6 +174,9 @@ protected:
 
 	void Input_ToggleCrouch(const FInputActionValue& Value);
 	void Input_Release_Guard(const FInputActionValue& Value);
+	void Input_Help(const FInputActionValue& Value);
+	void Input_Release_Help(const FInputActionValue& Value);
+
 
 
 	virtual bool CanAttack() const;
@@ -223,10 +227,10 @@ protected:
 	TArray<AActor*> HitActors;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
-	float Health = 1000.f;
+	float Health = 2000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
-	float MaxHealth = 1000.f;
+	float MaxHealth = 2000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
 	float Stamina = 1000.f;
@@ -235,7 +239,7 @@ protected:
 	float MaxStamina = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = State)
-	float StaminaRegenRate = 100.f;
+	float StaminaRegenRate = 200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat)
 	float ExecutionDistance = 400.f;
@@ -322,6 +326,9 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* SkillAttackAction;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* HelpAction;
+
 	// Animations
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TArray<class UAnimMontage*> NormalAttackMontages;
@@ -361,6 +368,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = HUD, meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<UUserWidget> MainHUDWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = HUD, meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<UUserWidget> HelpWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Animation, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> StandingDeathMontage;

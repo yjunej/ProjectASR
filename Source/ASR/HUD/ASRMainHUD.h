@@ -51,10 +51,18 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
 	class UCanvasPanel* BossInfoCanvas;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	class UCanvasPanel* MainCanvas;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (BindWidget))
+	TObjectPtr<UUserWidget> HelpWidget;
+
+
 	float PostBarLerpSpeed = 1.5f;
 	float PostHealth;
 	float PostStamina;
 
 	void ResetGuardBrokenColorChange();
+	void AddWidgetToMainCanvas(UUserWidget* Widget);
 
 };

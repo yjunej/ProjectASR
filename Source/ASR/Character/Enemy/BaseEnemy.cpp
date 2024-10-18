@@ -915,8 +915,9 @@ bool ABaseEnemy::GuardHit(const FHitData& HitData, float StaminaDamage)
 {
 	if (GuardHitMontage != nullptr)
 	{
+		float PrevStamina = Stamina;
 		SetStamina(Stamina - StaminaDamage);
-		if (Stamina - StaminaDamage < 0.f)
+		if(PrevStamina - StaminaDamage <= 0.f)
 		{
 			GuardBroken();
 		}

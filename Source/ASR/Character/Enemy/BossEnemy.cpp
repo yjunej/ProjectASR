@@ -72,11 +72,15 @@ float ABossEnemy::SetMovementSpeed(EEnemyMovementSpeed EnemyMovementSpeed)
 void ABossEnemy::GuardBroken()
 {
 	DamageMultiplier += 0.5f;
+	if (BossInfoWidget != nullptr)
+	{
+		BossInfoWidget->UpdateDamageMultiPlier();
+	}
+	OnStaminaChanged.Broadcast();
 	SetInvulnerable(true);
 	Super::GuardBroken();
 	FTimerHandle TimerHandle;
 	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ABossEnemy::RefillStamina, 0.5f, false);
-	OnStaminaChanged.Broadcast();
 }
 
 
